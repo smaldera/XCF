@@ -43,6 +43,12 @@ def plot_pixel_dist(file_list,pixel):
    isto_all(npVal)
         
 
+def write_fitsImage(array, nomefile):
+   hdu = pf.PrimaryHDU(array)
+   hdu.writeto(nomefile)
+
+
+   
 nomefile='/home/maldera/Desktop/eXTP/ASI294/testImages/CapObj/2021-12-20_14_18_02Z/2021-12-20-1418_0-CapObj_0000.FIT'  # buio, 40us, 350gain, 50,50wb, 80 offset 
 image_data=read_image(nomefile)
 nx=image_data.shape[0]
@@ -77,8 +83,9 @@ plot_image(mean)
 
 # write image w mean pedestal
 
-hdu = pf.PrimaryHDU(mean)
-hdu.writeto('new2.fits')
+#hdu = pf.PrimaryHDU(mean)
+#hdu.writeto('new2.fits')
+write_fitsImage(mean, 'pedestal_mean.fits')
 
 std=(allSum2/n-mean**2)**0.5
 
