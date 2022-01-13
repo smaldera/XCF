@@ -48,54 +48,48 @@ def write_fitsImage(array, nomefile):
    hdu.writeto(nomefile)
 
 
+
+def bg_map(bg_shots_path,outMeanPed_file, outStdPed_file, ny=4144,nx=2822, draw=1, hist_pixel=None ):
+
+  # lista file immagini:
+   f=glob.glob(bg_shots_path+"/*.FIT")
+
+   if hist_pixel!=None:
+       print('plotting histogram for pixel:',hist_pixel[0], " ",hist_pixel[1])
+       plot_pixel_dist(f,[hist_pixel[0],hist_pixel[1]] ) # if hist_pixel differnt form null, plot the histo of that pixel and return
+       return                
    
-nomefile='/home/maldera/Desktop/eXTP/ASI294/testImages/CapObj/2021-12-20_14_18_02Z/2021-12-20-1418_0-CapObj_0000.FIT'  # buio, 40us, 350gain, 50,50wb, 80 offset 
-image_data=read_image(nomefile)
-nx=image_data.shape[0]
-ny=image_data.shape[1]
+   # array somma (ogni pixel contine la somma... )
+   allSum=np.zeros((nx,ny),dtype=np.int16 )
+   # array somma^2 (ogni pixel sum(x_i^2)... )
+   allSum2=np.zeros((nx,ny),dtype=np.int16 )
 
-print ("shape=",image_data.shape," ",nx,"  ",ny)
+   n=0.
+   for image_file in f:
+      n=n+1.
+     # print(n," --> ", image_file) 
+      image_data=read_image(image_file)
+      allSum=allSum+ image_data
+      allSum2=allSum2+ image_data**2
+
+   # mean pedestal for each pixel    
+   mean=allSum/n
+   # pedestal standard deviation:
+   std=(allSum2/n-mean**2)**0.5
+
+   # write image w mean pedestal
+   write_fitsImage(mean,outMeanPed_file )
+   write_fitsImage(std,outStdPed_file )
+
+   if draw:
+     plot_image(std)
+     plot_image(mean)
 
 
-# path alle immagini bg:
+
+
+#####################################
+
+
 bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/CapObj/2021-12-20_14_22_31Z/'
-# lista file immagini:
-f=glob.glob(bg_shots_path+"/*.FIT")
-
-# array somma (ogni pixel contine la somma... )
-allSum=np.zeros((nx,ny),dtype=np.int16 )
-# array somma^2 (ogni pixel sum(x_i^2)... )
-allSum2=np.zeros((nx,ny),dtype=np.int16 )
-
-
-
-n=0.
-for image_file in f:
-   n=n+1.
-   print(n," --> ", image_file) 
-   image_data=read_image(image_file)
-   allSum=allSum+ image_data
-   allSum2=allSum2+ image_data**2
-  
-
-mean=allSum/n   
-plot_image(mean)
-
-# write image w mean pedestal
-
-#hdu = pf.PrimaryHDU(mean)
-#hdu.writeto('new2.fits')
-write_fitsImage(mean, 'pedestal_mean.fits')
-
-std=(allSum2/n-mean**2)**0.5
-
-plot_image(std)
-
-isto_all(image_data)
-
-plot_pixel_dist(f,[100,100] )  
-
-
-
-
-
+bg_map(bg_shots_path,'mean_ped.fits', 'std_ped.fits', draw=0 )
