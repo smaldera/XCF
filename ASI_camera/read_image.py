@@ -1,9 +1,8 @@
 
 from astropy.io import fits as pf
 from matplotlib import pyplot as plt
-
 import numpy as np
-import ROOT
+
 
 #file_path='/home/maldera/Desktop/eXTP/ASI294/testImages/CapObj/2021-12-09_13_41_13Z/2021-12-09-1341_2-CapObj_0000.FIT'
 #file_path='/home/maldera/Desktop/eXTP/ASI294/testImages/CapObj/2021-12-13_11_52_30Z/2021-12-13-1152_5-CapObj_0000.FIT'
@@ -44,7 +43,3 @@ plt.colorbar()
 plt.show()
 
 
-# root 
-#h1=ROOT.TH1F("h1","",65536,0,65536)
-#h1.FillN(len(flat_image ),flat_image,np.ones(len(flat_image )))
-#h1.Draw()
