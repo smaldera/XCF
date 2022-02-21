@@ -1,0 +1,43 @@
+from astropy.io import fits as pf
+from matplotlib import pyplot as plt
+
+import numpy as np
+import os
+
+from sklearn import metrics
+
+i = 0
+flat_image = []
+
+files_path = ("C:\\Users\\Acer\\Downloads\\Uni\\Tesi\\Dati\\solo dati FIT - no sorgente")    #il percorso della cartella contenente solo i dati FIT(tolti quindi i .txt)
+
+for filename in os.listdir(files_path):
+    files = os.path.join(files_path, filename)
+    data_f = pf.open(files, memmap = True)    
+#    data_f.info()
+    
+    image_data = pf.getdata(files, ext=0)/4
+    flat_image.insert(i, image_data.flatten())
+    i = i+1                                                               #questo ciclo for apre ogni file nella directory e salva i dati in una lista
+
+    
+pixels_weights = np.array(flat_image)
+pixels_weights.reshape(pixels_weights.shape[0], pixels_weights.shape[1])         
+
+#print(pixels_weights)
+
+rumor_mean = np.mean(pixels_weights, axis=0)
+rumor_std = np.std(pixels_weights, axis=0)
+
+print(rumor_mean)
+print(rumor_std)           #si trasforma la lista in una matrice e si calcola il valor medio e la std di ogni colonna che corrisponde ad un singolo pixel visto in ogni file
+
+
+fig, ax = plt.subplots()
+ax.hist(rumor_mean, bins=int(65536/4), range=(0,65536/4)   , alpha=1, histtype='step')
+mean = rumor_mean.mean()
+rms = rumor_mean.std()
+s='mean='+str(round(mean,3))+"\n"+"RMS="+str(round(rms,3))
+ax.text(0.7, 0.9, s,  transform=ax.transAxes,  bbox=dict(alpha=0.7))
+
+plt.figure()
