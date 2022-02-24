@@ -1,21 +1,19 @@
 from astropy.io import fits as pf
 from matplotlib import pyplot as plt
+from sklearn import metrics
 
 import numpy as np
 import os
 
-from sklearn import metrics
-
 i = 0
 flat_image = []
+files_path = ("C:\\Users\\Acer\\Downloads\\Uni\\Tesi\\Dati\\solo dati FIT - no sorgente")
 
 
 def write_fitsImage(array, nomefile):
    hdu = pf.PrimaryHDU(array)
    hdu.writeto(nomefile)
 
-
-files_path = ("C:\\Users\\Acer\\Downloads\\Uni\\Tesi\\Dati\\solo dati FIT - no sorgente")
 
 for filename in os.listdir(files_path):
     files = os.path.join(files_path, filename)
