@@ -7,13 +7,12 @@ import numpy as np
 import os
 
 
-xpixels = []
-ypixels = []
-weight = []
-
 files_path = ("C:\\Users\\Acer\\Downloads\\Uni\\Tesi\\Dati\\acquisizione lunga\\")
 background_path = ("C:\\Users\\Acer\\Tesi\\meanpedlongr.fits")
 
+a = np.zeros(11694368)
+b = np.histogram(a, bins=int(65536/4), range=(0,65536/4))
+b1 = b[0]
 
 for filename in os.listdir(files_path):
     files = os.path.join(files_path, filename)
@@ -26,66 +25,68 @@ for filename in os.listdir(files_path):
     data = image_data - back_data
     
     mask = np.where(data > 100)
-    
-    x, y = mask 
     w = data[mask]
+    mask = np.transpose(mask)
     
-    for i in range(0, x.shape[0]):
-        xpixels.insert(i, x[i])
-        ypixels.insert(i, y[i])
-        weight.insert(i, w[i])
+    if  mask.shape == (0, 2):
+        print('EMPTY')
+        continue
+    
+    else:
+    
+        db = DBSCAN(eps=3, min_samples=2, n_jobs=1, algorithm='ball_tree').fit(mask)
+        labels = db.labels_
+        print(labels)
+
+        unique_labels = set(labels)
+
+        n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+        n_noise_ = list(labels).count(-1)
+
+        print("Estimated number of clusters: %d" % n_clusters_)
+        print("Estimated number of noise points: %d" % n_noise_)
 
 
-xpixels = np.array(xpixels, dtype=int)
-ypixels = np.array(ypixels, dtype=int)
-weight = np.array(weight, dtype=float)
+        for clu_id in unique_labels:
+      
+            print ("CLUSTER_ID =",clu_id)
+            if clu_id == -1:
+                somma_pesi = np.zeros(0)
+                continue
+      
+            clu_mask = np.where(labels == clu_id)
+            clu_coords = mask[clu_mask]
+            clu_weights = w[clu_mask]
 
-#print(xpixels)
-#print(weight)
+            print("cluster coord=",clu_coords)
+            print("cluster weights=",clu_weights)
+            
+            somma_pesi = sum(clu_weights)
+        
+        if somma_pesi.shape == 0:
+            continue
+            
+        else:
+            c = np.histogram(somma_pesi, bins=int(65536/4), range=(0,65536/4))
+            d = b1 + c[0]
+            b1 = d
+    
+    
+    mask = list(mask).clear()
+    mask = np.array(mask)
+    
 
-%matplotlib notebook
+%matplotlib notebook 
+
 fig, ax = plt.subplots()
-ax.hist2d(xpixels, ypixels, bins = (4144, 2822), range = [[0,4144], [0,2822]], weights = weight, cmap=plt.cm.jet)
+ax.hist(c[1][:-1], bins=int(65536/4), range=(0,65536/4), weights=d, alpha=1, histtype='step')
+mean = c[0].mean()
+rms = c[0].std()
+s='mean='+str(round(mean,3))+"\n"+"RMS="+str(round(rms,3))
+ax.text(0.7, 0.9, s,  transform=ax.transAxes,  bbox=dict(alpha=0.7))
 
+
+plt.yscale("log")
 plt.figure()
 plt.show()
-
-
-
-
-###################### CLUSTERING ####################################################
-
-pixels = np.stack((xpixels, ypixels), axis=0)
-pixels = np.transpose(pixels)
-
-weight = np.array(weight)
-
-
-db = DBSCAN(eps=3, min_samples=2, n_jobs=1, algorithm='ball_tree').fit(pixels)
-labels = db.labels_
-print(labels)
-
-unique_labels = set(labels)
-
-n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-n_noise_ = list(labels).count(-1)
-
-print("Estimated number of clusters: %d" % n_clusters_)
-print("Estimated number of noise points: %d" % n_noise_)
-
-
-for clu_id in unique_labels:
-      
-    print ("CLUSTER_ID =",clu_id)
-    if clu_id == -1:
-        continue
-      
-    clu_mask = np.where(labels == clu_id)
-    clu_coords = pixels[clu_mask]
-    clu_weights = weight[clu_mask]
-
-    print("cluster coord=",clu_coords)
-    print("cluster weights=",clu_weights)
-    
-     
 
