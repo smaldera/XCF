@@ -1,13 +1,15 @@
 from astropy.io import fits as pf
 from matplotlib import pyplot as plt
 from sklearn import metrics
-
 import numpy as np
-import os
+import os 
+import math
+
+
 
 i = 0
-flat_image = []
-files_path = ("C:\\Users\\Acer\\Downloads\\Uni\\Tesi\\Dati\\solo dati FIT - no sorgente")
+a = np.zeros(11694368)
+b = np.zeros(11694368)
 
 
 def write_fitsImage(array, nomefile):
@@ -15,23 +17,26 @@ def write_fitsImage(array, nomefile):
    hdu.writeto(nomefile)
 
 
+files_path = ("C:\\Users\\Acer\\Downloads\\Uni\\Tesi\\Dati\\acquisizione lunga")
+
 for filename in os.listdir(files_path):
     files = os.path.join(files_path, filename)
     data_f = pf.open(files, memmap = True)    
-#    data_f.info()
     
     image_data = pf.getdata(files, ext=0)/4
-    flat_image.insert(i, image_data.flatten())
-    i = i+1
-
+    flat_data = image_data.flatten()
+    summ = a + flat_data
+    summpow = b + (flat_data*flat_data)
     
-pixels_weights = np.array(flat_image)
-pixels_weights.reshape(pixels_weights.shape[0], pixels_weights.shape[1])
+    a = summ
+    b = summpow
+    i = i+1
+    
+print(i)    
 
-#print(pixels_weights.shape)
-
-rumor_mean = np.mean(pixels_weights, axis=0)
-rumor_std = np.std(pixels_weights, axis=0)
+rumor_mean = summ / i
+varianza = (summpow / i) - (rumor_mean*rumor_mean)
+rumor_std = np.sqrt(varianza) / math.sqrt(i)
 
 print(rumor_mean)
 print(rumor_std)
@@ -49,12 +54,13 @@ a = np.array(rumor_mean.reshape(2822, 4144))
 
 b = np.array(rumor_std.reshape(2822, 4144))
 
-
+plt.yscale("log")
 plt.figure()
 plt.imshow(a, cmap='plasma')
 plt.colorbar()
 plt.show()
 
 
-write_fitsImage(a, "meanped.fits")
-write_fitsImage(b, "stdped.fits")
+write_fitsImage(a, "meanpedlongr.fits")
+write_fitsImage(b, "stdpedlongr.fits")
+
