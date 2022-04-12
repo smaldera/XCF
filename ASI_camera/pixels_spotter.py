@@ -6,13 +6,13 @@ from sklearn import metrics
 import numpy as np
 import os
 
+%matplotlib notebook
 
 files_path = ("C:\\Users\\Acer\\Downloads\\Uni\\Tesi\\Dati\\acquisizione lunga\\")
 background_path = ("C:\\Users\\Acer\\Tesi\\meanpedlongr.fits")
 
-a = np.zeros(11694368)
-b = np.histogram(a, bins=int(65536/4), range=(0,65536/4))
-b1 = b[0]
+a = np.zeros(1)
+b1, binsedges = np.histogram(a, bins=int(65536/4), range=(0,65536/4))
 
 for filename in os.listdir(files_path):
     files = os.path.join(files_path, filename)
@@ -50,36 +50,38 @@ for filename in os.listdir(files_path):
         for clu_id in unique_labels:
       
             print ("CLUSTER_ID =",clu_id)
-            if clu_id == -1:
-                somma_pesi = np.zeros(0)
-                continue
+            if clu_id != -1:
       
-            clu_mask = np.where(labels == clu_id)
-            clu_coords = mask[clu_mask]
-            clu_weights = w[clu_mask]
+                clu_mask = np.where(labels == clu_id)
+                clu_coords = mask[clu_mask]
+                clu_weights = w[clu_mask]
 
-            print("cluster coord=",clu_coords)
-            print("cluster weights=",clu_weights)
+                print("cluster coord=",clu_coords)
+                print("cluster weights=",clu_weights)
             
-            somma_pesi = sum(clu_weights)
-        
-        if somma_pesi.shape == 0:
-            continue
-            
-        else:
-            c = np.histogram(somma_pesi, bins=int(65536/4), range=(0,65536/4))
-            d = b1 + c[0]
-            b1 = d
-    
+                somma_pesi = sum(clu_weights)
+                
+                x_coords = list(clu_coords[:,0])
+                y_coords = list(clu_coords[:,1])
+  
+                res = x_coords.count(x_coords[0]) == len(x_coords)
+                tes = y_coords.count(y_coords[0]) == len(y_coords)
+      
+                if(res or tes) and len(x_coords) > 2 or len(x_coords) > 5:
+                    plt.scatter(np.array(x_coords), np.array(y_coords), c = np.log(clu_weights), marker = 'x', vmin = 0, vmax = 10)
+                    
+                else:
+                    plt.scatter(np.array(x_coords), np.array(y_coords), c = np.log(clu_weights), vmin = 0, vmax = 10)
+                    c = np.histogram(somma_pesi, bins=binsedges, range=(0,65536/4))
+                    b1 = b1 + c[0]
+                    
     
     mask = list(mask).clear()
     mask = np.array(mask)
-    
-
-%matplotlib notebook 
+     
 
 fig, ax = plt.subplots()
-ax.hist(c[1][:-1], bins=int(65536/4), range=(0,65536/4), weights=d, alpha=1, histtype='step')
+ax.hist(binsedges[:-1], bins = binsedges, range=(0,65536/4), weights=b1, alpha=1, histtype='step')
 mean = c[0].mean()
 rms = c[0].std()
 s='mean='+str(round(mean,3))+"\n"+"RMS="+str(round(rms,3))
@@ -87,6 +89,7 @@ ax.text(0.7, 0.9, s,  transform=ax.transAxes,  bbox=dict(alpha=0.7))
 
 
 plt.yscale("log")
-plt.figure()
+plt.colorbar()
 plt.show()
 
+    
