@@ -34,13 +34,13 @@ weights2=np.array(weights)
 
 #print(coord2[0])
 
-mask_zeroSupp=np.where(weights2>330)
+mask_zeroSupp=np.where(weights2>150)
 supp_coords=coord2[mask_zeroSupp]
 supp_weights=weights2[mask_zeroSupp]
 
 
 
-
+"""
 print('START CLUSTERING...')
 
 db = DBSCAN(eps=0.5, min_samples=1, n_jobs=1, algorithm='ball_tree').fit(supp_coords)
@@ -77,11 +77,12 @@ for clu_id in unique_labels:
 
 
 
-
+"""
 plt.figure()
 plt.hist(supp_weights, bins=16384, range=(0,16384)   , alpha=1, histtype='step')
-# istogramma 2d
 
+
+# istogramma 2d
 traspose=np.transpose(supp_coords)
 x=traspose[0]
 y=traspose[1]

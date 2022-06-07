@@ -18,6 +18,8 @@ mean_ped=al.read_image(pedfile) # non divido per 4. il ped e' gia' stato diviso 
 x=[]
 countsAll,bins=np.histogram(x,bins=int(65536/4)  ,range=(0,65536/4)  )
 h1=ROOT.TH1F('h1','',16384,0,16384)
+h2=ROOT.TH1F('h2','',16384,0,16384)
+
 aa=[[0, 0]]
 supp_coordsAll=np.empty((0,2))
 supp_weightsAll=np.empty(0)
@@ -27,6 +29,8 @@ y_pix=np.empty(0)
 n=0
 print("shape iniziale=",supp_coordsAll.shape)
 print ("supp_coordsAll inizila=",supp_coordsAll)
+
+sumq=[]
 
 for image_file in f:
 
@@ -62,15 +66,18 @@ for image_file in f:
 
     # clustering!!!
     if len(supp_weigths_i)>0:
-        al.clustering( supp_coords_i, supp_weigths_i)
-
-    
-    if n==30:
-        break
+       clu_q= al.clustering( supp_coords_i, supp_weigths_i)
+       sumq=sumq+clu_q
+       print("clu_q=",clu_q," sumq=  ",sumq  )
+       
+   # if n==10:
+   #     break
     n=n+1
-    
-
-h1.Draw()
+sumq=np.array(sumq)    
+w2= np.ones(len(sumq))
+print("type(sumq) ",type(sumq))
+h2.FillN(len(sumq), sumq, w2 )
+h2.Draw()
 
     
 #plot final histo:
@@ -87,11 +94,14 @@ print('y=',y_pix)
 print('supp_weightsAll=', supp_weightsAll)
 plt.figure()
 #plt.hist2d(x,y, bins=[image_data.shape[0],image_data.shape[1] ],  weights=supp_weights)
-
 #plt.hist2d(x_pix,y_pix, bins=[2822,4144], weights= supp_weightsAll , range=[[0, 2822], [0, 4144]], norm=col.LogNorm() )
-plt.plot(x_pix,y_pix,'or')
 
-#plt.colorbar()
+#plt.plot(x_pix,y_pix,'or')
+plt.scatter(x_pix,y_pix, c=supp_weightsAll)
+plt.colorbar()
+
+
+al.isto_all(np.array( sumq))
 
 plt.show()    
 
