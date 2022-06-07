@@ -1,21 +1,52 @@
+from astropy.io import fits as pf
 import numpy as np
 from matplotlib import pyplot as plt
 import glob
-import utils as al
 
+
+
+def read_image(nomefile):
+   data_f = pf.open(nomefile, memmap=True)
+   data_f.info()
+   image_data = pf.getdata(nomefile, ext=0)/4.
+
+   return image_data
+   
+
+def plot_image(image_data):
+    plt.figure()
+    plt.imshow(image_data, cmap='plasma')
+    plt.colorbar()
+    plt.show()
+
+
+def isto_all(image_data):
+    flat_image=image_data.flatten()
+    fig, ax = plt.subplots()
+    ax.hist(flat_image, bins=int(65536/4), range=(0,65536/4)   , alpha=1, histtype='step')
+    mean=flat_image.mean()
+    rms=flat_image.std()
+    s='mean='+str(round(mean,3))+"\n"+"RMS="+str(round(rms,3))
+    ax.text(0.7, 0.9, s,  transform=ax.transAxes,  bbox=dict(alpha=0.7))
+    plt.show()
 
 
 def plot_pixel_dist(file_list,pixel):    
 
    myVal=[]
    for image_file in file_list:
-        image_data=al.read_image(image_file)/4.
+        image_data=read_image(image_file)
         myVal.append(image_data[pixel[0]][pixel[1]])
         print("val = ",image_data[pixel[0]][pixel[1]])
         
    npVal=np.array(myVal)
-   al.isto_all(npVal)
+   isto_all(npVal)
         
+
+def write_fitsImage(array, nomefile):
+   hdu = pf.PrimaryHDU(array)
+   hdu.writeto(nomefile)
+
 
 
 def bg_map(bg_shots_path,outMeanPed_file, outStdPed_file, ny=4144,nx=2822, draw=1, hist_pixel=None ):
@@ -37,7 +68,7 @@ def bg_map(bg_shots_path,outMeanPed_file, outStdPed_file, ny=4144,nx=2822, draw=
    for image_file in f:
       n=n+1.
      # print(n," --> ", image_file) 
-      image_data=al.read_image(image_file)/4.
+      image_data=read_image(image_file)
       allSum=allSum+ image_data
       allSum2=allSum2+ image_data**2
 
@@ -47,24 +78,18 @@ def bg_map(bg_shots_path,outMeanPed_file, outStdPed_file, ny=4144,nx=2822, draw=
    std=(allSum2/n-mean**2)**0.5
 
    # write image w mean pedestal
-   al.write_fitsImage(mean,outMeanPed_file )
-   al.write_fitsImage(std,outStdPed_file )
+   write_fitsImage(mean,outMeanPed_file )
+   write_fitsImage(std,outStdPed_file )
 
    if draw:
-     al.plot_image(std)
-     al.plot_image(mean)
+     plot_image(std)
+     plot_image(mean)
 
 
 
 
 #####################################
 
-if __name__ == "__main__":
-   #bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/testFe/2022-02-11_13_37_38Z_srg5sec_biadesivo/'
-   #bg_map(bg_shots_path,'mean_ped.fits', 'std_ped.fits', draw=0 )
 
-   #bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/testFe/2022-02-11_11_56_05Z_src5sec'
-   #bg_map(bg_shots_path,'mean_pedLong.fits', 'std_pedLong.fits', draw=0 )
-
-   bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/CapObj/2022-05-23_10_21_08Z'
-   bg_map(bg_shots_path,'mean_pedLong_s1_noGlass.fits', 'std_pedLong_s1_noGlass.fits', draw=0 )
+bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/CapObj/2021-12-20_14_22_31Z/'
+bg_map(bg_shots_path,'mean_ped.fits', 'std_ped.fits', draw=0 )

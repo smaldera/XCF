@@ -97,8 +97,7 @@ def clustering(supp_coords,supp_weights ):
    print("Estimated number of clusters: %d" % n_clusters_)
    print("Estimated number of noise points: %d" % n_noise_)
 
-   sum_w=[] 
-   
+
    for clu_id in unique_labels:
       
       print ("CLUSTER_ID=",clu_id)
@@ -110,9 +109,7 @@ def clustering(supp_coords,supp_weights ):
       clu_weights=supp_weights[clu_mask]
 
       print("cluster coord=",clu_coords)
-      print("cluster weights=",clu_weights, "sum= ",clu_weights.sum())
-      if len(clu_weights)<=3:
-         #sum_w.append(clu_weights.sum() ) 
-         sum_w.append(np.sum(clu_weights) ) 
-        
-   return sum_w
+      print("cluster weights=",clu_weights)
+      
+
+   return 0
