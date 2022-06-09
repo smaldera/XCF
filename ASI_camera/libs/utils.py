@@ -33,12 +33,14 @@ def isto_all(image_data):
     plt.show()
 
 def isto_all_root(image_data):
-  flat_image=image_data.flatten()
-  h1=ROOT.TH1F('h1','',16384,0,16384)
-  w=np.ones(len(flat_image))
-  h1.FillN(len(flat_image), flat_image, w)
-  
-  return h1
+   #h2=ROOT.TH1F('h2','',16384,0,16384)
+   image_data=np.float64(image_data) #!!!!!! okkio, senza questo fillN a volte non va
+   flat_image=image_data.flatten()
+   h2=ROOT.TH1F('h2','',16384,0,16384)
+   w=np.ones(len(flat_image))
+   print(w)
+   h2.FillN(len(flat_image), flat_image, w)
+   return h2
   
 def write_fitsImage(array, nomefile,overwrite='False' ):
    hdu = pf.PrimaryHDU(array)

@@ -75,7 +75,13 @@ def bg_map(bg_shots_path,outMeanPed_file, outStdPed_file, ny=4144,nx=2822, draw=
 
      h_mean=al.isto_all_root(mean)
      h_mean.SetName('meanPed')
+     h_mean.SetTitle('mean pedestal')
+     h_mean.GetXaxis().SetTitle('ADC ch.')
+    
      h_std=al.isto_all_root(std)
+     h_std.SetTitle('pedestal RMS')
+     h_std.GetXaxis().SetTitle('ADC ch.')
+   
      c1=ROOT.TCanvas('c1','',0)
      rootObjects.append(c1)
      rootObjects.append(h_mean)
@@ -88,7 +94,7 @@ def bg_map(bg_shots_path,outMeanPed_file, outStdPed_file, ny=4144,nx=2822, draw=
      c1.cd(2)
      h_std.Draw()
      c1.Update()
-
+     
      # wait for stop:
      
      input('press any key to continue...')
@@ -103,10 +109,12 @@ if __name__ == "__main__":
   # bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/testFe/2022-02-11_11_56_05Z_src5sec'
   # bg_map(bg_shots_path,'mean_pedLong.fits', 'std_pedLong.fits', draw=0 )
 
-   bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_1_noGlass/1000us_G0/'
-   bg_map(bg_shots_path,'/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_1_noGlass/mean_pedLong.fits', '/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_1_noGlass/std_pedLong.fits', draw=1 )
+  # bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_1/noGlass/G0_32us/'
+  # bg_map(bg_shots_path,bg_shots_path+'mean_pedLong.fits', bg_shots_path+'std_pedLong.fits', draw=1 )
 
 
+   bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_4/Fe55/bkg/'
+   bg_map(bg_shots_path,bg_shots_path+'mean_ped.fits', bg_shots_path+'std_ped.fits', draw=1 )
 
   
    
