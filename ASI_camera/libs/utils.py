@@ -125,3 +125,34 @@ def clustering(supp_coords,supp_weights ):
          sum_w.append(np.sum(clu_weights) ) 
         
    return sum_w
+
+
+
+
+
+# function to retrive saved numpy arrayis...
+
+def save_vectors(out_file, supp_weightsAll,x_pix,y_pix):
+    np.savez(out_file,w=supp_weightsAll, x_pix=x_pix, y_pix=y_pix)
+      
+def save_histo(outHisto_name,countsAll,bins):
+    np.savez(outHisto_name,counts=countsAll,bins=bins)
+     
+def retrive_vectors(nomefile):
+    data=np.load(nomefile)
+    w=data['w']
+    x_pix=data['x_pix']
+    y_pix=data['y_pix']
+
+    return w,x_pix,y_pix
+
+
+
+def retrive_histo(nomefile):
+    data=np.load(nomefile)
+    counts=data['counts']
+    bins=data['bins']
+    fig, ax = plt.subplots()
+    #print ("len(coutsAll)=",len(countsAll) )
+    ax.hist(bins[:-1],bins=bins,weights=counts, histtype='step')
+    plt.show()
