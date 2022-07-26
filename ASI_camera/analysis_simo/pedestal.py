@@ -45,7 +45,7 @@ def bg_map(bg_shots_path,outMeanPed_file, outStdPed_file, ny=4144,nx=2822, draw=
    n=0.
    for image_file in f:
       n=n+1.
-      print(n," --> ", image_file)
+     # print(n," --> ", image_file)
       if n%10==0:
          frac=float(n/len(f))*100.
          print("Pedestal-> processed ",n," files  (  %.2f %%)" %frac )
@@ -113,8 +113,21 @@ if __name__ == "__main__":
   # bg_map(bg_shots_path,bg_shots_path+'mean_pedLong.fits', bg_shots_path+'std_pedLong.fits', draw=1 )
 
 
-   bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_4/Fe55/bkg/'
-   bg_map(bg_shots_path,bg_shots_path+'mean_ped.fits', bg_shots_path+'std_ped.fits', draw=1 )
+  # bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_4/Fe55/bkg/'
+  # bg_map(bg_shots_path,bg_shots_path+'mean_ped.fits', bg_shots_path+'std_ped.fits', draw=1 )
 
-  
-   
+
+  # bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_4/CapObj/2022-06-20_13_06_01Z/'
+  # bg_map(bg_shots_path,bg_shots_path+'mean_ped.fits', bg_shots_path+'std_ped.fits', draw=1 )
+
+
+  # bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/ASI_linux_mac_SDK_V1.20.3/demo/test_simo/'
+  # bg_map(bg_shots_path,bg_shots_path+'mean_ped.fits', bg_shots_path+'std_ped.fits', draw=1 )
+
+ 
+  bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_3/misureFe_11.7/bg_1/'
+  bg_map(bg_shots_path,bg_shots_path+'mean_ped.fits', bg_shots_path+'std_ped.fits', draw=1 )
+
+    
+  #bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_3/misureFe_11.7/bg_2/'
+  #bg_map(bg_shots_path,bg_shots_path+'mean_ped.fits', bg_shots_path+'std_ped.fits', draw=1 )

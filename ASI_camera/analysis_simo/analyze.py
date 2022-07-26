@@ -31,8 +31,8 @@ def retrive_histo(nomefile):
 
 
 
-shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_4/Fe55/source/'
-bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_4/Fe55/bkg/'
+shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_3/Fe55/source/'
+bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_3/Fe55/bkg/'
 create_bg_map=False
 outRootfile_name=shots_path+'histo_all.root'
 
@@ -83,12 +83,32 @@ for image_file in f:
 
     supp_coords_i, supp_weigths_i= al.select_pixels2(image_data,60)
 #    print(' supp_coords_i=', supp_coords_i, " supp_weigths_i=",supp_weigths_i )
+    print(' supp_coords_i=', supp_coords_i )
+    
+
     traspose=np.transpose(supp_coords_i)
     x_pix=np.append(x_pix,traspose[0])
     y_pix=np.append(y_pix,traspose[1])
+    print ('x_pix=',x_pix)
+    print ('y_pix=',y_pix)
+
+    # ricreo supp_coords:
+    supp_coords2=np.empty(0)
+   # for i in range(0,len(x_pix)):
+   #     a=[x_pix[i],y_pix[i] ]
+   #     aa=np.array(a)
+   #     supp_coords2=np.append(  supp_coords2,aa)
+
+    supp_coords2=np.append(  supp_coords2,x_pix)
+    supp_coords2=np.append(  supp_coords2,y_pix)
+    supp_coords2= supp_coords2.reshape(2,len(x_pix))
+    supp_coords2=np.transpose(supp_coords2)
+    print("supp coords ricreato=",supp_coords2)    
+
+    
     supp_weightsAll=np.append( supp_weightsAll, supp_weigths_i)
     
-
+    break 
     
     if n%100==0 and n>0:
         n_saved_files+=1

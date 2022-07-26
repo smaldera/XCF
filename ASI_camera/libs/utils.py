@@ -82,8 +82,7 @@ def select_pixels2(image_data, threshold=100): # much better!!
    supp_coords=np.transpose(mask_zeroSupp)
    supp_weights=image_data[mask_zeroSupp]
 
-   
-   
+      
    return supp_coords, supp_weights
 
    
@@ -91,7 +90,7 @@ def clustering(supp_coords,supp_weights ):
 
    print('START CLUSTERING...')
 
-   db = DBSCAN(eps=2, min_samples=2, n_jobs=1, algorithm='ball_tree').fit(supp_coords)
+   db = DBSCAN(eps=1, min_samples=2, n_jobs=1, algorithm='ball_tree').fit(supp_coords)
    #core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
    #core_samples_mask[db.core_sample_indices_] = True
    labels = db.labels_
@@ -134,7 +133,12 @@ def clustering(supp_coords,supp_weights ):
 
 def save_vectors(out_file, supp_weightsAll,x_pix,y_pix):
     np.savez(out_file,w=supp_weightsAll, x_pix=x_pix, y_pix=y_pix)
-      
+
+
+def save_vectors2(out_file, supp_weightsAll,x_pix,y_pix,n_img):
+       np.savez(out_file,w=supp_weightsAll, x_pix=x_pix, y_pix=y_pix,n_img=n_img)
+       
+    
 def save_histo(outHisto_name,countsAll,bins):
     np.savez(outHisto_name,counts=countsAll,bins=bins)
      
@@ -154,5 +158,6 @@ def retrive_histo(nomefile):
     bins=data['bins']
     fig, ax = plt.subplots()
     #print ("len(coutsAll)=",len(countsAll) )
-    ax.hist(bins[:-1],bins=bins,weights=counts, histtype='step')
-    plt.show()
+    histo=ax.hist(bins[:-1],bins=bins,weights=counts, histtype='step')
+    #plt.show()
+    return histo 
