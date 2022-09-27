@@ -12,9 +12,25 @@ import ROOT
 
 
 #outHisto_name='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_3/Fe55/source/histo_all.npz'
-outHisto_name='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_3/test2/CapObj/histo_all.npz'
+outHisto_name='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/1s_G120/spectrum_all.npz'
 
-al.retrive_histo(outHisto_name) 
-#counts,bins=np.histogram(wAll[mask],bins=int(65536/128.)  ,range=(0,65536/4)  )
-#plt.hist(bins[:-1],bins=bins,weights=counts, histtype='step')
+common_path='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/'
+files_histo=[common_path+'/1s_G120/spectrum_all.npz', common_path+'/1s_G120_bg/spectrum_all.npz']
+leg_names=['w 55Fe','bg']
+
+fig, ax = plt.subplots()
+
+for i in range(0,len(files_histo)):
+    
+    data=np.load(files_histo[i])
+    counts=data['counts']
+    bins=data['bins']
+    #print ("len(coutsAll)=",len(countsAll) )
+    histo=ax.hist(bins[:-1],bins=bins,weights=counts, histtype='step', label=leg_names[i])
+   
+
+
+
+plt.legend()
 plt.show()
+
