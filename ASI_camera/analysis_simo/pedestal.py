@@ -6,7 +6,7 @@ import glob
 sys.path.insert(0, '../libs')
 import utils as al
 
-import ROOT
+#import ROOT
 
 
 rootObjects=[]
@@ -73,27 +73,27 @@ def bg_map(bg_shots_path,outMeanPed_file, outStdPed_file, ny=4144,nx=2822, draw=
      al.plot_image(std)
      al.isto_all(std)
 
-     h_mean=al.isto_all_root(mean)
-     h_mean.SetName('meanPed')
-     h_mean.SetTitle('mean pedestal')
-     h_mean.GetXaxis().SetTitle('ADC ch.')
+  #   h_mean=al.isto_all_root(mean)
+ #    h_mean.SetName('meanPed')
+ #    h_mean.SetTitle('mean pedestal')
+ #    h_mean.GetXaxis().SetTitle('ADC ch.')
     
-     h_std=al.isto_all_root(std)
-     h_std.SetTitle('pedestal RMS')
-     h_std.GetXaxis().SetTitle('ADC ch.')
+#     h_std=al.isto_all_root(std)
+#     h_std.SetTitle('pedestal RMS')
+#     h_std.GetXaxis().SetTitle('ADC ch.')
    
-     c1=ROOT.TCanvas('c1','',0)
-     rootObjects.append(c1)
-     rootObjects.append(h_mean)
-     rootObjects.append(h_std)
+#     c1=ROOT.TCanvas('c1','',0)
+#     rootObjects.append(c1)
+#     rootObjects.append(h_mean)
+#     rootObjects.append(h_std)
     
          
-     c1.Divide(2)
-     c1.cd(1)
-     h_mean.Draw()
-     c1.cd(2)
-     h_std.Draw()
-     c1.Update()
+#     c1.Divide(2)
+#     c1.cd(1)
+#     h_mean.Draw()
+#     c1.cd(2)
+#     h_std.Draw()
+#     c1.Update()
      
      # wait for stop:
      
@@ -125,9 +125,19 @@ if __name__ == "__main__":
   # bg_map(bg_shots_path,bg_shots_path+'mean_ped.fits', bg_shots_path+'std_ped.fits', draw=1 )
 
  
-  bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_3/misureFe_11.7/bg_1/'
-  bg_map(bg_shots_path,bg_shots_path+'mean_ped.fits', bg_shots_path+'std_ped.fits', draw=1 )
+ # bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_3/misureFe_11.7/bg_1/'
+  #bg_map(bg_shots_path,bg_shots_path+'mean_ped.fits', bg_shots_path+'std_ped.fits', draw=1 )
 
     
   #bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_3/misureFe_11.7/bg_2/'
   #bg_map(bg_shots_path,bg_shots_path+'mean_ped.fits', bg_shots_path+'std_ped.fits', draw=1 )
+
+
+  #bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_1_noGlass/Fe/200us_0_50_50'
+  #bg_map(bg_shots_path,bg_shots_path+'mean_ped.fits', bg_shots_path+'std_ped.fits', draw=1 )
+
+#  bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_1_noGlass/200us_G0/'
+
+  bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/1s_G480_bg/'
+  bg_map(bg_shots_path,bg_shots_path+'mean_ped.fits', bg_shots_path+'std_ped.fits', draw=1 )
+

@@ -31,8 +31,8 @@ def retrive_histo(nomefile):
 
 
 
-shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_3/Fe55/source/'
-bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_3/Fe55/bkg/'
+shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_1_noGlass/Fe/200us_0_50_50/'
+bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_1_noGlass/200us_G0/'
 create_bg_map=False
 outRootfile_name=shots_path+'histo_all.root'
 
@@ -52,6 +52,7 @@ countsAll,bins=np.histogram(x,bins=int(65536/4)  ,range=(0,65536/4)  )
 # creo histo root
 outRootfile=ROOT.TFile(outRootfile_name,'recreate')
 h1=ROOT.TH1F('h1','',16384,0,16384)
+h2=ROOT.TH2F('h2','',2822,0,2822,4144,0,4144)
 
 #aa=[[0, 0]]
 
@@ -68,10 +69,11 @@ zero_img=np.zeros((2822, 4144))
 n_saved_files=0
 for image_file in f:
 
-  #  print('===============>>>  n=',n)
+    print('===============>>>  n=',n)
     image_data=al.read_image(image_file)/4.
     # subtract bkg:
     image_data=image_data-mean_ped
+
     flat_image=image_data.flatten()
     #riempio histo
     #counts_i,bins_i=np.histogram(flat_image,bins=int(65536/4)  ,range=(0,65536/4)  )
@@ -79,43 +81,45 @@ for image_file in f:
     #root histo
     w=np.ones(len(flat_image))
     h1.FillN(len(flat_image), flat_image, w)
+    
     zero_img=zero_img+image_data
-
-    supp_coords_i, supp_weigths_i= al.select_pixels2(image_data,60)
+    supp_coords_i, supp_weigths_i= al.select_pixels2(image_data,1500)
 #    print(' supp_coords_i=', supp_coords_i, " supp_weigths_i=",supp_weigths_i )
-    print(' supp_coords_i=', supp_coords_i )
+ #   print(' supp_coords_i=', supp_coords_i )
     
 
     traspose=np.transpose(supp_coords_i)
-    x_pix=np.append(x_pix,traspose[0])
-    y_pix=np.append(y_pix,traspose[1])
-    print ('x_pix=',x_pix)
-    print ('y_pix=',y_pix)
+    for j in range(0, len(supp_weigths_i)):
+        h2.Fill(traspose[0][j],traspose[1][j])
+#    x_pix=np.append(x_pix,traspose[0])
+#    y_pix=np.append(y_pix,traspose[1])
+ #   print ('x_pix=',x_pix)
+ #   print ('y_pix=',y_pix)
 
     # ricreo supp_coords:
-    supp_coords2=np.empty(0)
+  #  supp_coords2=np.empty(0)
    # for i in range(0,len(x_pix)):
    #     a=[x_pix[i],y_pix[i] ]
    #     aa=np.array(a)
    #     supp_coords2=np.append(  supp_coords2,aa)
 
-    supp_coords2=np.append(  supp_coords2,x_pix)
-    supp_coords2=np.append(  supp_coords2,y_pix)
-    supp_coords2= supp_coords2.reshape(2,len(x_pix))
-    supp_coords2=np.transpose(supp_coords2)
-    print("supp coords ricreato=",supp_coords2)    
+    #supp_coords2=np.append(  supp_coords2,x_pix)
+    #supp_coords2=np.append(  supp_coords2,y_pix)
+    #supp_coords2= supp_coords2.reshape(2,len(x_pix))
+    #supp_coords2=np.transpose(supp_coords2)
+    #print("supp coords ricreato=",supp_coords2)    
 
     
-    supp_weightsAll=np.append( supp_weightsAll, supp_weigths_i)
+   # supp_weightsAll=np.append( supp_weightsAll, supp_weigths_i)
     
-    break 
+    #break 
     
-    if n%100==0 and n>0:
-        n_saved_files+=1
-        print('saving '+str(n)+' events, n_file=',str(n_saved_files))
-        out_file=shots_path+'shots_'+str(n_saved_files)
-        np.savez(out_file,w=supp_weightsAll, x_pix=x_pix, y_pix=y_pix)
-        break
+    #if n%100==0 and n>0:
+    #    n_saved_files+=1
+    #    print('saving '+str(n)+' events, n_file=',str(n_saved_files))
+    #    out_file=shots_path+'shots_'+str(n_saved_files)
+    #    np.savez(out_file,w=supp_weightsAll, x_pix=x_pix, y_pix=y_pix)
+    #    break
     n=n+1
 
 
@@ -124,20 +128,22 @@ for image_file in f:
 al.plot_image(zero_img)
 outRootfile.cd()
 h1.Write()
+h2.Write()
 outRootfile.Close()
 #h1.Draw()
-input("press key to continue")
+#input("press key to continue")
 
 
-print ('retriving vectors...')
-w,x,y=retrive_vectors(shots_path+'shots_1.npz')
+#print ('retriving vectors...')
+#w,x,y=retrive_vectors(shots_path+'shots_1.npz')
 
-print('w=',w)
-print('x=',x)
-print('y=',y)
+#print('w=',w)
+#print('x=',x)
+#print('y=',y)
 
 
-plt.scatter(x,y,c = np.log10(w) )
-plt.colorbar()
+#plt.scatter(x,y,c = np.log10(w) )
+#plt.scatter(x_pix,y_pix,c =  supp_weightsAll )
+#plt.colorbar()
 plt.show()
 

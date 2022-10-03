@@ -14,10 +14,24 @@ rootObjects=[]
 #file_std=['/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_1/noGlass/G0_32us/std_pedLong.fits','/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_1/noGlass/G0_32us_freddo/std_pedLong.fits']
 #leg_names=['sensor1','sensor1 cold']
 
-file_mean=['/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_3/Fe55/bkg/mean_ped.fits']
-file_std=['/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_3/Fe55/bkg/std_ped.fits']
-leg_names=['sensor3']
+#file_mean=['/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_3/Fe55/bkg/mean_ped.fits']
+#file_std=['/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_3/Fe55/bkg/std_ped.fits']
+#leg_names=['sensor3']
+#/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_1_noGlass/Fe/200us_0_50_50/200us_0_50_50mean_ped.fits
 
+#file_mean=['/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_1_noGlass/Fe/200us_0_50_50/200us_0_50_50mean_ped.fits', '/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_1_noGlass/200us_G0/mean_ped.fits']
+#file_std=['/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_1_noGlass/Fe/200us_0_50_50/200us_0_50_50std_ped.fits', '/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_1_noGlass/200us_G0/std_ped.fits']
+#leg_names=['sensor1_noGlass_FE','sensor1_noGlass_BKG']
+
+# sensore 2 G120 32us
+#file_mean=['/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_2/original/g120_32us/mean_ped.fits', '/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_2/noVetro/g120_32us_0offset/mean_ped.fits']
+#file_std=['/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_2/original/g120_32us/std_ped.fits', '/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_2/noVetro/g120_32us_0offset/std_ped.fits']
+#leg_names=['sensor2_original','sensor1_noGlass']
+
+# sensore 2 G120 1s
+file_mean=['/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_2/original/g120_1sec/mean_ped.fits', '/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_2/noVetro/g120_1s_0offset/mean_ped.fits']
+file_std=['/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_2/original/g120_1sec/std_ped.fits', '/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_2/noVetro/g120_1s_0offset/std_ped.fits']
+leg_names=['sensor2_original','sensor2_noGlass']
 
 
 c1=ROOT.TCanvas('c1','',0)         
