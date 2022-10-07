@@ -1,4 +1,5 @@
 import numpy as np
+from astropy.io import fits as pf
 from matplotlib import pyplot as plt
 import glob
 import sys
@@ -9,9 +10,8 @@ from pedestal import bg_map
 
 
 
-shots_path = '/Users/matteo/Desktop/Università/UniTo/Terzo anno/Tesi/XCF-main/ASI_camera/Immagini/untitled folder'
-
-bg_shots_path = '/Users/matteo/Desktop/Università/UniTo/Terzo anno/Tesi/XCF-main/ASI_camera/Immagini/Con vetro/32us 120g/2022-09-14_15_37_07Z'
+shots_path = '/Users/matteo/Desktop/Università/UniTo/Terzo anno/Tesi/XCF-main/ASI_camera/Immagini/Senza vetro/1/'
+bg_shots_path = '/Users/matteo/Desktop/Università/UniTo/Terzo anno/Tesi/XCF-main/ASI_camera/Immagini/Senza vetro/bg 1s 120g sv/'
 
 create_bg_map = False
 
@@ -29,42 +29,43 @@ if create_bg_map == True:
 
 # inizio analisi...
 pedfile  = bg_shots_path + 'mean_ped.fits'
+
 mean_ped = al.read_image(pedfile)
 
-f = glob.glob(shots_path + "/*.FIT")
+f = glob.glob(shots_path + "*.FIT")
+
 x = []
 countsAll, bins = np.histogram(x, bins = int(65536/4), range = (0,65536/4))
-
-fig, h1 = plt.subplots()
 
 n = len(f)
 
 print('len(f) = ' + str(len(f)))
 
-zero_img = np.zeros((2822, 4144))
 image_SW = np.zeros((2822, 4144))
-n_saved_files = 0
 
 for image_file in f:
 
-    image_data = al.read_image(image_file)/4.
+    pf.open(image_file, memmap = True)
+    image_data = pf.getdata(image_file, ext = 0)
+    
     image_data = image_data - mean_ped
+    
     image_SW = image_SW + image_data
+    
     flat_image = image_data.flatten()
     counts_i, bins_i = np.histogram(flat_image, bins = int(65536/4), range = (0,65536/4))
     countsAll = countsAll + counts_i
     
 image_SW = image_SW / n
-flat_image = image_SW.flatten()
-
-h1.hist(bins[:-1], bins = bins, weights = countsAll, histtype = 'step')
-
-al.write_fitsImage(image_SW, "/Users/matteo/Desktop/Università/UniTo/Terzo anno/Tesi/XCF-main/ASI_camera/Immagini/Risultati/result_analysis.fits", overwrite = "False")
-
-np.savez("/Users/matteo/Desktop/Università/UniTo/Terzo anno/Tesi/XCF-main/ASI_camera/Immagini/Risultati/saved_histo", counts = countsAll, bins = bins)
     
-
-al.plot_image(image_SW)
-
+plt.figure()
+plt.imshow(image_SW, cmap = 'plasma')
+plt.colorbar()
+    
+fig, h = plt.subplots()
+h.hist(bins[:-1], bins = bins, weights = countsAll, histtype = 'step', label = "raw")
 plt.show()
+
+
+
 
