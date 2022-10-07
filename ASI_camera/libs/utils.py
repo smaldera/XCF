@@ -85,7 +85,26 @@ def select_pixels2(image_data, threshold=100, upper=100000): # much better!!
       
    return supp_coords, supp_weights
 
+
+ 
+def select_pixels_RMS(image_data, rms_ped, nSigma=5., upper=100000): #  select pixele above n sigma 
+  # select pixele above n sigma 
+
+   image_selection=image_data-(nSigma*rms_ped)
+   mask_zeroSupp=np.where( (image_selection>0.) &( image_data<upper) )
+   #debug:
+   # print("mask=",mask_zeroSupp)
+   # print("maksed array=",image_data[mask_zeroSupp])
    
+   supp_coords=np.transpose(mask_zeroSupp)
+   supp_weights=image_data[mask_zeroSupp]
+
+      
+   return supp_coords, supp_weights
+
+
+
+
 def clustering(supp_coords,supp_weights ):
 
    print('START CLUSTERING...')

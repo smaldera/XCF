@@ -13,8 +13,15 @@ import ROOT
 
 
 common_path='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/'
-files_histo=['1s_G120/spectrum_all_raw_cut100.npz', '/1s_G120_bg/spectrum_all.npz', '1s_G120/spectrum_allCLU_cut100.npz', '/1s_G120/spectrum_allCLU_cut50.npz',  '/1s_G120/spectrum_allCLU_cut25.npz', '/1s_G120/spectrum_allCLU_cut500.npz' ]
-leg_names=['w 55Fe','bg', 'Fe, clustering, cut 100', 'Fe, clustering, cut 50',  'Fe, clustering, cut 25',  'Fe, clustering, cut 500'  ]
+#files_histo=['1s_G120/spectrum_all_raw_cut100.npz', '/1s_G120_bg/spectrum_all.npz', '1s_G120/spectrum_allCLU_cut100.npz', '/1s_G120/spectrum_allCLU_cut50.npz',  '/1s_G120/spectrum_allCLU_cut25.npz', '/1s_G120/spectrum_allCLU_cut500.npz', '/1s_G120/spectrum_allCLU_cut5sigma.npz' ]
+#leg_names=['w 55Fe','bg', 'Fe, clustering, cut 100', 'Fe, clustering, cut 50',  'Fe, clustering, cut 25',  'Fe, clustering, cut 500', 'Fe, clustering, cut 5sigma'  ]
+
+
+files_histo=['/1s_G120/spectrum_all_raw.npz','/1s_G120/spectrum_allCLU_cut25.npz', '/1s_G120/spectrum_allCLU_cut5sigma.npz', '/1s_G120/spectrum_allCLU_cut3sigma_xycut.npz' ]
+leg_names=['55Fe', 'Fe, clustering, cut 25',  'Fe, clustering, cut 5sigma' ,  'Fe, clustering, cut 5sigma cut XY' ]
+
+
+
 
 fig, ax = plt.subplots()
 

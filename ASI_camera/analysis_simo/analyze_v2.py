@@ -20,6 +20,9 @@ if create_bg_map == True:
 # inizio analisi...
 pedfile  = bg_shots_path + 'mean_ped.fits'
 mean_ped = al.read_image(pedfile)
+pedSigmafile  = bg_shots_path + 'std_ped.fits'
+rms_ped = al.read_image(pedSigmafile)
+
 
 f = glob.glob(shots_path + "/*.FIT")
 
@@ -56,6 +59,9 @@ for image_file in f:
     n=n+1     
     image_data = al.read_image(image_file)/4.
     image_data = image_data - mean_ped
+
+   
+    
     image_SW = image_SW + image_data
     flat_image = image_data.flatten()
     counts_i, bins_i = np.histogram(flat_image, bins = int(65536/4), range = (0,65536/4))
@@ -64,9 +70,13 @@ for image_file in f:
     #####################33
     #experimental.... 
       
-    supp_coords, supp_weights=al.select_pixels2(image_data, 25)
+    #supp_coords, supp_weights=al.select_pixels2(image_data, 25)
+    supp_coords, supp_weights=al.select_pixels_RMS(image_data,rms_ped,5)
+   
    # print (supp_coords.transpose())
     trasposta=supp_coords.transpose()
+    # maskera spaziale?
+    #mymask=np.where( (trasposta[0]>600)&(trasposta[0]<1900) &(trasposta[1]>600)&(trasposta[1]<1900)  )
 
     # salvo posizioni che superano la selezione
 #    x_all=np.append(x_all,trasposta[0])
@@ -76,9 +86,11 @@ for image_file in f:
  #   countsAll2d=countsAll2d+ counts2d
 
     # test clustering.... # uso v2 per avere anche le posizioni
-    w_clusterAll, clu_coordsAll=al.clustering_v2(supp_coords,supp_weights )
- #   print ("coordsAll= ", clu_coordsAll)
+    w_clusterAll, clu_coordsAll=al.clustering_v2(supp_coords,supp_weights)  
+    # w_clusterAll, clu_coordsAll=al.clustering_v2(supp_coords[mymask],supp_weights[mymask] )  # TODO: verificare che mymask funzioni!!!!!!!!
+
     clu_trasposta= clu_coordsAll.transpose()
+    
  #   x_allClu=np.append(x_allClu,clu_trasposta[0])
   #  y_allClu=np.append(y_allClu,clu_trasposta[1])
     counts2dClu,  xedges, yedges= np.histogram2d(clu_trasposta[0],clu_trasposta[1],bins=[141,207 ],range=[[0,2822],[0,4144]])
@@ -110,7 +122,7 @@ plt.colorbar()
 #flat_image = image_SW.flatten()
 
 # save figures
-al.write_fitsImage(countsAll2dClu, shots_path+'imageCUL_cut25.fits'  , overwrite = "True")
+al.write_fitsImage(countsAll2dClu, shots_path+'imageCUL_cut5sigma_xycut.fits'  , overwrite = "True")
 
 
 # plot spettro
@@ -121,7 +133,7 @@ plt.legend()
 
 # save histos
 np.savez(shots_path+'spectrum_all_raw', counts = countsAll, bins = bins)
-np.savez(shots_path+'spectrum_allCLU_cut25', counts = countsAllClu, bins = bins)
+np.savez(shots_path+'spectrum_allCLU_cut3sigma_xycut', counts = countsAllClu, bins = bins)
 
 
 
