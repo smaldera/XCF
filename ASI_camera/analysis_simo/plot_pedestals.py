@@ -29,9 +29,9 @@ rootObjects=[]
 #leg_names=['sensor2_original','sensor1_noGlass']
 
 # sensore 2 G120 1s
-file_mean=['/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_2/original/g120_1sec/mean_ped.fits', '/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_2/noVetro/g120_1s_0offset/mean_ped.fits']
-file_std=['/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_2/original/g120_1sec/std_ped.fits', '/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_2/noVetro/g120_1s_0offset/std_ped.fits']
-leg_names=['sensor2_original','sensor2_noGlass']
+file_mean=['/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/1s_G120_bg/mean_ped.fits']
+file_std=['/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/1s_G120_bg/std_ped.fits']
+leg_names=['eureca G120 1s']
 
 
 c1=ROOT.TCanvas('c1','',0)         
@@ -46,20 +46,26 @@ legRMS=ROOT.TLegend(0.2,0.6,0.7,0.8)
 for i in range (0, len(file_mean)):
     mean= al.read_image(file_mean[i])
     std= al.read_image(file_std[i])
-    
+
+    myMask=np.where(std<10000000000)
+    #myMask=np.where( (mean>348)&(mean<356))
+   
     #al.plot_image(np.log10(mean))
     #al.isto_all(mean)
     #al.plot_image(std)
     #al.isto_all(std)
 
-    h_mean[i]=al.isto_all_root(mean)
+   # plt.plot(std.flatten(),mean.flatten(),'bo',alpha=0.1)
+   # plt.show()
+
+    h_mean[i]=al.isto_all_root(mean[myMask])
     h_mean[i].SetName('meanPed_'+str(i))
     h_mean[i].SetTitle('mean pedestal')
     h_mean[i].GetXaxis().SetTitle('ADC ch.')
     h_mean[i].SetLineColor(i+2)
     leg.AddEntry(h_mean[i],'mean '+leg_names[i],'l')
     
-    h_std[i]=al.isto_all_root(std)
+    h_std[i]=al.isto_all_root(std[myMask])
     h_std[i].SetName('stdPed_'+str(i) )
     h_std[i].SetTitle('pedestal RMS')
     h_std[i].GetXaxis().SetTitle('ADC ch.')
@@ -89,6 +95,13 @@ legRMS.Draw()
 
 c1.Update()
 #c1.Draw()
+
+
+#plt.imshow(mean[myMask] )
+#print (myMask)
+#plt.plot(myMask[0],myMask[1],'ro')
+#plt.colorbar()
+#plt.show()
 
 # wait for stop:   
 #input('press any key to continue...')

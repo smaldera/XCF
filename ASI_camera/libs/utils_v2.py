@@ -1,8 +1,9 @@
+# no ROOT !!!!
+
 from astropy.io import fits as pf
 import numpy as np
 from matplotlib import pyplot as plt
 
-import ROOT
 
 from sklearn.cluster import DBSCAN
 from sklearn import metrics
@@ -32,15 +33,6 @@ def isto_all(image_data):
     ax.text(0.7, 0.9, s,  transform=ax.transAxes,  bbox=dict(alpha=0.7))
     plt.show()
 
-def isto_all_root(image_data):
-   #h2=ROOT.TH1F('h2','',16384,0,16384)
-   image_data=np.float64(image_data) #!!!!!! okkio, senza questo fillN a volte non va
-   flat_image=image_data.flatten()
-   h2=ROOT.TH1F('h2','',16384,0,16384)
-   w=np.ones(len(flat_image))
-   print(w)
-   h2.FillN(len(flat_image), flat_image, w)
-   return h2
   
 def write_fitsImage(array, nomefile,overwrite='False' ):
    hdu = pf.PrimaryHDU(array)
@@ -150,7 +142,6 @@ def clustering_v2(supp_coords,supp_weights):
 #   print('START CLUSTERING...')
    
    coordsAll=np.empty((0,0))
-   #db = DBSCAN(eps=1, min_samples=2, n_jobs=1, algorithm='ball_tree').fit(supp_coords)
    db = DBSCAN(eps=1, min_samples=1, n_jobs=1, algorithm='ball_tree').fit(supp_coords)
   
    #core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
@@ -158,17 +149,13 @@ def clustering_v2(supp_coords,supp_weights):
    labels = db.labels_
 
    #print("labels=",type(labels))
-
    unique_labels=set(labels) # il set elimina tutte le ripetizioni
-
    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
    n_noise_ = list(labels).count(-1)
-
 #   print("Estimated number of clusters: %d" % n_clusters_)
 #   print("Estimated number of noise points: %d" % n_noise_)
 
-   sum_w=[] 
-   
+   sum_w=[]   
    for clu_id in unique_labels:
       
     #  print ("CLUSTER_ID=",clu_id)
@@ -185,9 +172,9 @@ def clustering_v2(supp_coords,supp_weights):
     #  print("cluster coordAll=",coordsAll)
      
     #  print("cluster weights=",clu_weights, "sum= ",clu_weights.sum())
-      if len(clu_weights)==1:
-         sum_w.append(clu_weights.sum() ) 
-      #sum_w.append(np.sum(clu_weights) ) 
+     # if len(clu_weights)==1:
+     #    sum_w.append(clu_weights.sum() ) 
+      sum_w.append(np.sum(clu_weights) ) 
 
       # DEBUG
       #if clu_id>10:  #######!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -203,14 +190,7 @@ def clustering_v2(supp_coords,supp_weights):
 
 
 
-
-
-
-
-
-
-
-# function to retrive saved numpy arrayis...
+# function to retrive saved numpy arrays...
 
 def save_vectors(out_file, supp_weightsAll,x_pix,y_pix):
     np.savez(out_file,w=supp_weightsAll, x_pix=x_pix, y_pix=y_pix)
