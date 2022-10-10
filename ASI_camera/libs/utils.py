@@ -185,13 +185,13 @@ def clustering_v2(supp_coords,supp_weights):
     #  print("cluster coordAll=",coordsAll)
      
     #  print("cluster weights=",clu_weights, "sum= ",clu_weights.sum())
-      if len(clu_weights)==1:
-         sum_w.append(clu_weights.sum() ) 
-      #sum_w.append(np.sum(clu_weights) ) 
+      #if len(clu_weights)==1:
+      #   sum_w.append(clu_weights.sum() ) 
+      sum_w.append(np.sum(clu_weights) ) 
 
       # DEBUG
       #if clu_id>10:  #######!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      #   break
+      #break
      
     #  print("cluster coordAll=",coordsAll)
     #  print("cluster coordAll reshape= ", coordsAll.reshape(int(len(coordsAll)/2),2 ))

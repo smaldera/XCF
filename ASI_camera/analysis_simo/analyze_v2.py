@@ -82,13 +82,20 @@ for image_file in f:
     # applico selezione su carica dei pixel
     #supp_coords, supp_weights=al.select_pixels2(image_data, 25)
     supp_coords, supp_weights=al.select_pixels_RMS(image_data,rms_ped,5)
-   
+
+    # salvo pixel che sopravvivono alla selezione:
+    trasposta= supp_coords.transpose()
+    x_all=np.append(x_all,trasposta[0])
+    y_all=np.append(y_all,trasposta[1])
+    
     # test clustering.... # uso v2 per avere anche le posizioni
-    w_clusterAll, clu_coordsAll=al.clustering_v2(supp_coords,supp_weights) # TODO: supp_coords sono tutte le coordinate di tutti i pixel dei cluster. ci vorrebbe una media pesata per ogni cluster  
+    w_clusterAll, clu_coordsAll=al.clustering_v2(supp_coords,supp_weights) # TODO: supp_coords sono tutte le coordinate di tutti i pixel dei cluster. ci vorrebbe una media pesata per ogni cluster
+    
+  #  print("clu_coordsAll=",clu_coordsAll)
     clu_trasposta= clu_coordsAll.transpose()
     
-    # x_allClu=np.append(x_allClu,clu_trasposta[0])
-    # y_allClu=np.append(y_allClu,clu_trasposta[1])
+    x_allClu=np.append(x_allClu,clu_trasposta[0])
+    y_allClu=np.append(y_allClu,clu_trasposta[1])
 
     # istogramma 2d dopo clusterimg
     counts2dClu,  xedges, yedges= np.histogram2d(clu_trasposta[0],clu_trasposta[1],bins=[141,207 ],range=[[0,2822],[0,4144]])
@@ -98,18 +105,20 @@ for image_file in f:
     countsClu_i, bins_i = np.histogram(  w_clusterAll, bins = 2*NBINS, range = (-NBINS,NBINS) )
     countsAllClu = countsAllClu +  countsClu_i
     
-    if n>10:
-        break
+   # if n>0:
+   #     break
 
 
 ###########
 # plot immagine
 fig2, ax2 = plt.subplots()
-#plt.plot(x_all,y_all,'or',alpha=1)
-#plt.plot(x_allClu,y_allClu,'sg',alpha=0.3,markerfacecolor='none',ms=11)
+
+plt.plot(x_all,y_all,'or',alpha=1)
+plt.plot(x_allClu,y_allClu,'sg',alpha=0.3,markerfacecolor='none',ms=11)
+
 countsAll2dClu=   countsAll2dClu.T
-plt.imshow(countsAll2dClu, interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
-plt.colorbar()
+#plt.imshow(countsAll2dClu, interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+#plt.colorbar()
 plt.title('hit pixels (rebinned)')
 
 # plot immagine SOMMA
