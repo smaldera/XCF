@@ -167,7 +167,7 @@ def clustering_v2(supp_coords,supp_weights):
 #   print("Estimated number of clusters: %d" % n_clusters_)
 #   print("Estimated number of noise points: %d" % n_noise_)
 
-   sum_w=[] 
+   sum_w = [] 
    
    for clu_id in unique_labels:
       
@@ -175,7 +175,7 @@ def clustering_v2(supp_coords,supp_weights):
       if clu_id==-1:
             continue
       
-      clu_mask=np.where(labels==clu_id)
+      clu_mask=np.where(labels == clu_id)
       clu_coords=supp_coords[clu_mask]
       coordsAll=np.append(coordsAll, clu_coords)
       
