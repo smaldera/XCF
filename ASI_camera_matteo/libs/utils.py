@@ -176,9 +176,9 @@ def clustering_v2(supp_coords,supp_weights):
         
         t = clu_coords.transpose()
         
-        print("t[0] = ", t[0], " t[1] = ", t[1])
-        print("clu_lenghts = ", clu_lenghts[clu_id])
-        print("clu_weights = ", clu_weights)
+        #print("t[0] = ", t[0], " t[1] = ", t[1])
+        #print("clu_lenghts = ", clu_lenghts[clu_id])
+        #print("clu_weights = ", clu_weights)
         
         i = 0
         x_cg = 0
@@ -191,24 +191,24 @@ def clustering_v2(supp_coords,supp_weights):
             
             i = i + 1
             
-        print("x_cg = ", x_cg, " y_cg = ", y_cg)
+        #print("x_cg = ", x_cg, " y_cg = ", y_cg)
             
         sum_w.append(np.sum(clu_weights))
             
         cg_coords = np.append(cg_coords, np.array([x_cg, y_cg] / np.sum(clu_weights)))
         
         
-        print("cg_coords = ", cg_coords)
-        print("cluster coords = ", clu_coords)
-        print("cluster weights = ", clu_weights)
-        print("\n\n\n")
+        #print("cg_coords = ", cg_coords)
+        #print("cluster coords = ", clu_coords)
+        #print("cluster weights = ", clu_weights)
+        #print("\n\n\n")
       #if len(clu_weights) <= 3:
          #sum_w.append(clu_weights.sum() ) 
         
 
       # DEBUG
-        if clu_id > 10:  #######!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            break
+        #if clu_id > 10:  #######!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            #break
      
     #  print("cluster coordAll=",coordsAll)
     #  print("cluster coordAll reshape= ", coordsAll.reshape(int(len(coordsAll)/2),2 ))
