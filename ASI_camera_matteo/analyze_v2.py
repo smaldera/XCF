@@ -81,7 +81,7 @@ for image_file in f:
     #####################33
     #experimental....
       
-    supp_coords, supp_weights = al.select_pixels2(image_data, 25)
+    supp_coords, supp_weights = al.select_pixels2(image_data, 1800, 1880)
    # print (supp_coords.transpose())
     trasposta = supp_coords.transpose()
 
@@ -106,19 +106,19 @@ for image_file in f:
     
     cg_coords_t = cg_coords.transpose()
     
-    counts2dClu, xedges, yedges = np.histogram2d(clu_trasposta[0] , clu_trasposta[1], bins=[141,207], range=[[0,2822], [0,4144]])
+    counts2dClu, xedges, yedges = np.histogram2d(clu_trasposta[0] , clu_trasposta[1], bins=[141,207], range=[[0,2822], [0,4144]], density = 'True')
     countsAll2dClu = countsAll2dClu + counts2dClu
     
-    countsCG, xedges, yedges = np.histogram2d(cg_coords_t[0], cg_coords_t[1], bins = [141,207], range = [[0,2822], [0,4144]])
+    countsCG, xedges, yedges = np.histogram2d(cg_coords_t[0], cg_coords_t[1], bins = [141,207], range = [[0,2822], [0,4144]], density = 'True')
     countsAllcg = countsAllcg + countsCG
     
-    countsOnes_i, bins_i = np.histogram(w_clusterAll[clu_lenghts == 1], bins = int(65536/4), range = (0,65536/4))
+    countsOnes_i, bins_i = np.histogram(w_clusterAll[clu_lenghts == 1], bins = int(65536/4), range = (0,65536/4), density = 'True')
     countsAllOnes = countsAllOnes + countsOnes_i
     
-    countsClu_i, bins_i = np.histogram(w_clusterAll, bins = int(65536/4), range = (0,65536/4))
+    countsClu_i, bins_i = np.histogram(w_clusterAll, bins = int(65536/4), range = (0,65536/4), density = 'True')
     countsAllClu = countsAllClu +  countsClu_i
     
-    if(n == 10):
+    if(n == 100):
         break
     
 
@@ -152,24 +152,35 @@ plt.title("Rebin")
 
 # plot spettro
 fig1, h1 = plt.subplots()
-h1.hist(bins[:-1], bins = bins, weights = countsAll, histtype = 'step', label = "raw")
-h1.hist(bins[:-1], bins = bins, weights = countsAllClu, histtype = 'step', label = 'CLUSTERING')
-h1.hist(bins[:-1], bins = bins, weights = countsAllOnes, histtype = 'step', label = 'Just Ones')
+h1.hist(bins[:-1], bins = bins, weights = countsAll, histtype = 'step', label = "raw", density = 'True')
+h1.hist(bins[:-1], bins = bins, weights = countsAllClu, histtype = 'step', label = 'CLUSTERING', density = 'True')
+h1.hist(bins[:-1], bins = bins, weights = countsAllOnes, histtype = 'step', label = 'Just Ones', density = 'True')
 plt.legend()
 
 
-#plot gaussiana NOT WORKING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-mu, std = norm.fit(countsAllOnes)
-xmin, xmax = plt.xlim()
+###############################################################################################################################
+###############################################################################################################################
+###############################################################################################################################
 
-x = np.linspace(xmin, xmax, 100)
-p = norm.pdf(x, mu, std)
+#plot gaussiana NOT WORKING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 fig2, gauss = plt.subplots()
-plt.plot(x, p, 'k', linewidth = 2)
+mu, std = norm.fit(w_clusterAll)
+gauss.hist(bins[:-1], bins = bins, color = 'g', weights = countsAllOnes, histtype = 'step', label = 'Just Ones', density = 'True')
+xmin, xmax = plt.xlim()
+
+x = np.linspace(1700, 1944, 100)
+p = norm.pdf(x, mu, std)
+plt.plot(x, p, 'r', linewidth = 1)
 plt.title("Gaussian on Just Ones")
 
+print("mean = ", mu, " std = ", std)
+
 #NOT WORKING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+###############################################################################################################################
+###############################################################################################################################
+###############################################################################################################################
 
 fig3, h3 = plt.subplots()
 countsAllcg = countsAllcg.T
