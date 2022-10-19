@@ -1,6 +1,7 @@
 from astropy.io import fits as pf
 import numpy as np
 from matplotlib import pyplot as plt
+from scipy import asarray as ar,exp
 
 
 from sklearn.cluster import DBSCAN
@@ -308,4 +309,11 @@ def retrive_histo(nomefile):
     #print ("len(coutsAll)=",len(countsAll) )
     histo=ax.hist(bins[:-1],bins=bins,weights=counts, histtype='step')
     #plt.show()
-    return histo 
+    return histo
+    
+    
+def gaus(x, a, x0, sigma):
+    return a * exp(-(x - x0) ** 2 / (2 * sigma ** 2))
+    
+def retta(x, a, b):
+    return (a * x) + b

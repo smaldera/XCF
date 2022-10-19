@@ -1,6 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from scipy.stats import norm
+from scipy.optimize import curve_fit
 import glob
 import sys
 sys.path.insert(0, '/Users/matteo/Desktop/Università/UniTo/Terzo anno/Tesi/XCF-main/ASI_camera/libs')
@@ -81,7 +81,7 @@ for image_file in f:
     #####################33
     #experimental....
       
-    supp_coords, supp_weights = al.select_pixels2(image_data, 1800, 1880)
+    supp_coords, supp_weights = al.select_pixels2(image_data, 25)
    # print (supp_coords.transpose())
     trasposta = supp_coords.transpose()
 
@@ -106,20 +106,20 @@ for image_file in f:
     
     cg_coords_t = cg_coords.transpose()
     
-    counts2dClu, xedges, yedges = np.histogram2d(clu_trasposta[0] , clu_trasposta[1], bins=[141,207], range=[[0,2822], [0,4144]], density = 'True')
+    counts2dClu, xedges, yedges = np.histogram2d(clu_trasposta[0] , clu_trasposta[1], bins=[141,207], range=[[0,2822], [0,4144]])
     countsAll2dClu = countsAll2dClu + counts2dClu
     
-    countsCG, xedges, yedges = np.histogram2d(cg_coords_t[0], cg_coords_t[1], bins = [141,207], range = [[0,2822], [0,4144]], density = 'True')
+    countsCG, xedges, yedges = np.histogram2d(cg_coords_t[0], cg_coords_t[1], bins = [141,207], range = [[0,2822], [0,4144]])
     countsAllcg = countsAllcg + countsCG
     
-    countsOnes_i, bins_i = np.histogram(w_clusterAll[clu_lenghts == 1], bins = int(65536/4), range = (0,65536/4), density = 'True')
+    countsOnes_i, bins_i = np.histogram(w_clusterAll[clu_lenghts == 1], bins = int(65536/4), range = (0,65536/4))
     countsAllOnes = countsAllOnes + countsOnes_i
     
-    countsClu_i, bins_i = np.histogram(w_clusterAll, bins = int(65536/4), range = (0,65536/4), density = 'True')
+    countsClu_i, bins_i = np.histogram(w_clusterAll, bins = int(65536/4), range = (0,65536/4))
     countsAllClu = countsAllClu +  countsClu_i
     
-    if(n == 100):
-        break
+    #if(n == 5):
+    #    break
     
 
 plt.figure()
@@ -136,6 +136,12 @@ plt.colorbar()
 #plt.plot(x_allClu, y_allClu, 'sg', alpha = 1, markerfacecolor = 'none', ms = 11)
 
 
+###############################################################################################################################
+###############################################################################################################################
+###############################################################################################################################
+###############################################################################################################################
+
+
 fig, ax = plt.subplots()
 #plt.hist2d(x_all,y_all,bins=[141,207 ],range=[[0,2822],[0,4144]] )
 countsAll2dClu = countsAll2dClu.T
@@ -149,35 +155,20 @@ plt.title("Rebin")
 # save figures
 #al.write_fitsImage(countsAll2dClu, shots_path+'imageCUL_cut25.fits'  , overwrite = "True")
 
+###############################################################################################################################
+###############################################################################################################################
+###############################################################################################################################
+###############################################################################################################################
+
 
 # plot spettro
 fig1, h1 = plt.subplots()
-h1.hist(bins[:-1], bins = bins, weights = countsAll, histtype = 'step', label = "raw", density = 'True')
-h1.hist(bins[:-1], bins = bins, weights = countsAllClu, histtype = 'step', label = 'CLUSTERING', density = 'True')
-h1.hist(bins[:-1], bins = bins, weights = countsAllOnes, histtype = 'step', label = 'Just Ones', density = 'True')
+h1.hist(bins[:-1], bins = bins, weights = countsAll/ np.max(countsAll[np.where(np.array(bins[:-1]) > 200)]), histtype = 'step', label = "raw")
+h1.hist(bins[:-1], bins = bins, weights = countsAllClu / np.max(countsAllClu), histtype = 'step', label = 'CLUSTERING')
+h1.hist(bins[:-1], bins = bins, weights = countsAllOnes / np.max(countsAllOnes), histtype = 'step', label = 'Just Ones')
 plt.legend()
 
-
 ###############################################################################################################################
-###############################################################################################################################
-###############################################################################################################################
-
-#plot gaussiana NOT WORKING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-fig2, gauss = plt.subplots()
-mu, std = norm.fit(w_clusterAll)
-gauss.hist(bins[:-1], bins = bins, color = 'g', weights = countsAllOnes, histtype = 'step', label = 'Just Ones', density = 'True')
-xmin, xmax = plt.xlim()
-
-x = np.linspace(1700, 1944, 100)
-p = norm.pdf(x, mu, std)
-plt.plot(x, p, 'r', linewidth = 1)
-plt.title("Gaussian on Just Ones")
-
-print("mean = ", mu, " std = ", std)
-
-#NOT WORKING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 ###############################################################################################################################
 ###############################################################################################################################
 ###############################################################################################################################
@@ -187,6 +178,75 @@ countsAllcg = countsAllcg.T
 plt.imshow(countsAllcg, interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
 plt.colorbar()
 plt.title("Centre of gravity")
+
+###############################################################################################################################
+###############################################################################################################################
+###############################################################################################################################
+###############################################################################################################################
+
+#GAUSSIANS ON NORMALIZED PEAKS
+
+xdata = []  #data of x-axis
+ydata = []  #data of y-axis
+
+mean = np.empty(0)  #array for means
+mean = np.append(mean, 0)   #a mean[0] ci metto zero perche voglio usare l'array da 1 in poi giusto per non fare confusione
+
+sigma = np.empty(0) #array of sigmas
+sigma = np.append(sigma, 0) #same as before
+
+
+
+
+fig4, pic4 = plt.subplots()
+bins = bins[:-1]    #sovrascrivo i bins togliendone uno altrimenti le dimensioni di bins non concidono con i conteggi
+xdata.append(bins)  #start to fill xdata
+
+ydata.append(countsAllOnes) #start to fill ydata
+ydata.append(countsAllOnes[np.where((np.array(bins) > 1800) & (np.array(bins) < 1880))])    #all counts of first peak
+ydata.append(countsAllOnes[np.where((np.array(bins) > 1980) & (np.array(bins) < 2080))])    #all counts of second peak
+
+xdata.append(bins[np.where((np.array(bins) > 1800) & (np.array(bins) < 1880))]) #all bins of first peak
+xdata.append(bins[np.where((np.array(bins) > 1980) & (np.array(bins) < 2080))]) #all bins of second pea
+
+mean = np.append(mean, np.mean(xdata[1]))   #mean for the first set of data
+sigma = np.append(sigma, np.std(xdata[1]))  #sigma for the first set of data
+
+mean = np.append(mean, np.mean(xdata[2]))   #mean for the second set of data
+sigma = np.append(sigma, np.std(xdata[2]))  #sigma for the second set of data
+
+
+
+popt, pcov = curve_fit(al.gaus, xdata[1], ydata[1], p0 = [np.max(ydata[1]), mean[1], sigma[1]]) #compute the first set of parameters for the first gaussian curve
+print(popt)
+
+plt.scatter(xdata[1], ydata[1] / np.max(ydata[1]), s = 1)   #scatter plot for the first set of points
+plt.plot(xdata[1], al.gaus(xdata[1], popt[0], popt[1], popt[2]) / np.max(al.gaus(xdata[1], popt[0], popt[1], popt[2])), color = 'r', label = 'Primo picco')
+
+popt, pcov = curve_fit(al.gaus, xdata[2], ydata[2], p0 = [np.max(ydata[2]), mean[2], sigma[2]]) #compute the second set of parameters for the second gaussian curve
+print(popt)
+
+plt.scatter(xdata[2], ydata[2] / np.max(ydata[2]), s = 1)   #scatter plot for the second set of points
+plt.plot(xdata[2], al.gaus(xdata[2], popt[0], popt[1], popt[2]) / np.max(al.gaus(xdata[2], popt[0], popt[1], popt[2])), color = 'g', label = 'Secondo picco')
+plt.legend()
+
+###############################################################################################################################
+###############################################################################################################################
+###############################################################################################################################
+###############################################################################################################################
+
+#LINEAR FUNCTION FOR CALIBRATION
+
+fig5, pic5 = plt.subplots()
+
+real_value = np.array([5898.75, 6490.45])
+mean  = np.delete(mean, 0, 0)
+popt, pcov = curve_fit(al.retta, mean, real_value)
+print(popt)
+
+plt.scatter(mean, real_value, s = 2)
+x = np.linspace(0, 3000, 10)
+plt.plot(x, al.retta(x, popt[0], popt[1]), color = 'r')
 
 # save histos
 #np.savez(shots_path+'spectrum_all_raw', counts = countsAll, bins = bins)
