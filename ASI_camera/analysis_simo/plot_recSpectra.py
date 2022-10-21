@@ -4,7 +4,10 @@ import glob
 import sys
 sys.path.insert(0, '../libs')
 import utils as al
-import ROOT
+
+import fit_histogram as fitSimo
+
+#import ROOT
 
 
 
@@ -12,7 +15,7 @@ import ROOT
 
 
 
-common_path='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/'
+common_path='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/1s_G120/'
 #files_histo=['1s_G120/spectrum_all_raw_cut100.npz', '/1s_G120_bg/spectrum_all.npz', '1s_G120/spectrum_allCLU_cut100.npz', '/1s_G120/spectrum_allCLU_cut50.npz',  '/1s_G120/spectrum_allCLU_cut25.npz', '/1s_G120/spectrum_allCLU_cut500.npz', '/1s_G120/spectrum_allCLU_cut5sigma.npz' ]
 #leg_names=['w 55Fe','bg', 'Fe, clustering, cut 100', 'Fe, clustering, cut 50',  'Fe, clustering, cut 25',  'Fe, clustering, cut 500', 'Fe, clustering, cut 5sigma'  ]
 
@@ -20,14 +23,21 @@ common_path='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/'
 #files_histo=['/1s_G120/spectrum_all_raw.npz','/1s_G120/spectrum_allCLU_cut25.npz', '/1s_G120/spectrum_allCLU_cut5sigma.npz', '/1s_G120/spectrum_allCLU_cut3sigma_xycut.npz' ]
 #leg_names=['55Fe', 'Fe, clustering, cut 25',  'Fe, clustering, cut 5sigma' ,  'Fe, clustering, cut 5sigma cut XY' ]
 
-files_histo=['/1s_G120/spectrum_all_raw.npz','/1s_G120/spectrum_allCLU_cut25.npz', '/1s_G120/spectrum_allCLU_cut5sigma.npz', '/1s_G120/spectrum_allCLU_cut5sigma_1pixel.npz' ]
-leg_names=['55Fe', 'Fe, clustering, cut 25',  'Fe, clustering, cut 5sigma' ,  'Fe, clustering, cut 5sigma cut 1pixel' ]
+#files_histo=['/1s_G120/spectrum_all_raw.npz',   '/1s_G120/spectrum_allCLU_cut25.npz', '/1s_G120/spectrum_allCLU_cut5sigma.npz', '/1s_G120/spectrum_allCLU_cut5sigma_1pixel.npz' ]
+#leg_names=['55Fe', 'Fe, clustering, cut 25',  'Fe, clustering, cut 5sigma' ,  'Fe, clustering, cut 5sigma cut 1pixel' ]
+
+#files_histo=['/1s_G120/spectrum_all_raw.npz',   '/1s_G120/spectrum_all_raw_pixMask7.5.npz', '/1s_G120/spectrum_all_pixMask7.5_CLUcut_3sigma.npz']
+#leg_names=['Fe raw', 'Fe pixel mask','Fe pixel mask - clustering 3 sigma cut ' ]
+
+files_histo=['spectrum_all_raw.npz','spectrum_allTEST_eps1_NOpix_CLUcut_5sigma.npz', 'spectrum_allTEST_eps1.5_NOpix_CLUcut_5sigma.npz',  'spectrum_allTEST_eps2_NOpix_CLUcut_5sigma.npz', 'spectrum_allTEST_eps3_NOpix_CLUcut_5sigma.npz', ]
+leg_names=['Fe raw','5 sigma cut, eps=1', '5 sigma cut, eps=1.5',   '5 sigma cut, eps=2',   '5 sigma cut, eps=3']
 
 
 
 
 fig, ax = plt.subplots()
 
+popt=[]
 for i in range(0,len(files_histo)):
     
     data=np.load(common_path+files_histo[i])
@@ -35,9 +45,19 @@ for i in range(0,len(files_histo)):
     bins=data['bins']
     #print ("len(coutsAll)=",len(countsAll) )
     histo=ax.hist(bins[:-1],bins=bins,weights=counts, histtype='step', label=leg_names[i])
-   
+    print ("bins= ",bins)
 
 
+    # fitting:
+    #initial_pars=[1000,1850,10]
+    #popt,pcov=fitSimo.fit_Gaushistogram(counts, bins,1800,1880,initial_pars)
+    #print("popt=",popt)
+    # plot fitted function
+    #x=np.linspace(1800,1880,8000)
+    #y= fitSimo.gaussian_model(x,popt[0],popt[1],popt[2])
+    #plt.plot(x,y,'r-',label='fitted function')
+    
+    
 plt.title('exposure=1s, G=480, 500 frames')
 plt.xlabel('ADC ch.')
 plt.ylabel('counts')

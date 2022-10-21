@@ -138,6 +138,10 @@ if __name__ == "__main__":
 
 #  bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/sensor_1_noGlass/200us_G0/'
 
-  bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/1s_G120_bg/'
-  bg_map(bg_shots_path,bg_shots_path+'mean_pedTEST.fits', bg_shots_path+'std_ped.fitsTest', draw=1, hist_pixel=[2819,1626] )
+#  bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/1s_G120_bg/'
+  #bg_map(bg_shots_path,bg_shots_path+'mean_pedTEST.fits', bg_shots_path+'std_ped.fitsTest', draw=1, hist_pixel=[2819,1626] )
+#  bg_map(bg_shots_path,bg_shots_path+'mean_pedTEST.fits', bg_shots_path+'std_ped.fitsTest', draw=1)
 
+
+   bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/2mm/1s_G240_bg/'
+   bg_map(bg_shots_path,bg_shots_path+'mean_ped.fits', bg_shots_path+'std_ped.fits', draw=1)
