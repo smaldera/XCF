@@ -43,7 +43,7 @@ image_SW = np.zeros((2822, 4144))
 
 # MASCHERA PIXEL RUMOROSI
 #mySigmaMask=np.where( (rms_ped>10)&(mean_ped>500) )
-mySigmaMask = np.where( (rms_ped>3) )
+mySigmaMask = np.where((rms_ped > 3))
 
 n = len(f)
 print('len(f) = ' + str(len(f)))
@@ -93,6 +93,7 @@ for image_file in f:
  #   countsAll2d=countsAll2d + counts2d
 
     # test clustering.... # uso v2 per avere anche le posizioni
+    
     w_clusterAll, clu_coordsAll, clu_lenghts, cg_coords = al.clustering_v2(supp_coords, supp_weights)
     w_clusterAll = np.array(w_clusterAll)
     
@@ -118,8 +119,8 @@ for image_file in f:
     countsClu_i, bins_i = np.histogram(w_clusterAll, bins = int(65536/4), range = (0,65536/4))
     countsAllClu = countsAllClu +  countsClu_i
     
-    #if(n == 5):
-    #    break
+    if(n == 5):
+        break
     
 
 plt.figure()
@@ -184,7 +185,7 @@ plt.title("Centre of gravity")
 ###############################################################################################################################
 ###############################################################################################################################
 
-#GAUSSIANS ON NORMALIZED PEAKS
+#GAUSSIANS ON FIRST TWO PEAKS
 
 xdata = []  #data of x-axis
 ydata = []  #data of y-axis
@@ -220,15 +221,15 @@ sigma = np.append(sigma, np.std(xdata[2]))  #sigma for the second set of data
 popt, pcov = curve_fit(al.gaus, xdata[1], ydata[1], p0 = [np.max(ydata[1]), mean[1], sigma[1]]) #compute the first set of parameters for the first gaussian curve
 print(popt)
 
-plt.scatter(xdata[1], ydata[1] / np.max(ydata[1]), s = 1)   #scatter plot for the first set of points
-plt.plot(xdata[1], al.gaus(xdata[1], popt[0], popt[1], popt[2]) / np.max(al.gaus(xdata[1], popt[0], popt[1], popt[2])), color = 'r', label = 'Primo picco')
+plt.scatter(xdata[1], ydata[1], s = 1)   #scatter plot for the first set of points
+plt.plot(xdata[1], al.gaus(xdata[1], popt[0], popt[1], popt[2]), popt[0], popt[1], popt[2], color = 'r', label = 'Primo picco')
 
 popt, pcov = curve_fit(al.gaus, xdata[2], ydata[2], p0 = [np.max(ydata[2]), mean[2], sigma[2]]) #compute the second set of parameters for the second gaussian curve
 print(popt)
 
-plt.scatter(xdata[2], ydata[2] / np.max(ydata[2]), s = 1)   #scatter plot for the second set of points
-plt.plot(xdata[2], al.gaus(xdata[2], popt[0], popt[1], popt[2]) / np.max(al.gaus(xdata[2], popt[0], popt[1], popt[2])), color = 'g', label = 'Secondo picco')
-plt.legend()
+plt.scatter(xdata[2], ydata[2], s = 1)   #scatter plot for the second set of points
+plt.plot(xdata[2], al.gaus(xdata[2], popt[0], popt[1], popt[2]), popt[0], popt[1], popt[2], color = 'g', label = 'Secondo picco')
+#plt.legend()
 
 ###############################################################################################################################
 ###############################################################################################################################
@@ -244,9 +245,34 @@ mean  = np.delete(mean, 0, 0)
 popt, pcov = curve_fit(al.retta, mean, real_value)
 print(popt)
 
-plt.scatter(mean, real_value, s = 2)
 x = np.linspace(0, 3000, 10)
 plt.plot(x, al.retta(x, popt[0], popt[1]), color = 'r')
+plt.scatter(mean, real_value, s = 3)
+
+
+###############################################################################################################################
+###############################################################################################################################
+###############################################################################################################################
+###############################################################################################################################
+
+#HSTOGRAM IN ENERGY
+
+fig6, h4 = plt.subplots()
+
+energy_bins = (bins * popt[0]) + popt[1]
+esc_range = energy_bins [(energy_bins > 3800) & (energy_bins < 4400)]
+esc_counts = countsAllOnes [(energy_bins > 3800) & (energy_bins < 4400)]
+
+popt, pcov = curve_fit(al.gaus, esc_range, esc_counts, p0 = [np.max(esc_counts), np.mean(esc_range), np.std(esc_range)]) #compute the first set of parameters for the first gaussian curve
+print(popt)
+
+#plt.plot(esc_range, al.gaus(esc_range, popt[0], popt[1], popt[2]), popt[0], popt[1], popt[2], color = 'r', label = 'Primo picco')
+h4.hist(energy_bins, bins = energy_bins, weights = countsAllOnes, histtype = 'step', label = 'Just Ones', color = 'g')
+plt.legend()
+
+print(popt[1])
+print(5898.75 - 1740)
+
 
 # save histos
 #np.savez(shots_path+'spectrum_all_raw', counts = countsAll, bins = bins)
