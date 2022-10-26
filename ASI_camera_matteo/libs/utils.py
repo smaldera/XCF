@@ -317,3 +317,11 @@ def gaus(x, a, x0, sigma):
     
 def retta(x, a, b):
     return (a * x) + b
+    
+def linear_func(p, x):
+   m, c = p
+   return m * x + c
+   
+def err_retta(x, a, b, erra, errb):
+
+    return np.sqrt((x ** 2 * erra ** 2) + (errb ** 2))

@@ -71,15 +71,15 @@ def pharse_mca(filename):
 
 if __name__ == "__main__":
 
-    mca_file='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/SDD/Fe_14Oct2022_5mm.mca'
+    mca_file='/Volumes/FILMS/dati_ASI294/misure_collimatore_14Oct/SDD/Fe_14Oct2022_5mm.mca'
     data_array, deadTime, livetime, fast_counts =pharse_mca(mca_file)
-    print("livetime=",livetime,"counts=", fast_counts, "RATE=",fast_counts/livetime,' Hz' )
-    print("deadTime=",deadTime)
+    #print("livetime=",livetime,"counts=", fast_counts, "RATE=",fast_counts/livetime,' Hz' )
+    #print("deadTime=",deadTime)
 
 
 
-    #plot
-    size=len(data_array)      
+    plot
+    size=len(data_array)
     bin_edges=np.linspace(0,size+1,size+1)
 
     fig1=plt.figure(1)
