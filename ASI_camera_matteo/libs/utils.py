@@ -337,6 +337,10 @@ def linear_func(p, x):
    m, c = p
    return m * x + c
    
+def m_gauss(p, x):
+    a, x0, sigma = p
+    return a * exp(-(x - x0) ** 2 / (2 * sigma ** 2))
+   
 def err_retta(x, a, b, erra, errb):
 
     return np.sqrt((x ** 2 * erra ** 2) + (errb ** 2))

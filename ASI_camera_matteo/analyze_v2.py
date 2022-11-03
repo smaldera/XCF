@@ -63,8 +63,8 @@ image_SW = np.zeros((2822, 4144))
 
 
 #SCELGO QUANTI FILE ANALIZZARE
-n_files = len(f)
-#n_files = 100 #just for test
+#n_files = len(f)
+n_files = 100 #just for test
 print("Files to be analyzed: " + str(n_files))
 print("\n")
 
@@ -520,7 +520,10 @@ energy_bins = (bins * second_cal[0]) + second_cal[1]
 sdd_energy_bins = (bins_edges * sdd_cal[0]) + sdd_cal[1]
 
 xdata = [(i * second_cal[0]) + second_cal[1] for i in xdata]
+err_xdata = [np.sqrt((i ** 2) * (second_cal_err[0] ** 2) + second_cal_err[1] ** 2) for i in xdata]
+
 sdd_xdata = [(i * sdd_cal[0]) + sdd_cal[1] for i in sdd_xdata]
+err_sdd_xdata = [np.sqrt((i ** 2) * (sdd_cal_err[0] ** 2) + sdd_cal_err[1] ** 2) for i in sdd_xdata]
 
 mean = np.empty(0)  #array for means
 mean = np.append(mean, 0)   #a mean[0] ci metto zero perche voglio usare l'array da 1 in poi giusto per non fare confusione
@@ -535,40 +538,52 @@ sdd_sigma = np.empty(0) #array of sigmas
 sdd_sigma = np.append(sdd_sigma, 0) #same as before
 
 
-#sdd_interval = []
-#sdd_check_data = []
-#
-#sdd_interval = sdd_energy_bins[(sdd_energy_bins > start) & (sdd_energy_bins < end)]
-#sdd_check_data =  data_array[(sdd_energy_bins > start) & (sdd_energy_bins < end)]
-
 ###############################################################################################################################
 ###############################################################################################################################
 
 print("Gaussians with CMOS.")
 print("\n")
+
 mean = np.append(mean, np.mean(xdata[1]))
 sigma = np.append(sigma, np.std(xdata[1]))
-popt, pcov = curve_fit(al.gaus, xdata[1], ydata[1], p0 = [np.max(ydata[1]), mean[1], sigma[1]]) #compute the first set of parameters for the first gaussian curve
-first_peak = popt
-first_peak_error = np.sqrt(np.diag(pcov))
+
+gauss_model = Model(al.m_gauss)
+data = RealData(xdata[1], ydata[1], err_xdata[1])
+odr = ODR(data, gauss_model, beta0 = [np.max(ydata[1]), mean[1], sigma[1]])
+out = odr.run()
+out.pprint()
+first_peak = out.beta
+firs_peak_error = np.sqrt(np.diag(out.cov_beta))
+
 print("Parameters for the peak k alpha of Fe55: ", first_peak)
 print("Error on parameters: ", first_peak_error)
 print("\n")
 
-#plt.plot(xdata[1], al.gaus(xdata[1], first_peak[0], first_peak[1], first_peak[2]), first_peak[0], first_peak[1], first_peak[2], color = 'r', label = 'Primo picco')
+
 mean = np.append(mean, np.mean(xdata[2]))
-sigma = np.append(sigma, np.std(xdata[1]))
-popt, pcov = curve_fit(al.gaus, xdata[2], ydata[2], p0 = [np.max(ydata[2]), mean[2], sigma[2]]) #compute the second set of parameters for the second gaussian curve
-second_peak = popt
-second_peak_error = np.sqrt(np.diag(pcov))
+sigma = np.append(sigma, np.std(xdata[2]))
+
+data = RealData(xdata[2], ydata[2], err_xdata[2])
+odr = ODR(data, gauss_model, beta0 = [np.max(ydata[2]), mean[2], sigma[2]])
+out = odr.run()
+out.pprint()
+
+second_peak = out.beta
+second_peak_error = np.sqrt(np.diag(out.cov_beta))
 print("Parameters for the peak k beta of Fe55: ", second_peak)
 print("Error on parameters: ", second_peak_error)
 print("\n")
 
 esc_range = [(i * second_cal[0]) + second_cal[1] for i in esc_range]
-popt, pcov = curve_fit(al.gaus, esc_range, esc_counts, p0 = [np.max(esc_counts), np.mean(esc_range), np.std(esc_range)]) #compute the set of parameters for the escape peak
-esc_peak = popt
-esc_peak_error = np.sqrt(np.diag(pcov))
+err_esc_range = [np.sqrt((i ** 2) * (second_cal_err[0] ** 2) + second_cal_err[1] ** 2) for i in esc_range]
+
+data = RealData(esc_range, esc_counts, err_esc_range)
+odr = ODR(data, gauss_model, beta0 = [np.max(esc_counts), np.mean(esc_range), np.std(esc_range)])
+out = odr.run()
+out.pprint()
+
+esc_peak = out.beta
+esc_peak_error = np.sqrt(np.diag(out.cov_beta))
 print("Parameters for the escape peak of Fe55: ", esc_peak)
 print("Error on parameters: ", esc_peak_error)
 print("\n")
@@ -583,33 +598,46 @@ print("\n")
 
 sdd_mean = np.append(sdd_mean, np.mean(sdd_xdata[1]))
 sdd_sigma = np.append(sdd_sigma, np.std(sdd_xdata[1]))
-popt, pcov = curve_fit(al.gaus, sdd_xdata[1], sdd_ydata[1], p0 = [np.max(sdd_ydata[1]), sdd_mean[1], sdd_sigma[1]]) #compute the first set of parameters for the first gaussian curve
-sdd_first_peak = popt
-sdd_first_peak_error = np.sqrt(np.diag(pcov))
+
+data = RealData(sdd_xdata[1], sdd_ydata[1], err_sdd_xdata[1])
+odr = ODR(data, gauss_model, beta0 = [np.max(sdd_ydata[1]), sdd_mean[1], sdd_sigma[1]])
+out = odr.run()
+out.pprint()
+
+sdd_first_peak = out.beta
+sdd_first_peak_error = np.sqrt(np.diag(out.cov_beta))
 print("Parameters for the peak k alpha of Fe55 with SDD: ", sdd_first_peak)
 print("Error on parameters: ", sdd_first_peak_error)
 print("\n")
 
-#fig9, h9 = plt.subplots()
 
-#plt.plot(sdd_xdata[1], al.gaus(sdd_xdata[1], sdd_first_peak[0], sdd_first_peak[1], sdd_first_peak[2]), sdd_first_peak[0], sdd_first_peak[1], sdd_first_peak[2], color = 'r', label = 'Primo picco')
 
 sdd_mean = np.append(sdd_mean, np.mean(sdd_xdata[2]))
 sdd_sigma = np.append(sdd_sigma, np.std(sdd_xdata[2]))
-popt, pcov = curve_fit(al.gaus, sdd_xdata[2], sdd_ydata[2], p0 = [np.max(sdd_ydata[2]), sdd_mean[2], sdd_sigma[2]]) #compute the second set of parameters for the second gaussian curve
-sdd_second_peak = popt
-sdd_second_peak_error = np.sqrt(np.diag(pcov))
+
+data = RealData(sdd_xdata[2], sdd_ydata[2], err_sdd_xdata[2])
+odr = ODR(data, gauss_model, beta0 = [np.max(sdd_ydata[2]), sdd_mean[2], sdd_sigma[2]])
+out = odr.run()
+out.pprint()
+
+sdd_second_peak = out.beta
+sdd_second_peak_error = np.sqrt(np.diag(out.cov_beta))
 print("Parameters for the peak k beta of Fe55 with SDD: ", sdd_second_peak)
 print("Error on parameters: ", sdd_second_peak_error)
 print("\n")
 
-#plt.plot(sdd_xdata[2], al.gaus(sdd_xdata[2], sdd_second_peak[0], sdd_second_peak[1], sdd_second_peak[2]), sdd_second_peak[0], sdd_second_peak[1], sdd_second_peak[2], color = 'g', label = 'Secondo picco')
 
 sdd_mean = np.append(sdd_mean, np.mean(sdd_xdata[3]))
 sdd_sigma = np.append(sdd_sigma, np.std(sdd_xdata[3]))
-popt, pcov = curve_fit(al.gaus, sdd_xdata[3], sdd_ydata[3], p0 = [np.max(sdd_ydata[3]), sdd_mean[3], sdd_sigma[3]]) #compute the third set of parameters for the third gaussian curve
-sdd_escape_peak = popt
-sdd_escape_peak_error = np.sqrt(np.diag(pcov))
+
+data = RealData(sdd_xdata[3], sdd_ydata[3], err_sdd_xdata[3])
+odr = ODR(data, gauss_model, beta0 = [np.max(sdd_ydata[3]), sdd_mean[3], sdd_sigma[3]])
+out = odr.run()
+out.pprint()
+
+
+sdd_escape_peak = out.beta
+sdd_escape_peak_error = np.sqrt(np.diag(out.cov_beta))
 print("Parameters for the escape peak of Fe55 in silicon with SDD: ", sdd_escape_peak)
 print("Error on parameters: ", sdd_escape_peak_error)
 print("\n")
