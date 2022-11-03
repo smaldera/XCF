@@ -84,6 +84,21 @@ def select_pixels2(image_data, threshold = 100, upper = 100000): # much better!!
 
       
    return supp_coords, supp_weights
+   
+   
+def select_pixels_RMS(image_data, rms_ped, nSigma = 5., upper = 100000): #  select pixele above n sigma
+
+    image_selection = image_data- (nSigma * rms_ped)
+    mask_zeroSupp = np.where((image_selection > 0.) & (image_data < upper))
+    #debug:
+    # print("mask=",mask_zeroSupp)
+    # print("maksed array=",image_data[mask_zeroSupp])
+    
+    supp_coords = np.transpose(mask_zeroSupp)
+    supp_weights = image_data[mask_zeroSupp]
+
+    
+    return supp_coords, supp_weights
 
    
 def clustering(supp_coords,supp_weights ):
@@ -137,7 +152,7 @@ def clustering_v2(supp_coords,supp_weights):
     cg_coords = np.empty((0,0))
     
     #db = DBSCAN(eps=1, min_samples=2, n_jobs=1, algorithm='ball_tree').fit(supp_coords)
-    db = DBSCAN(eps = 1, min_samples = 1, n_jobs = 1, algorithm = 'ball_tree').fit(supp_coords)
+    db = DBSCAN(eps = 1.5, min_samples = 1, n_jobs = 1, algorithm = 'ball_tree').fit(supp_coords)
   
     #core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
     #core_samples_mask[db.core_sample_indices_] = True
