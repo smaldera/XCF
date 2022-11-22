@@ -29,9 +29,10 @@ rootObjects=[]
 #leg_names=['sensor2_original','sensor1_noGlass']
 
 # sensore 2 G120 1s
-file_mean=['/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/10mm/1s_G240_bg/mean_ped.fits','/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/2mm/1s_G240_bg/mean_ped.fits']
-file_std=['/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/10mm/1s_G240_bg/std_ped.fits','/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/2mm/1s_G240_bg/std_ped.fits']
-leg_names=['G240 1s 5mm',' G240 1s, 2mm ']
+file_mean=['/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/10mm/1s_G240_bg/mean_ped.fits']
+file_std=['/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/10mm/1s_G240_bg/std_ped.fits']
+leg_names=['G240 1s']
+
 
 
 c1=ROOT.TCanvas('c1','',0)         
@@ -47,18 +48,18 @@ for i in range (0, len(file_mean)):
     mean= al.read_image(file_mean[i])
     std= al.read_image(file_std[i])
 
-    myMask=np.where(std<7.5)
+    #myMask=np.where(std<7.5)
     #myMask=np.where(std<700000000000)
    
-    #myMask=np.where( (mean>348)&(mean<356))
-   
-    #al.plot_image(np.log10(mean))
+    #myMask=np.where( mean>500)
+ 
+    al.plot_image(mean)
     #al.isto_all(mean)
     #al.plot_image(std)
     #al.isto_all(std)
 
    # plt.plot(std.flatten(),mean.flatten(),'bo',alpha=0.1)
-   # plt.show()
+    plt.show()
 
     print ('len mean[mask]= ',len(mean[myMask])) 
    

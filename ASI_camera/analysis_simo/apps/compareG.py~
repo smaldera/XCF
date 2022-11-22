@@ -6,11 +6,12 @@ sys.path.insert(0, '../libs')
 import utils_v2 as al
 
 import fit_histogram as fitSimo
-from  histogramSimo import histogramSimo
+
+#import ROOT
 
 
 
-
+#####################################################
 
 
 
@@ -52,12 +53,24 @@ fig, ax = plt.subplots()
 
 popt=[]
 for i in range(0,len(files_histo)):
+    
+    data=np.load(common_path+files_histo[i])
+    counts=data['counts']
+    bins=data['bins']
+    #print ("len(coutsAll)=",len(countsAll) )
+    histo=ax.hist(bins[:-1],bins=bins,weights=counts, histtype='step', label=leg_names[i])
+    print ("bins= ",bins)
 
 
-    p=histogramSimo()
-    p.get_from_file(common_path+files_histo[i])
-    p.plot(ax,leg_names[i])
-        
+    # fitting:
+    #initial_pars=[1000,1850,10]
+    #popt,pcov=fitSimo.fit_Gaushistogram(counts, bins,1800,1880,initial_pars)
+    #print("popt=",popt)
+    # plot fitted function
+    #x=np.linspace(1800,1880,8000)
+    #y= fitSimo.gaussian_model(x,popt[0],popt[1],popt[2])
+    #plt.plot(x,y,'r-',label='fitted function')
+    
     
 plt.title('exposure=1s, G=120, 100 frames, 5mm collimator')
 plt.xlabel('ADC ch.')

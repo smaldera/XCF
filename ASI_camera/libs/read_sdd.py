@@ -72,6 +72,7 @@ def pharse_mca(filename):
 if __name__ == "__main__":
 
     mca_file='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/SDD/Fe_14Oct2022_5mm.mca'
+   # mca_file= '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/SDD/Fe_14Oct2022_2mm.mca'
     data_array, deadTime, livetime, fast_counts =pharse_mca(mca_file)
     print("livetime=",livetime,"counts=", fast_counts, "RATE=",fast_counts/livetime,' Hz' )
     print("deadTime=",deadTime)

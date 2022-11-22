@@ -23,14 +23,15 @@ plt.hist(bin_edges[:-1],bins=bin_edges,weights=data_array, histtype='step')
 
 # fit 1st peak 
 initial_pars=[22000,3950,20]
-popt1,pcov1=fitSimo.fit_Gaushistogram(data_array, bin_edges,3920,3980,initial_pars)
+#popt1,pcov1=fitSimo.fit_Gaushistogram(data_array, bin_edges,3920,3980,initial_pars)
+popt1,pcov1,xmin1,xmax1=fitSimo.fit_Gaushistogram_iterative(data_array, bin_edges,3920,3980,initial_pars)    
+
 print("popt1=",popt1)
 print("pcov1=",pcov1)
 #plot fitted function
-x=np.linspace(3900,4000,3000)
+x=np.linspace(xmin1,xmax1,1000)
 y= fitSimo.gaussian_model(x,popt1[0],popt1[1],popt1[2])
 #y= fitSimo.gaussian_model(x, initial_pars[0],initial_pars [1],initial_pars[2])
-
 plt.plot(x,y,'r-',label='fitted function')
 
 
@@ -40,14 +41,13 @@ initial_pars=[8000,4350,20]
 xmin=4280
 xmax=4380
 
-popt2,pcov2=fitSimo.fit_Gaushistogram(data_array, bin_edges,xmin,xmax,initial_pars)
+popt2,pcov2, xmin2,xmax2=fitSimo.fit_Gaushistogram_iterative(data_array, bin_edges,xmin,xmax,initial_pars)
 print("popt2=",popt2)
 print("pcov2=",pcov2)
 #plot fitted function
-x=np.linspace(xmin,xmax,3000)
+x=np.linspace(xmin2,xmax2,1000)
 y= fitSimo.gaussian_model(x,popt2[0],popt2[1],popt2[2])
 #y= fitSimo.gaussian_model(x, initial_pars[0],initial_pars [1],initial_pars[2])
-
 plt.plot(x,y,'r-',label='fitted function')
 
 

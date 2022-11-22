@@ -1,0 +1,64 @@
+import numpy as np
+from matplotlib import pyplot as plt
+import glob
+import sys
+sys.path.insert(0, '../../libs')
+import utils_v2 as al
+
+import fit_histogram as fitSimo
+
+#import ROOT
+
+
+
+def normalize(counts, bins, minX,maxX ): 
+
+      bin_centers=fitSimo.get_centers(bins)
+      mask=np.where((bin_centers>minX)&(bin_centers<maxX))
+      c2=counts[mask]
+      ka_h=np.max(c2)
+      print("Ka max=",kamax) 
+
+
+
+def plot_spectrum(filename,labelname, ax):
+    data=np.load(filename)
+    counts=data['counts']
+    bins=data['bins']
+    #print ("len(coutsAll)=",len(countsAll) )
+    histo=ax.hist(bins[:-1],bins=bins,weights=counts, histtype='step', label=labelname)
+    print ("bins= ",bins)
+    
+   
+
+
+
+#####################################################
+
+
+
+#common_path='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/1s_G120/'
+
+# CONFRONTO  tempi esposizione
+common_path='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/2mm/'
+files_histo=['1s_G120/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_5.0sigma.npz','10s_G120/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_5.0sigma.npz','01s_G120/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_5.0sigma.npz']
+leg_names=['1s','10s','0.1s']
+
+
+
+fig, ax = plt.subplots()
+
+popt=[]
+for i in range(0,len(files_histo)):
+
+
+    plot_spectrum(common_path+files_histo[i],leg_names[i],ax) 
+    
+        
+    
+plt.title('G=120, 2mm collimator')
+plt.xlabel('ADC ch.')
+plt.ylabel('counts')
+plt.legend()
+plt.show()
+

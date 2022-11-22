@@ -8,19 +8,21 @@ from pedestal import bg_map
 
 
     
-shots_path = '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/2mm/1s_G240/'
-bg_shots_path ='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/10mm/1s_G240_bg/'
+shots_path = '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/2mm/10s_G120/'
+bg_shots_path ='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/2mm/10s_G120_bg/'
 
-#shots_path = '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/1s_G120/'
-#bg_shots_path ='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/1s_G120_bg/'
 
 
 create_bg_map = False
 NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
 YBINS=4144
-pixMask_suffix='_pixCut7'
-cluCut_suffix='_CLUcut_25sigma'
+PIX_CUT_SIGMA=10.
+CLU_CUT_SIGMA=5.
+
+pixMask_suffix='_pixCut'+str(PIX_CUT_SIGMA)+'sigma'
+cluCut_suffix='_CLUcut_'+str(CLU_CUT_SIGMA)+'sigma'
+myeps=1.5 # clustering DBSCAN
 
 if create_bg_map == True:
     bg_map(bg_shots_path, bg_shots_path + 'mean_ped.fits', bg_shots_path + 'std_ped.fits', draw = 0 )
@@ -48,10 +50,11 @@ countsAll2dClu,  xedges, yedges= np.histogram2d(x,x,bins=[int(141/2.),int(207/2.
 zero_img = np.zeros((XBINS, YBINS))
 image_SW = np.zeros((XBINS, YBINS))
 
-
+rms_pedCut=np.mean(rms_ped)+PIX_CUT_SIGMA*np.std(rms_ped)
+print("rms_pedCut=",rms_pedCut)
 # MASCHERA PIXEL RUMOROSI 
 #mySigmaMask=np.where( (rms_ped>10)&(mean_ped>500) )
-mySigmaMask=np.where( (rms_ped>7) )
+mySigmaMask=np.where( (rms_ped>rms_pedCut) )
 
 
 #np array vuoti a cui appendo le coordinate
@@ -62,6 +65,7 @@ y_allClu=np.empty(0)
 
 n=0.
 # inizio loop sui files
+print('reading files form:',shots_path)
 for image_file in f:
   #  print(n," --> ", image_file)
     if n%10==0:
@@ -88,7 +92,7 @@ for image_file in f:
     #CLUSTERING
     # applico selezione su carica dei pixel
    # supp_coords, supp_weights=al.select_pixels2(image_data, 150)
-    supp_coords, supp_weights=al.select_pixels_RMS(image_data, rms_ped, 25)
+    supp_coords, supp_weights=al.select_pixels_RMS(image_data, rms_ped, CLU_CUT_SIGMA)
 
     if len( supp_weights)==0:
         print ('vettore vuoto!')
@@ -102,7 +106,7 @@ for image_file in f:
     #y_all=np.append(y_all,trasposta[1])
     
     # test clustering.... # uso v2 per avere anche le posizioni
-    w_clusterAll, clu_coordsAll, clu_sizes, clu_baryCoords    =al.clustering_v3(supp_coords,supp_weights,myeps=1.5) 
+    w_clusterAll, clu_coordsAll, clu_sizes, clu_baryCoords    =al.clustering_v3(supp_coords,supp_weights,myeps=myeps) 
     
   #  print("clu_coordsAll=",clu_coordsAll)
     clu_trasposta= clu_coordsAll.transpose()
@@ -173,7 +177,7 @@ plt.title('CLU size')
 
 # save histos
 np.savez(shots_path+'spectrum_all_raw'+pixMask_suffix, counts = countsAll, bins = bins)
-np.savez(shots_path+'spectrum_all_eps1.5'+pixMask_suffix+cluCut_suffix, counts = countsAllClu, bins = bins)
+np.savez(shots_path+'spectrum_all_eps'+str(myeps)+pixMask_suffix+cluCut_suffix, counts = countsAllClu, bins = bins)
 np.savez(shots_path+'spectrum_SUM'+pixMask_suffix, counts =image_SW.flatten(), bins = bins)
 np.savez(shots_path+'cluSizes_spectrum'+pixMask_suffix, counts = h_cluSizeAll , bins =binsSize )
 
