@@ -45,13 +45,13 @@ for i in range(0,len(files_histo)):
     print('bin max=', peak_bin)
     
     initial_pars=[1000.,peak_bin,50.]
-    popt1,pcov1,xmin1,xmax1=fitSimo.fit_Gaushistogram_iterative(counts, bins, peak_bin-100 ,peak_bin+100,initial_pars)
+    popt1,pcov1,xmin1,xmax1, redChi2=fitSimo.fit_Gaushistogram_iterative(counts, bins, peak_bin-100 ,peak_bin+100,initial_pars)
 
     mean.append(popt1[1])
     sigma.append(popt1[2])
     mean_err.append(pcov1[1][1]**0.5)
     print(pcov1)
-    print('mean=',popt1[1], "sigma= ",popt1[2], " ris= ",popt1[2]/popt1[1])
+    print('mean=',popt1[1], "sigma= ",popt1[2], " ris= ",popt1[2]/popt1[1], "reduced chi2=",redChi2)
    
     # plot fitted function
     x=np.linspace(int(xmin1), int(xmax1),1000)

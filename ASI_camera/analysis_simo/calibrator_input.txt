@@ -1,0 +1,11 @@
+# test test test
+# primo file
+
+FILE=/home/maldera/Desktop/eXTP/datiSDD/mcPhersonNov2022/Fe_10KV_0.0mA.mca
+#true_Val, min max
+PEAK=6 4000 4500
+PEAK=8 4600 4850
+	    
+FILE=/home/maldera/Desktop/eXTP/datiSDD/mcPhersonNov2022/Ti_8KV_0.0mA.mca
+PEAK=4 2900 3150
+PEAK=5 3200 3400

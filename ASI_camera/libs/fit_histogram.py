@@ -2,6 +2,10 @@ import numpy as np
 from scipy.optimize import curve_fit
 
 
+# TODO = trattare bin vuoti
+# errore poissoninano
+
+
 def linear_model(x,p0,p1):
        y=p0+p1*x
        return y
@@ -26,22 +30,27 @@ def get_centers(bins):
     #print("centers=",centers)    
     return centers     
    
-def fit_Gaushistogram(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1]):
+def fit_Gaushistogram(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1], parsBoundLow=-np.inf, parsBounsUp=np.inf ):
     bin_centers =get_centers(bins)          
     _mask = (counts > 0)&(bin_centers>xmin)&(bin_centers<xmax)
     y_data=counts[_mask]
     x_data=bin_centers[_mask]
-
-    popt, pcov = curve_fit(gaussian_model, x_data, y_data,p0=initial_pars)
+    sigma=np.sqrt(y_data)
+    popt, pcov = curve_fit(gaussian_model, x_data, y_data,p0=initial_pars,absolute_sigma=True, sigma=sigma, bounds=(parsBoundLow, parsBounsUp ) )
+    chisq = (((y_data - gaussian_model(x_data,popt[0],popt[1],popt[2]))/sigma)**2).sum()
+    ndof= len(y_data) - len(popt)
+    redChi2=chisq/ndof
     
-    return popt,  pcov
+    print("fitting histo, chi2=",chisq," ndof=",ndof,"  red chi2=",redChi2)
+    
+    return popt,  pcov,redChi2  
 
 
 
 
 def fit_Gaushistogram_iterative(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1], nSigma=1.5 ):
 
-    popt, pcov =fit_Gaushistogram(counts,bins,xmin,xmax, initial_pars)
+    popt, pcov, redChi2 =fit_Gaushistogram(counts,bins,xmin,xmax, initial_pars)
     k=popt[0]
     mean=popt[1]
     sigma=popt[2]
@@ -51,10 +60,11 @@ def fit_Gaushistogram_iterative(counts,bins,xmin=-100000,xmax=100000, initial_pa
            
         xmin=mean-nSigma*sigma
         xmax=mean+nSigma*sigma  
-        popt, pcov=    fit_Gaushistogram(counts,bins,xmin,xmax, initial_pars=[k,mean,sigma])
+        popt, pcov,  redChi2 =    fit_Gaushistogram(counts,bins,xmin,xmax, initial_pars=[k,mean,sigma])
         k=popt[0]
         mean=popt[1]
         sigma=popt[2]
-
-    return popt,  pcov, xmin,xmax
+    print ("============>>>>>>>> Final  CHI2/ndof= ",redChi2)   
+        
+    return popt,  pcov, xmin,xmax, redChi2
     
