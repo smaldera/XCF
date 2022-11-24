@@ -1,11 +1,16 @@
 # test test test
+#OKKIO che il doppio spazio non gli piace!!!! 
 # primo file
 
 FILE=/home/maldera/Desktop/eXTP/datiSDD/mcPhersonNov2022/Fe_10KV_0.0mA.mca
 #true_Val, min max
-PEAK=6 4000 4500
-PEAK=8 4600 4850
-	    
+PEAK=6.4 4000 4500
+PEAK=7.058 4600 4850
+
 FILE=/home/maldera/Desktop/eXTP/datiSDD/mcPhersonNov2022/Ti_8KV_0.0mA.mca
-PEAK=4 2900 3150
-PEAK=5 3200 3400
+PEAK=4.51 2900 3150
+PEAK=4.9318 3200 3400
+
+FILE=/home/maldera/Desktop/eXTP/datiSDD/mcPhersonNov2022/Ni_10KV_0.0mA.mca
+PEAK=7.47 4900 5100
+PEAK=8.264 5450 5600
