@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import sys
-sys.path.insert(0, '../../libs')
+sys.path.insert(0, '../../../libs')
 import utils_v2 as al
 import fit_histogram as fitSimo
 from  histogramSimo import histogramSimo

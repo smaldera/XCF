@@ -2,14 +2,14 @@ import numpy as np
 from matplotlib import pyplot as plt
 import glob
 import sys
-sys.path.insert(0, '../libs')
+sys.path.insert(0, '../../libs')
 import utils_v2 as al
 from pedestal import bg_map
 
 
     
-shots_path = '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/2mm/10s_G120/'
-bg_shots_path ='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/2mm/10s_G120_bg/'
+shots_path = '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_verticale/Pd/1ms_G120/'
+bg_shots_path ='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_verticale/1ms_G120_bg/'
 
 
 
@@ -18,7 +18,7 @@ NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
 YBINS=4144
 PIX_CUT_SIGMA=10.
-CLU_CUT_SIGMA=5.
+CLU_CUT_SIGMA=150.
 
 pixMask_suffix='_pixCut'+str(PIX_CUT_SIGMA)+'sigma'
 cluCut_suffix='_CLUcut_'+str(CLU_CUT_SIGMA)+'sigma'
@@ -67,7 +67,7 @@ n=0.
 # inizio loop sui files
 print('reading files form:',shots_path)
 for image_file in f:
-  #  print(n," --> ", image_file)
+    print(n," --> ", image_file)
     if n%10==0:
          frac=float(n/len(f))*100.
          print(" processed ",n," files  (  %.2f %%)" %frac )
@@ -128,8 +128,8 @@ for image_file in f:
     h_cluSizes_i, binsSizes_i = np.histogram(clu_sizes , bins = 100, range = (0,100) )
     h_cluSizeAll=h_cluSizeAll+ h_cluSizes_i
     
-  #  if n>100:
-  #      break
+    #if n>5:
+    #    break
 
 
 ###########

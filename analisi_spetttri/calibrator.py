@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
+import pandas as pd
 
 import sys
 sys.path.insert(0, '../libs')
@@ -11,25 +12,26 @@ from  histogramSimo import histogramSimo
 
 
 
-
 def fit_histo(p,low,up, plot=1):
 
     k0=100
     mean0=low+(up-low)/2.
     counts=p.counts
-    bins=p.bins
+    bins=p.bins     
     popt,  pcov, xmin,xmax, redChi2= fitSimo.fit_Gaushistogram_iterative(counts,bins,xmin=low,xmax=up, initial_pars=[k0,mean0,10], nSigma=1.1 )
     mean=popt[1]
     meanErr=pcov[1][1]
     print("fitted mean=",mean, " err=",meanErr, " reduced chi2=",redChi2)
-    
 
+    
     #plot?
     if plot:
         x=np.linspace(xmin,xmax,1000)
         y= fitSimo.gaussian_model(x,popt[0],popt[1],popt[2])
-        plt.plot(x,y,'r-',label='fitted function')
+        plt.plot(x,y,'r-')
 
+               
+        
     
     return  mean, meanErr
 
@@ -54,18 +56,22 @@ def calibrator(calibFileName):
             continue
         splitted=line.split('=')
         if splitted[0]=='FILE':
-            print("reading file",splitted[1])
-            n_spectra+=1
 
-            data_array, deadTime, livetime, fast_counts =pharse_mca(splitted[1])
-            size=len(data_array)      
-            bin_edges=np.linspace(0,size+1,size+1)
-            p.counts=data_array
-            p.bins=bin_edges
+            file_split=splitted[1].split(' ')
+            print('file_split',file_split)
+            filename=file_split[0]
+            fileFormat=file_split[1]
+            print("reading file",filename)
+            print ("file type = ",fileFormat)
+            n_spectra+=1
+            
+            p.read_from_file(filename, fileFormat )
+            
             # plot istogramma?
             #fig, ax = plt.subplots()
-            p.plot(ax,splitted[1].split('/')[-1])
+            p.plot(ax,filename.split('/')[-1])
             plt.legend()
+          
 
         if splitted[0]=='PEAK':
             peak_string=splitted[1].split(' ')
@@ -88,18 +94,21 @@ def calibrator(calibFileName):
 if __name__ == "__main__":
 
 
-    true,   fitted_mean,  fitted_meanErr = calibrator('calibrator_input.txt')
-    
+    #true,   fitted_mean,  fitted_meanErr = calibrator('calibrator_input.txt')
+    true,   fitted_mean,  fitted_meanErr = calibrator('calibrator_inputDatiErik.txt')
+
     n_files=3
     plt.figure(n_files+1)
     plt.errorbar(true, fitted_mean ,yerr=fitted_meanErr, fmt='ro')
 
     # fit retta calib:
+    
     poptCal, pcovCal = curve_fit(fitSimo.linear_model, true, fitted_mean ,absolute_sigma=True, sigma=fitted_meanErr, bounds=(-np.inf, np.inf )   )
     chisq = (((fitted_mean - fitSimo.linear_model(true,poptCal[0],poptCal[1]))/fitted_meanErr)**2).sum()
     ndof= len(true) - len(poptCal)
     redChi2=chisq/ndof
     print('chi2=',chisq," ndof=",ndof, " chi2/ndof=",redChi2)
+
 
     x=np.linspace(min(true)-2 ,max(true)+2,8000)
     y= fitSimo.linear_model(x,poptCal[0],poptCal[1])
@@ -134,6 +143,8 @@ if __name__ == "__main__":
     plt.plot(x,y,'b-')
     plt.plot(x,y_err,'k-')
      
+    
+
     plt.show()
 
 

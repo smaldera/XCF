@@ -2,7 +2,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 #sys.path.insert(0, '../../libs')
 import fit_histogram as fitSimo
-
+import pandas as pd
+from read_sdd import  pharse_mca
 
 class histogramSimo():
       """
@@ -19,6 +20,9 @@ class histogramSimo():
 
              self.counts=counts
              self.bins=bins
+             self.sdd_liveTime=None
+             self.sdd_deadTime=None
+             self.sdd_fastCounts=None
 
       def get_from_file(self,filename):
             data=np.load(filename)
@@ -41,4 +45,30 @@ class histogramSimo():
             histo=ax.hist(self.bins[:-1],bins=self.bins,weights=self.counts, histtype='step', label=labelname)
 
 
+
+      def read_from_file(self, filename, fileFormat ):
+
+            data_array=None
+     
+            if fileFormat=='sdd':
+                data_array, deadTime, livetime, fast_counts =pharse_mca(filename)
+                size=len(data_array)      
+                bin_edges=np.linspace(0,size+1,size+1)
+                self.counts=data_array
+                self.bins=bin_edges
+                self.sdd_liveTime=livetime
+                self.sdd_deadTime=deadTime
+                self.sdd_fastCounts=fast_counts
+          
+            if fileFormat=='Eric_mcPherson':
+                 df=pd.read_csv(filename,header=None)
+                 #x=df[0].values
+                 y=df[1].values
+                 size=len(y)      
+                 bin_edges=np.linspace(0,size+1,size+1)
+                 self.counts=y
+                 self.bins=bin_edges
+       
+                 
+     # def rebin(self,n):
             

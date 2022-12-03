@@ -2,7 +2,7 @@ from astropy.io import fits as pf
 from matplotlib import pyplot as plt
 import numpy as np
 import sys
-sys.path.insert(0, '../libs')
+sys.path.insert(0, '../../libs')
 
 import utils as al
 import ROOT
@@ -29,9 +29,9 @@ rootObjects=[]
 #leg_names=['sensor2_original','sensor1_noGlass']
 
 # sensore 2 G120 1s
-file_mean=['/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/10mm/1s_G240_bg/mean_ped.fits']
-file_std=['/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/10mm/1s_G240_bg/std_ped.fits']
-leg_names=['G240 1s']
+file_mean=['/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_orizz/100ms_G120_bg/mean_ped.fits', '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_verticale/100ms_G120_bg/mean_ped.fits']
+file_std=['/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_orizz/100ms_G120_bg/std_ped.fits', '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_verticale/100ms_G120_bg/std_ped.fits']
+leg_names=['100ms orizz','100ms vert']
 
 
 
@@ -49,19 +49,19 @@ for i in range (0, len(file_mean)):
     std= al.read_image(file_std[i])
 
     #myMask=np.where(std<7.5)
-    #myMask=np.where(std<700000000000)
+    myMask=np.where(std<700000000000)
    
     #myMask=np.where( mean>500)
  
-    al.plot_image(mean)
+   # al.plot_image(mean)
     #al.isto_all(mean)
     #al.plot_image(std)
     #al.isto_all(std)
 
    # plt.plot(std.flatten(),mean.flatten(),'bo',alpha=0.1)
-    plt.show()
+   # plt.show()
 
-    print ('len mean[mask]= ',len(mean[myMask])) 
+    #print ('len mean[mask]= ',len(mean[myMask])) 
    
     h_mean[i]=al.isto_all_root(mean[myMask])
     h_mean[i].SetName('meanPed_'+str(i))

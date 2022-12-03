@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy import interpolate
 import sys
-sys.path.insert(0, '../libs')
+sys.path.insert(0, '../../libs')
 import read_sdd as sdd
 import fit_histogram as fitSimo
 from scipy.optimize import curve_fit
