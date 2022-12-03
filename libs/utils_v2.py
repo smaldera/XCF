@@ -40,28 +40,6 @@ def write_fitsImage(array, nomefile,overwrite='False' ):
 
 
 
-def select_pixels(image_data):  # DEPRECATED
-   coord_arr=[]
-   weights=[]
-
-   for i in range(0,image_data.shape[0]):
-      for j in range (0,image_data.shape[1] ):
-          coord_arr.append([i,j])
-          weights.append(image_data[i,j])
-
-
-          
-   coord2=np.array(coord_arr)
-   weights2=np.array(weights)
-
-   #print(coord2[0])
-
-   mask_zeroSupp=np.where(weights2>100)
-   supp_coords=coord2[mask_zeroSupp]
-   supp_weights=weights2[mask_zeroSupp]
-
-   return supp_coords, supp_weights
-
 
 def select_pixels2(image_data, threshold=100, upper=100000): # much better!!
 
@@ -275,7 +253,7 @@ def retrive_vectors(nomefile):
     return w,x_pix,y_pix
 
 
-
+# DEPRECATED!!!!!
 def retrive_histo(nomefile):
     data=np.load(nomefile)
     counts=data['counts']

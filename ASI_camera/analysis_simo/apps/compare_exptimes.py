@@ -27,7 +27,7 @@ for i in range(0,len(files_histo)):
 
    # plot_spectrum(common_path+files_histo[i],leg_names[i],ax) 
     p=histogramSimo()
-    p.get_from_file(common_path+files_histo[i])
+    p.read_from_file(common_path+files_histo[i],'npz')
     p.normalize( 500,4000 )
     p.plot(ax,leg_names[i])
         

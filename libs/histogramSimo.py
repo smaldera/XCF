@@ -24,12 +24,12 @@ class histogramSimo():
              self.sdd_deadTime=None
              self.sdd_fastCounts=None
 
-      def get_from_file(self,filename):
-            data=np.load(filename)
-            counts=data['counts']
-            bins=data['bins']
-            self.counts=counts
-            self.bins=bins
+     # def get_from_file(self,filename):
+     #       data=np.load(filename)
+     #       counts=data['counts']
+     #       bins=data['bins']
+     #       self.counts=counts
+     #       self.bins=bins
 
       def normalize(self, minX,maxX):      
             bin_centers=fitSimo.get_centers(self.bins)
@@ -68,7 +68,15 @@ class histogramSimo():
                  bin_edges=np.linspace(0,size+1,size+1)
                  self.counts=y
                  self.bins=bin_edges
-       
+
+
+            if  fileFormat=='npz':
+                 data=np.load(filename)
+                 counts=data['counts']
+                 bins=data['bins']
+                 self.counts=counts
+                 self.bins=bins
+
                  
      # def rebin(self,n):
             

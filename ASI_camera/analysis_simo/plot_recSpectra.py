@@ -55,7 +55,7 @@ for i in range(0,len(files_histo)):
 
 
     p=histogramSimo()
-    p.get_from_file(common_path+files_histo[i])
+    p.read_from_file(common_path+files_histo[i],'npz')
     p.plot(ax,leg_names[i])
         
     
