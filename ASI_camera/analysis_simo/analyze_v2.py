@@ -18,7 +18,15 @@ NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
 YBINS=4144
 PIX_CUT_SIGMA=10.
-CLU_CUT_SIGMA=150.
+CLU_CUT_SIGMA=5.
+REBINXY=10.
+APPLY_CLUSTERING=True
+
+
+xbins2d=int(XBINS/REBINXY)
+ybins2d=int(YBINS/REBINXY)
+
+print("xbins2d=",xbins2d)
 
 pixMask_suffix='_pixCut'+str(PIX_CUT_SIGMA)+'sigma'
 cluCut_suffix='_CLUcut_'+str(CLU_CUT_SIGMA)+'sigma'
@@ -41,11 +49,13 @@ f = glob.glob(shots_path + "/*.FIT")
 # creo istogrammi 1d vuoti
 x = []
 countsAll, bins = np.histogram(x, bins = 2*NBINS, range = (-NBINS,NBINS))
+countsAllZeroSupp, bins = np.histogram(x, bins = 2*NBINS, range = (-NBINS,NBINS))
 countsAllClu, bins = np.histogram(x,  bins = 2*NBINS, range = (-NBINS,NBINS))
 h_cluSizeAll,binsSize=np.histogram(x,bins=100, range=(0,100))
 
 # creo histo2d vuoto:
-countsAll2dClu,  xedges, yedges= np.histogram2d(x,x,bins=[int(141/2.),int(207/2.) ],range=[[0,XBINS],[0,YBINS]])
+countsAll2dClu,  xedges, yedges= np.histogram2d(x,x,bins=[xbins2d, ybins2d],range=[[0,XBINS],[0,YBINS]])
+countsAll2dRaw,  xedgesRaw, yedgesRaw= np.histogram2d(x,x,bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
 
 zero_img = np.zeros((XBINS, YBINS))
 image_SW = np.zeros((XBINS, YBINS))
@@ -67,7 +77,7 @@ n=0.
 # inizio loop sui files
 print('reading files form:',shots_path)
 for image_file in f:
-    print(n," --> ", image_file)
+   # print(n," --> ", image_file)
     if n%10==0:
          frac=float(n/len(f))*100.
          print(" processed ",n," files  (  %.2f %%)" %frac )
@@ -87,9 +97,11 @@ for image_file in f:
     # spettro "raw"
     counts_i, bins_i = np.histogram(flat_image,  bins = 2*NBINS, range = (-NBINS,NBINS) ) 
     countsAll = countsAll + counts_i
+
+
     
     #################
-    #CLUSTERING
+    #ZERO SUPPRESSION
     # applico selezione su carica dei pixel
    # supp_coords, supp_weights=al.select_pixels2(image_data, 150)
     supp_coords, supp_weights=al.select_pixels_RMS(image_data, rms_ped, CLU_CUT_SIGMA)
@@ -98,38 +110,43 @@ for image_file in f:
         print ('vettore vuoto!')
         continue
     
-    #supp_coords, supp_weights=al.select_pixels_RMS(image_data,rms_ped,3)
-
     # salvo pixel che sopravvivono alla selezione:
-    trasposta= supp_coords.transpose()
-    #x_all=np.append(x_all,trasposta[0])
-    #y_all=np.append(y_all,trasposta[1])
-    
-    # test clustering.... # uso v2 per avere anche le posizioni
-    w_clusterAll, clu_coordsAll, clu_sizes, clu_baryCoords    =al.clustering_v3(supp_coords,supp_weights,myeps=myeps) 
-    
-  #  print("clu_coordsAll=",clu_coordsAll)
-    clu_trasposta= clu_coordsAll.transpose()
-    cluBary_trasposta= clu_baryCoords.transpose()
+    zeroSupp_trasposta= supp_coords.transpose()
+    #x_all=np.append(x_all,zeroSupp_trasposta[0])
+    #y_all=np.append(y_all,zeroSupp_trasposta[1])
+
+   #istogramma 2d immagine raw:
+    counts2dRaw,  xedgesRaw, yedgesRaw= np.histogram2d(zeroSupp_trasposta[0],zeroSupp_trasposta[1],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
+    countsAll2dRaw=countsAll2dRaw+counts2dRaw
+
+    #spettro dopo zeroSuppression
+    countsZeroSupp_i, bins_i = np.histogram( supp_weights,  bins = 2*NBINS, range = (-NBINS,NBINS) ) 
+    countsAllZeroSupp =countsAllZeroSupp  +  countsZeroSupp_i
+    #CLUSTERING
+    if APPLY_CLUSTERING:
+       
+        # test clustering.... # uso v2 per avere anche le posizioni
+        w_clusterAll, clu_coordsAll, clu_sizes, clu_baryCoords    =al.clustering_v3(supp_coords,supp_weights,myeps=myeps) 
+        cluBary_trasposta= clu_baryCoords.transpose()
    
+        #clu_trasposta= clu_coordsAll.transpose() 
+        #x_allClu=np.append(x_allClu,clu_trasposta[0])
+        #y_allClu=np.append(y_allClu,clu_trasposta[1])
+
+        # istogramma 2d dopo clustering solo baricentri!!!!
+        counts2dClu,  xedges, yedges= np.histogram2d(cluBary_trasposta[0],cluBary_trasposta[1],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
+        countsAll2dClu=countsAll2dClu+ counts2dClu
+
+        # istogramma spettro dopo il clustering
+        countsClu_i, bins_i = np.histogram(  w_clusterAll, bins = 2*NBINS, range = (-NBINS,NBINS) )
+        countsAllClu = countsAllClu +  countsClu_i
+
+        #istogramma size clusters:
+        h_cluSizes_i, binsSizes_i = np.histogram(clu_sizes , bins = 100, range = (0,100) )
+        h_cluSizeAll=h_cluSizeAll+ h_cluSizes_i
     
-    #x_allClu=np.append(x_allClu,clu_trasposta[0])
-    #y_allClu=np.append(y_allClu,clu_trasposta[1])
-
-    # istogramma 2d dopo clustering solo baricentri!!!!
-    counts2dClu,  xedges, yedges= np.histogram2d(cluBary_trasposta[0],cluBary_trasposta[1],bins=[int(141/2),int(207/2) ],range=[[0,XBINS],[0,YBINS]])
-    countsAll2dClu=countsAll2dClu+ counts2dClu
-
-    # istogramma spettro dopo il clustering
-    countsClu_i, bins_i = np.histogram(  w_clusterAll, bins = 2*NBINS, range = (-NBINS,NBINS) )
-    countsAllClu = countsAllClu +  countsClu_i
-
-    #istogramma size clusters:
-    h_cluSizes_i, binsSizes_i = np.histogram(clu_sizes , bins = 100, range = (0,100) )
-    h_cluSizeAll=h_cluSizeAll+ h_cluSizes_i
-    
-    #if n>5:
-    #    break
+   # if n>5:
+   #     break
 
 
 ###########
@@ -145,17 +162,27 @@ plt.colorbar()
 plt.title('hit pixels (rebinned)')
 
 # plot immagine SOMMA
-fig3, ax3 = plt.subplots()
+#fig3, ax3 = plt.subplots()
 #image_SW = image_SW / n
-plt.imshow(image_SW)
+#plt.imshow(image_SW)
+#plt.colorbar()
+#plt.title('SUM of all frames')
+
+
+# plot immagine Raw
+fig3, ax3 = plt.subplots()
+plt.imshow(countsAll2dRaw)
 plt.colorbar()
-plt.title('SUM of all frames')
+plt.title('pixels>zero_suppression threshold')
+
+
 
 
 
 # plot spettro
 fig, h1 = plt.subplots()
 h1.hist(bins[:-1], bins = bins, weights = countsAll, histtype = 'step',label="raw")
+h1.hist(bins[:-1], bins = bins, weights = countsAllZeroSupp, histtype = 'step',label="pixel thresold")
 h1.hist(bins[:-1], bins = bins, weights = countsAllClu, histtype = 'step',label='CLUSTERING')
 plt.legend()
 plt.title('spectra')
@@ -185,7 +212,8 @@ np.savez(shots_path+'cluSizes_spectrum'+pixMask_suffix, counts = h_cluSizeAll , 
 
 # save figures
 al.write_fitsImage(countsAll2dClu, shots_path+'imageCUL'+pixMask_suffix+cluCut_suffix+'.fits'  , overwrite = "False")
-al.write_fitsImage(image_SW, shots_path+'imageSUM'+pixMask_suffix +'.fits'  , overwrite = "False")
+#al.write_fitsImage(image_SW, shots_path+'imageSUM'+pixMask_suffix +'.fits'  , overwrite = "False")
+al.write_fitsImage(countsAll2dRaw, shots_path+'imageRaw'+pixMask_suffix +'.fits'  , overwrite = "False")
 
 
 
