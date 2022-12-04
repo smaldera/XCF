@@ -95,7 +95,10 @@ if __name__ == "__main__":
 
 
     #true,   fitted_mean,  fitted_meanErr = calibrator('calibrator_input.txt')
-    true,   fitted_mean,  fitted_meanErr = calibrator('calibrator_inputDatiErik.txt')
+    #true,   fitted_mean,  fitted_meanErr = calibrator('calibrator_inputDatiErik.txt')
+    true,   fitted_mean,  fitted_meanErr = calibrator('calibrator_inputIMX294_G120.txt')
+   
+    
 
     n_files=3
     plt.figure(n_files+1)
