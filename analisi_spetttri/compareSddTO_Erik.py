@@ -48,18 +48,18 @@ if __name__ == "__main__":
     #title='normalized @ Ti K alpha'
     
     #Ni
-    #linesLabels=['Ni ka','Ni kb']
-    #norm_limits=[7.3,7.6]  # Ni ka
-    #mca=['Ni_10kV_0ma.csv',      'Ni_10kV_1ma.csv', 'Ni_10kV_1ma_air.csv']# ,'Ni_10kV_5ma_air.csv']
-    #mca_TO=['Ni_10KV_0.0mA.mca','Ni_10KV_0.0mA_orizzontale.mca']
-    #title='normalized @ Ni K alpha'
+    linesLabels=['Ni ka','Ni kb']
+    norm_limits=[7.3,7.6]  # Ni ka
+    mca=['Ni_10kV_0ma.csv', 'Ni_10kV_1ma_air.csv']# ,'Ni_10kV_5ma_air.csv']
+    mca_TO=['Ni_10KV_0.0mA.mca','Ni_10KV_0.0mA_orizzontale_nuovafinestra.mca']
+    title='normalized @ Ni K alpha'
 
     #Rh    
-    linesLabels=['Rh La']
-    norm_limits=[2.64,2.74]  # Rh La
-    mca=['Rh_10kV_0ma.csv']
-    mca_TO=['Rh_10KV_0.0mA.mca','Rh_10KV_0.0mA_orizzontale.mca']
-    title='normalized @ Rh L alpha'
+    #linesLabels=['Rh La']
+    #norm_limits=[2.64,2.74]  # Rh La
+    #mca=['Rh_10kV_0ma.csv']
+    #mca_TO=['Rh_10KV_0.0mA.mca','Rh_10KV_0.0mA_orizzontale.mca']
+    #title='normalized @ Rh L alpha'
      
     #linesLabels=['Fe Ka','Fe kb','Ti ka', 'Ti kb','Ni ka', 'Ni kb', 'Mo La', 'Rh La','Pd La','Pd Lb']   
     

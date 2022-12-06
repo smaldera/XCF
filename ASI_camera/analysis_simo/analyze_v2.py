@@ -8,9 +8,11 @@ from pedestal import bg_map
 
 
     
-shots_path = '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_verticale/Pd/1ms_G120/'
-bg_shots_path ='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_verticale/1ms_G120_bg/'
+#shots_path = '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_verticale/Pd/1ms_G120/'
+#bg_shots_path ='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_verticale/1ms_G120_bg/'
 
+shots_path = '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_orizz/Pd/100ms_G120/'
+bg_shots_path ='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_orizz/100ms_G120_bg/'
 
 
 create_bg_map = False
@@ -77,7 +79,7 @@ n=0.
 # inizio loop sui files
 print('reading files form:',shots_path)
 for image_file in f:
-   # print(n," --> ", image_file)
+    print(n," --> ", image_file)
     if n%10==0:
          frac=float(n/len(f))*100.
          print(" processed ",n," files  (  %.2f %%)" %frac )

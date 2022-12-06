@@ -27,15 +27,21 @@ if __name__ == "__main__":
     common_path='/home/maldera/Desktop/eXTP/datiSDD/mcPhersonNov2022/'
    # mca_file=['Fe_10KV_0.0mA.mca','Fe_10KV_0.1mA.mca','Fe_8KV_0mA.mca','Mo_4KV_0.1mA.mca','Ti_6KV_0.0mA.mca','Ti_7KV_0.0mA.mca','Ti_8KV_0.0mA.mca','Ni_10KV_0.0mA.mca', 'Rh_10KV_0.0mA.mca','Rh_5KV_0.1mA.mca' ]
    # linesLabels=['Fe Ka','Fe kb','Ti ka', 'Ti kb','Ni ka', 'Ni kb', 'Mo La', 'Rh La','Pd La','Pd Lb']   
-
+   
+    #nuove misure No plastica
+    mca_file=['Mo_10KV_0.0mA_noPlastica.mca',  'Mo_55KV_0.0mA_noPlastica.mca',  'Pd_55KV_0.0mA_noPlastica.mca',  'Rh_55KV_0.0mA_noPlastica.mca']
+    linesLabels=['Mo La', 'Rh La','Pd La','Pd Lb']   
+   
+   
     #Fe
     #mca_file=['Fe_10KV_0.0mA.mca','Fe_10KV_0.1mA.mca','Fe_8KV_0mA.mca']
     #mca_file=['Fe_10KV_0.0mA_orizzontale.mca', 'Fe_10KV_0.0mA.mca']
     #linesLabels=['Fe Ka','Fe kb']
 
    #Ni
-    # mca_file=['Ni_10KV_0.0mA.mca']
-    #mca_file=['Ni_10KV_0.0mA_orizzontale.mca','Ni_10KV_0.0mA.mca']
+  #  mca_file=['Ni_10KV_0.0mA.mca']
+   # mca_file=['Ni_10KV_0.0mA_orizzontale_nuovafinestra.mca','Ni_10KV_0.0mA_orizzontale_nuovafinestra1cmaria.mca','Ni_10KV_0.0mA.mca']
+    #mca_file=['Ni_10KV_0.0mA_orizzontale_nuovafinestra.mca']
     #linesLabels=['Ni ka','Ni kb']
 
     #Ti
@@ -53,10 +59,10 @@ if __name__ == "__main__":
     #mca_file=['Pd_10KV_0.0mA.mca',  'Pd_10KV_0.1mA.mca', 'Pd_4KV_0.5mA.mca',  'Pd_4KV_1.0mA.mca',  'Pd_5KV_0.1mA.mca',  'Pd_5KV_0.3mA.mca']
    # mca_file=[ 'Pd_10KV_0.0mA_orizzontale.mca','Pd_10KV_0.1mA.mca','Pd_10KV_0.0mA.mca']
 
-    linesLabels=['Rh La']
+ #   linesLabels=['Rh La']
     #mca_file=['Rh_10KV_0.0mA.mca',  'Rh_5KV_0.1mA.mca']
     #mca_file=['Rh_10KV_0.0mA.mca']
-    mca_file=['Rh_10KV_0.0mA_orizzontale.mca','Rh_10KV_0.0mA.mca',  'Rh_5KV_0.1mA.mca']
+  #  mca_file=['Rh_10KV_0.0mA_orizzontale.mca','Rh_10KV_0.0mA.mca',  'Rh_5KV_0.1mA.mca']
 
    #orizzontali:
     #mca_file=['Fe_10KV_0.0mA_orizzontale.mca',  'Ni_10KV_0.0mA_orizzontale.mca', 'Rh_10KV_0.0mA_orizzontale.mca', 'Mo_10KV_0.0mA_orizzontale.mca',  'Pd_10KV_0.0mA_orizzontale.mca',  'Ti_10KV_0.0mA_orizzontale.mca']
@@ -98,7 +104,7 @@ if __name__ == "__main__":
     plt.xlabel('keV')
     plt.ylabel('counts/s [Hz]')
     plt.legend()  
-    plt.title('SDD -  collimatore 2mm')
+    plt.title('SDD - nastro Al forato ')
     plt.show()
 
 
