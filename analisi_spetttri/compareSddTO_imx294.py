@@ -35,8 +35,8 @@ if __name__ == "__main__":
 
     
     
-    common_pathSDD='/home/maldera/Desktop/eXTP/datiSDD/mcPhersonNov2022/'
-    common_pathImx='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/'
+    common_pathSDD='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/SDD/'
+    common_pathImx='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/10mm/1s_G120/'
 
    
     
@@ -50,18 +50,21 @@ if __name__ == "__main__":
     
    
     #Pd    
-    linesLabels=['Pd La']
+    #linesLabels=['Pd La']
     #norm_limits=[2.74,2.9]  # Rh La
-    imx=['mcPherson_orizz/Pd/100ms_G120/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_5.0sigma.npz'] #,  'mcPherson_verticale/Pd/1ms_G120/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_5.0sigma.npz']
-    imx_labels=['10kV_0mA_orizzontale_imx','10kV_0mA_verticale_imx']
-    time_imx=[100*100*1e-3,100*1e-3]
+    #imx=['mcPherson_orizz/Pd/100ms_G120/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_5.0sigma.npz'] #,  'mcPherson_verticale/Pd/1ms_G120/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_5.0sigma.npz']
+    #imx_labels=['10kV_0mA_orizzontale_imx','10kV_0mA_verticale_imx']
+    #time_imx=[100*100*1e-3,100*1e-3]
     #mca=['Pd_10KV_0.0mA_orizzontale.mca']
-    mca=[]
+    #mca=[]
     #title='normalized @ Pd L alpha'
-    title='events/s'
-   
+    #title='events/s'
     #linesLabels=['Fe Ka','Fe kb','Ti ka', 'Ti kb','Ni ka', 'Ni kb', 'Mo La', 'Rh La','Pd La','Pd Lb']   
-    
+
+    #sorgente Fe
+    imx=['spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_5.0sigma.npz']
+    imx_labels=['Fe']
+    mca=['Fe_14Oct2022_5mm.mca']
     
            
 
@@ -92,7 +95,7 @@ if __name__ == "__main__":
          p.read_from_file(filename, 'npz' )
         
          p.bins=p.bins*calP1_imx+calP0_imx
-         p.couts=p.counts/time_imx[i]
+       #  p.couts=p.counts/time_imx[i]
          #p.normalize(norm_limits[0],norm_limits[1])
          mylabel=imx[i][0:-4]
          plt.hist(p.bins[:-1],bins=p.bins ,weights=p.counts, histtype='step', label=imx_labels[i],alpha=0.8)
