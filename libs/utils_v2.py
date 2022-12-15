@@ -49,7 +49,8 @@ def select_pixels2(image_data, threshold=100, upper=100000): # much better!!
    # print("mask=",mask_zeroSupp)
    # print("maksed array=",image_data[mask_zeroSupp])
    
-   supp_coords=np.transpose(mask_zeroSupp)
+   #supp_coords=np.transpose(mask_zeroSupp)
+   supp_coords=mask_zeroSupp
    supp_weights=image_data[mask_zeroSupp]
 
       
@@ -63,10 +64,16 @@ def select_pixels_RMS(image_data, rms_ped, nSigma=5., upper=100000): #  select p
    image_selection=image_data-(nSigma*rms_ped)
    mask_zeroSupp=np.where( (image_selection>0.) &( image_data<upper) )
    #debug:
-   # print("mask=",mask_zeroSupp)
-   # print("maksed array=",image_data[mask_zeroSupp])
+   #print("mask[0]=",mask_zeroSupp[0])
+   #print("maksed array=",image_data[mask_zeroSupp])
    
-   supp_coords=np.transpose(mask_zeroSupp)
+   #supp_coords=np.transpose(mask_zeroSupp)
+   supp_coords=mask_zeroSupp
+
+   #print("supp corrds=",supp_coords) 
+   #print("supp corrds transp=",np.transpose(supp_coords))
+ 
+   
    supp_weights=image_data[mask_zeroSupp]
 
       

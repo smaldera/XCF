@@ -37,6 +37,7 @@ if __name__ == "__main__":
     
     common_pathSDD='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/SDD/'
     common_pathImx='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/10mm/1s_G120/'
+   
 
    
     
@@ -63,11 +64,14 @@ if __name__ == "__main__":
 
     #sorgente Fe
     imx=['spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_5.0sigma.npz']
-    imx_labels=['Fe']
+   
+    time_imx=[100.*1]
+    imx_labels=['Fe IMX294']
     mca=['Fe_14Oct2022_5mm.mca']
-    
-           
-
+    linesLabels=[]
+    title='events/s'
+    norm_limits=[5.8,6]       
+    title='normalized @ 55Fe Kalpha'
         
         
         
@@ -81,11 +85,11 @@ if __name__ == "__main__":
        
        
          p.bins=p.bins*calP1+calP0
-       #  p.normalize(norm_limits[0],norm_limits[1])
-        # p.couts=p.counts/p.sdd_liveTime
+         p.normalize(norm_limits[0],norm_limits[1])
+       #  p.couts=p.counts/p.sdd_liveTime
          
          mylabel=mca[i][0:-4]      
-         plt.hist(p.bins[:-1],bins=p.bins ,weights=p.counts, histtype='step', label=mylabel+'_sdd')
+         plt.hist(p.bins[:-1],bins=p.bins ,weights=p.counts, histtype='step', label=mylabel+'_sdd',alpha=0.9)
 
     # now plot imx     
     for i in range (0,len(imx)):
@@ -95,8 +99,8 @@ if __name__ == "__main__":
          p.read_from_file(filename, 'npz' )
         
          p.bins=p.bins*calP1_imx+calP0_imx
-       #  p.couts=p.counts/time_imx[i]
-         #p.normalize(norm_limits[0],norm_limits[1])
+        # p.couts=p.counts/time_imx[i]
+         p.normalize(norm_limits[0],norm_limits[1])
          mylabel=imx[i][0:-4]
          plt.hist(p.bins[:-1],bins=p.bins ,weights=p.counts, histtype='step', label=imx_labels[i],alpha=0.8)
        
@@ -114,7 +118,7 @@ if __name__ == "__main__":
 
     #plot
     plt.xlabel('keV')
-    plt.ylabel('counts]')
+    plt.ylabel('counts/s')
     plt.legend()  
     plt.title(title)
     

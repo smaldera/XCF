@@ -7,12 +7,17 @@ import utils_v2 as al
 from pedestal import bg_map
 
 
-    
-#shots_path = '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_verticale/Pd/1ms_G120/'
-#bg_shots_path ='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_verticale/1ms_G120_bg/'
 
-shots_path = '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_orizz/Pd/100ms_G120/'
-bg_shots_path ='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_orizz/100ms_G120_bg/'
+#shots_path = '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_verticale/6_12/Mo/10ms_G120_noFinestra/'
+#bg_shots_path ='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_verticale/6_12/10ms_G120_bg_noFinestra/'
+
+#shots_path = '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_orizz/Pd/100ms_G120/'
+#bg_shots_path ='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_orizz/100ms_G120_bg/'
+
+
+shots_path = '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/10mm/1s_G120/'
+bg_shots_path ='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/10mm/1s_G120_bg/'
+
 
 
 create_bg_map = False
@@ -20,10 +25,10 @@ NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
 YBINS=4144
 PIX_CUT_SIGMA=10.
-CLU_CUT_SIGMA=5.
-REBINXY=10.
+CLU_CUT_SIGMA=10.
+REBINXY=20.
 APPLY_CLUSTERING=True
-
+SAVE_EVENTLIST=True
 
 xbins2d=int(XBINS/REBINXY)
 ybins2d=int(YBINS/REBINXY)
@@ -56,8 +61,8 @@ countsAllClu, bins = np.histogram(x,  bins = 2*NBINS, range = (-NBINS,NBINS))
 h_cluSizeAll,binsSize=np.histogram(x,bins=100, range=(0,100))
 
 # creo histo2d vuoto:
-countsAll2dClu,  xedges, yedges= np.histogram2d(x,x,bins=[xbins2d, ybins2d],range=[[0,XBINS],[0,YBINS]])
-countsAll2dRaw,  xedgesRaw, yedgesRaw= np.histogram2d(x,x,bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
+countsAll2dClu,  xedges, yedges=       np.histogram2d(x,x,bins=[xbins2d, ybins2d],range=[[0,XBINS],[0,YBINS]])
+countsAll2dRaw,  xedgesRaw, yedgesRaw= np.histogram2d(x,x,bins=[xbins2d, ybins2d],range=[[0,XBINS],[0,YBINS]])
 
 zero_img = np.zeros((XBINS, YBINS))
 image_SW = np.zeros((XBINS, YBINS))
@@ -74,7 +79,7 @@ x_all=np.empty(0)
 y_all=np.empty(0)
 x_allClu=np.empty(0)
 y_allClu=np.empty(0)
-
+w_all=np.empty(0)
 n=0.
 # inizio loop sui files
 print('reading files form:',shots_path)
@@ -108,16 +113,19 @@ for image_file in f:
    # supp_coords, supp_weights=al.select_pixels2(image_data, 150)
     supp_coords, supp_weights=al.select_pixels_RMS(image_data, rms_ped, CLU_CUT_SIGMA)
 
+     
     if len( supp_weights)==0:
         print ('vettore vuoto!')
         continue
     
     # salvo pixel che sopravvivono alla selezione:
-    zeroSupp_trasposta= supp_coords.transpose()
+    #zeroSupp_trasposta= supp_coords.transpose() #!!!!!!
+    zeroSupp_trasposta= supp_coords
+
     #x_all=np.append(x_all,zeroSupp_trasposta[0])
     #y_all=np.append(y_all,zeroSupp_trasposta[1])
 
-   #istogramma 2d immagine raw:
+   #istogramma 2d immagine raw dopo zero suppression:
     counts2dRaw,  xedgesRaw, yedgesRaw= np.histogram2d(zeroSupp_trasposta[0],zeroSupp_trasposta[1],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
     countsAll2dRaw=countsAll2dRaw+counts2dRaw
 
@@ -128,13 +136,14 @@ for image_file in f:
     if APPLY_CLUSTERING:
        
         # test clustering.... # uso v2 per avere anche le posizioni
-        w_clusterAll, clu_coordsAll, clu_sizes, clu_baryCoords    =al.clustering_v3(supp_coords,supp_weights,myeps=myeps) 
+        w_clusterAll, clu_coordsAll, clu_sizes, clu_baryCoords    =al.clustering_v3(np.transpose(supp_coords),supp_weights,myeps=myeps) 
         cluBary_trasposta= clu_baryCoords.transpose()
    
-        #clu_trasposta= clu_coordsAll.transpose() 
-        #x_allClu=np.append(x_allClu,clu_trasposta[0])
-        #y_allClu=np.append(y_allClu,clu_trasposta[1])
-
+        if SAVE_EVENTLIST:
+            x_allClu=np.append(x_allClu,cluBary_trasposta[0])
+            y_allClu=np.append(y_allClu,cluBary_trasposta[1])
+            w_all=np.append(w_all,w_clusterAll)
+        
         # istogramma 2d dopo clustering solo baricentri!!!!
         counts2dClu,  xedges, yedges= np.histogram2d(cluBary_trasposta[0],cluBary_trasposta[1],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
         countsAll2dClu=countsAll2dClu+ counts2dClu
@@ -147,8 +156,8 @@ for image_file in f:
         h_cluSizes_i, binsSizes_i = np.histogram(clu_sizes , bins = 100, range = (0,100) )
         h_cluSizeAll=h_cluSizeAll+ h_cluSizes_i
     
-   # if n>5:
-   #     break
+    #if n>0:
+    #    break
 
 
 ###########
@@ -173,7 +182,8 @@ plt.title('hit pixels (rebinned)')
 
 # plot immagine Raw
 fig3, ax3 = plt.subplots()
-plt.imshow(countsAll2dRaw)
+countsAll2dRaw=   countsAll2dRaw.T
+plt.imshow(countsAll2dRaw, interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]]   ) 
 plt.colorbar()
 plt.title('pixels>zero_suppression threshold')
 
@@ -216,6 +226,13 @@ np.savez(shots_path+'cluSizes_spectrum'+pixMask_suffix, counts = h_cluSizeAll , 
 al.write_fitsImage(countsAll2dClu, shots_path+'imageCUL'+pixMask_suffix+cluCut_suffix+'.fits'  , overwrite = "False")
 #al.write_fitsImage(image_SW, shots_path+'imageSUM'+pixMask_suffix +'.fits'  , overwrite = "False")
 al.write_fitsImage(countsAll2dRaw, shots_path+'imageRaw'+pixMask_suffix +'.fits'  , overwrite = "False")
+
+
+# salva vettori con event_list:
+if SAVE_EVENTLIST:
+  outfileVectors= shots_path+'events_list'+pixMask_suffix+cluCut_suffix+'.npz'
+  print('writing events in:',outfileVectors)
+  al.save_vectors(outfileVectors, w_all, x_allClu, y_allClu)
 
 
 
