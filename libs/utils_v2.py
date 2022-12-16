@@ -229,7 +229,7 @@ def clustering_v3(supp_coords,supp_weights,myeps=1):
      
           
       
-   return sum_w,coordsAll.reshape(int(len(coordsAll)/2),2 ), clu_size,  cg_coords.reshape(int(len(cg_coords)/2),2)
+   return np.array(sum_w),coordsAll.reshape(int(len(coordsAll)/2),2 ), np.array(clu_size),  cg_coords.reshape(int(len(cg_coords)/2),2)
    
 
 

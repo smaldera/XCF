@@ -29,6 +29,7 @@ CLU_CUT_SIGMA=10.
 REBINXY=20.
 APPLY_CLUSTERING=True
 SAVE_EVENTLIST=True
+myeps=20 # clustering DBSCAN
 
 xbins2d=int(XBINS/REBINXY)
 ybins2d=int(YBINS/REBINXY)
@@ -37,7 +38,6 @@ print("xbins2d=",xbins2d)
 
 pixMask_suffix='_pixCut'+str(PIX_CUT_SIGMA)+'sigma'
 cluCut_suffix='_CLUcut_'+str(CLU_CUT_SIGMA)+'sigma'
-myeps=1.5 # clustering DBSCAN
 
 if create_bg_map == True:
     bg_map(bg_shots_path, bg_shots_path + 'mean_ped.fits', bg_shots_path + 'std_ped.fits', draw = 0 )
@@ -149,7 +149,8 @@ for image_file in f:
         countsAll2dClu=countsAll2dClu+ counts2dClu
 
         # istogramma spettro dopo il clustering
-        countsClu_i, bins_i = np.histogram(  w_clusterAll, bins = 2*NBINS, range = (-NBINS,NBINS) )
+        size_mask=np.where(clu_sizes==1)
+        countsClu_i, bins_i = np.histogram(  w_clusterAll[size_mask], bins = 2*NBINS, range = (-NBINS,NBINS) )
         countsAllClu = countsAllClu +  countsClu_i
 
         #istogramma size clusters:
@@ -216,7 +217,7 @@ plt.title('CLU size')
 
 # save histos
 np.savez(shots_path+'spectrum_all_raw'+pixMask_suffix, counts = countsAll, bins = bins)
-np.savez(shots_path+'spectrum_all_eps'+str(myeps)+pixMask_suffix+cluCut_suffix, counts = countsAllClu, bins = bins)
+np.savez(shots_path+'spectrum_all_eps'+str(myeps)+pixMask_suffix+cluCut_suffix+'_CluSize1', counts = countsAllClu, bins = bins)
 np.savez(shots_path+'spectrum_SUM'+pixMask_suffix, counts =image_SW.flatten(), bins = bins)
 np.savez(shots_path+'cluSizes_spectrum'+pixMask_suffix, counts = h_cluSizeAll , bins =binsSize )
 
