@@ -63,10 +63,10 @@ if __name__ == "__main__":
     #linesLabels=['Fe Ka','Fe kb','Ti ka', 'Ti kb','Ni ka', 'Ni kb', 'Mo La', 'Rh La','Pd La','Pd Lb']   
 
     #sorgente Fe
-    imx=['spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_5.0sigma.npz', 'spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz', 'spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize2.npz', 'spectrum_all_eps5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz',  'spectrum_all_eps20_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz']
+    imx=['spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_5.0sigma.npz', 'spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz', 'spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize2.npz', 'spectrum_all_eps5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz'] 
    
     time_imx=[100.*1]
-    imx_labels=['Fe IMX294 all', ' size==1','size==2', 'size=1, eps=5', 'size1, eps==20']
+    imx_labels=['Fe IMX294 all', ' size==1','size==2', 'size=1, eps=5']
     mca=['Fe_14Oct2022_5mm.mca' ]
     linesLabels=[]
     title='events/s'
