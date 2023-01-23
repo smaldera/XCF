@@ -66,7 +66,7 @@ def red_data(shots_path,ped_file, out_name,cut_threshold=80 ):
     #end loop files...  
     outHisto_name=shots_path+'histoAll_'+out_name
     al.save_histo(outHisto_name,countsAll,bins)
-    cmd='rm '+shots_path+'*.FIT'
+    cmd='rm '+shots_path+'/*.FIT'
     print (cmd)
     subprocess.call(cmd,shell=True)
     print('end loop '+shots_path)

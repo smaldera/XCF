@@ -1,8 +1,9 @@
 import sys
-from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget,QVBoxLayout,  QSpinBox, QFileDialog,  QLineEdit, QLabel,QGridLayout, QGroupBox
+from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QAction, QTabWidget,QVBoxLayout,  QSpinBox, QFileDialog,  QLineEdit, QLabel,QGridLayout, QGroupBox, QFormLayout
 from PyQt5.QtGui import QIcon, QIntValidator,QDoubleValidator,QFont
 from PyQt5.QtCore import pyqtSlot, Qt
 
+import acq_loop
 
 class App(QMainWindow):
 
@@ -31,6 +32,9 @@ class DAQwindow(QWidget):
 
         self.pedFilePath=""
         self.outDataPath=""
+
+        self.gain=''
+        self.l7=QLabel(self)
         
         # input ped file 
         self.l1=QLabel(self)
@@ -68,50 +72,69 @@ class DAQwindow(QWidget):
 
 
         
-        inputFieldsLayout=QGridLayout()
+        #inputFieldsLayout=QGridLayout()
+        inputFieldsLayout= QFormLayout()
+        
         self.inputFieldsBox = QGroupBox("parameters")
         
         # input  Gain:
-        self.l5=QLabel(self)
-        self.l5.setText("Gain:")
+        #self.l5=QLabel(self)
+        #self.l5.setText("Gain:")
         #self.layout.addWidget(self.l5)
         self.e3 = QLineEdit(self)
-        #e1.setValidator(QIntValidator())
-        #e1.setMaxLength(4)
+        self.e3.setValidator(QIntValidator())
+        self.e3.setMaxLength(3)
        # self.e1.setAlignment(Qt.AlignRight)
        # self.e1.setFont(QFont("Arial",20))
-        self.e3.editingFinished.connect(self.e3_finishEdit)
+        pippo=5
+       # self.e3.editingFinished.connect(lambda: self.e3_finishEdit(pippo))
+
+        self.e3.editingFinished.connect(lambda: self.lineEdit_finshGenertic(self.e3,self.gain,self.l7))
         #self.layout.addWidget(self.e3) 
 
-        inputFieldsLayout.addWidget( self.l5,0,0)
-        inputFieldsLayout.addWidget( self.e3,0,1)
+        
+        inputFieldsLayout.addRow("Gain", self.e3)
 
         
         # input  time:
-        self.l6=QLabel(self)
-        self.l6.setText("Exp. time:")
+       # self.l6=QLabel(self)
+       # self.l6.setText("Exp. time:")
         #self.layout.addWidget(self.l6)
         self.e4 = QLineEdit(self)
-        #e1.setValidator(QIntValidator())
+        self.e4.setValidator(QIntValidator())
         #e1.setMaxLength(4)
        # self.e1.setAlignment(Qt.AlignRight)
        # self.e1.setFont(QFont("Arial",20))
         self.e4.editingFinished.connect(self.e4_finishEdit)
         #self.layout.addWidget(self.e4) 
 
-        inputFieldsLayout.addWidget( self.l6,1,0)
-        inputFieldsLayout.addWidget( self.e4,1,1)
-
+      #  inputFieldsLayout.addWidget( self.l6,1,0)
+      #  inputFieldsLayout.addWidget( self.e4,1,1)
+        inputFieldsLayout.addRow("Exp time [us]", self.e4)
 
 
         #N. events
-        self.l77=QLabel(self)
-        self.l77.setText("N. shots")
+        #self.l77=QLabel(self)
+        #self.l77.setText("N. shots")
         self.e5 = QLineEdit(self)
+        self.e5.setValidator(QIntValidator())
         self.e5.editingFinished.connect(self.e5_finishEdit)
 
-        inputFieldsLayout.addWidget( self.l77,2,0)
-        inputFieldsLayout.addWidget( self.e5,2,1)
+        #inputFieldsLayout.addWidget( self.l77,2,0)
+        #inputFieldsLayout.addWidget( self.e5,2,1)
+        inputFieldsLayout.addRow("N. shots ", self.e5)
+        
+        #N. loops
+        #self.l78=QLabel(self)
+        #self.l78.setText("N.loops")
+        self.e6 = QLineEdit(self)
+        self.e6.setValidator(QIntValidator())
+        self.e6.editingFinished.connect(self.e6_finishEdit)
+
+        #inputFieldsLayout.addWidget( self.l78,3,0)
+        #inputFieldsLayout.addWidget( self.e6,3,1)
+        inputFieldsLayout.addRow("n loops", self.e6)
+        
 
         self.inputFieldsBox.setLayout(inputFieldsLayout) 
         
@@ -127,7 +150,7 @@ class DAQwindow(QWidget):
         self.l4.setText("out folder: ")
         #self.layout.addWidget(self.l4)
 
-        self.l7=QLabel(self)
+        #self.l7=QLabel(self)
         self.l7.setText("Gain: ")
         #self.layout.addWidget(self.l7)
 
@@ -137,6 +160,9 @@ class DAQwindow(QWidget):
 
         self.l9=QLabel(self)
         self.l9.setText("N_shots: ")
+
+        self.l10=QLabel(self)
+        self.l10.setText("N_loops: ")
 
 
          # pulsante finale!
@@ -165,8 +191,9 @@ class DAQwindow(QWidget):
         mainLayout.addWidget(self.l7,7,0 )
         mainLayout.addWidget(self.l8,8,0 )
         mainLayout.addWidget(self.l9,9,0 )
+        mainLayout.addWidget(self.l10,10,0 )
        
-        mainLayout.addWidget(self.btn3,10,0)
+        mainLayout.addWidget(self.btn3,11,0)
         
         
        
@@ -174,9 +201,10 @@ class DAQwindow(QWidget):
        
         # Add tabs to widget
        
-       # self.setLayout(self.layout)
+       
         self.setLayout(mainLayout)
-        
+       # self.setLayout(inputFieldsLayout)
+       
     @pyqtSlot()
     def on_click(self):
         self.pedFilePath=QFileDialog.getOpenFileName(self,"choose file")[0]
@@ -200,10 +228,11 @@ class DAQwindow(QWidget):
     def e2_finishEdit(self):
         #print("Enter pressed")
         self.outDataPath=self.e2.text()
+        self.outDataPath=self.outDataPath+'/'
         self.l4.setText('out folder '+ self.outDataPath)
 
-    def e3_finishEdit(self):
-        #print("Enter pressed")
+    def e3_finishEdit(self,pippo):
+        print("pippo=",pippo)
         self.gain=self.e3.text()
         self.l7.setText('Gain '+ self.gain)
 
@@ -217,11 +246,26 @@ class DAQwindow(QWidget):
         #print("Enter pressed")
         self.Nshots=self.e5.text()
         self.l9.setText('N_shots '+ self.Nshots)
-    
+
+    def e6_finishEdit(self):
+        #print("Enter pressed")
+        self.Nloops=int(self.e6.text())
+        self.l10.setText('N_loops '+ str(self.Nloops))
+
+        
     def on_click3(self):
        print("starting acqusition!!!!")
-   
-    
+       nLoops=100
+       acq_loop.run_acq_loop(self.ExpTime,self.gain, self.Nshots, self.Nloops,    self.outDataPath, self.pedFilePath)
+
+
+       
+    def lineEdit_finshGenertic(self,e,var,label):
+        
+        var=e.text()
+        label.setText(var)
+       
+       
         
 if __name__ == '__main__':
     app = QApplication(sys.argv)
