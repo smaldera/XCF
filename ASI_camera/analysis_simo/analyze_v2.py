@@ -7,16 +7,8 @@ import utils_v2 as al
 from pedestal import bg_map
 
 
-
-#shots_path = '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_verticale/6_12/Mo/10ms_G120_noFinestra/'
-#bg_shots_path ='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_verticale/6_12/10ms_G120_bg_noFinestra/'
-
-#shots_path = '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_orizz/Pd/100ms_G120/'
-#bg_shots_path ='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/mcPherson_orizz/100ms_G120_bg/'
-
-
-shots_path = '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/2mm/01s_G120/'
-bg_shots_path ='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/2mm/01s_G120_bg/'
+shots_path = '/home/maldera/Desktop/eXTP/misureCMOS_24Jan2023/Mo/sensorPXR/10KV_0.1mA/G120_10ms/'
+bg_shots_path ='/home/maldera/Desktop/eXTP/misureCMOS_24Jan2023/Mo/sensorPXR/G120_10ms_bg/'
 
 
 
@@ -35,7 +27,7 @@ xbins2d=int(XBINS/REBINXY)
 ybins2d=int(YBINS/REBINXY)
 
 
-pixMask_suffix='_pixCut'+str(PIX_CUT_SIGMA)+'sigma'
+pixMask_suffix='_pixCut'+str(PIX_CUT_SIGMA)+'sigma5'
 cluCut_suffix='_CLUcut_'+str(CLU_CUT_SIGMA)+'sigma'
 
 if create_bg_map == True:
@@ -63,10 +55,12 @@ h_cluSizeAll,binsSize=np.histogram(x,bins=100, range=(0,100))
 countsAll2dClu,  xedges, yedges=       np.histogram2d(x,x,bins=[xbins2d, ybins2d],range=[[0,XBINS],[0,YBINS]])
 countsAll2dRaw,  xedgesRaw, yedgesRaw= np.histogram2d(x,x,bins=[xbins2d, ybins2d],range=[[0,XBINS],[0,YBINS]])
 
-zero_img = np.zeros((XBINS, YBINS))
-image_SW = np.zeros((XBINS, YBINS))
+#zero_img = np.zeros((XBINS, YBINS))
+#image_SW = np.zeros((XBINS, YBINS))
 
 rms_pedCut=np.mean(rms_ped)+PIX_CUT_SIGMA*np.std(rms_ped)
+
+
 print("rms_pedCut=",rms_pedCut)
 # MASCHERA PIXEL RUMOROSI 
 #mySigmaMask=np.where( (rms_ped>10)&(mean_ped>500) )
@@ -97,7 +91,7 @@ for image_file in f:
     #applica maschera
     image_data[mySigmaMask]=0 # maschero tutti i pixel con RMS pedestal > soglia 
    
-    image_SW = image_SW + image_data
+    #image_SW = image_SW + image_data
     flat_image = image_data.flatten()
 
     # spettro "raw"
@@ -201,10 +195,10 @@ plt.title('spectra')
 
 
 # spettro immagine somma:
-fig4, h4 = plt.subplots()
-h4.hist(image_SW.flatten(),  bins = 2*int(65536), range = (-65536,65536) , histtype = 'step',label="spettro immagine somma")
-plt.legend()
-plt.title('spettro immagine somma')
+# fig4, h4 = plt.subplots()
+# h4.hist(image_SW.flatten(),  bins = 2*int(65536), range = (-65536,65536) , histtype = 'step',label="spettro immagine somma")
+# plt.legend()
+# plt.title('spettro immagine somma')
 
 # plot spettro sizes
 fig5, h5 = plt.subplots()
@@ -216,8 +210,9 @@ plt.title('CLU size')
 
 # save histos
 np.savez(shots_path+'spectrum_all_raw'+pixMask_suffix, counts = countsAll, bins = bins)
-np.savez(shots_path+'spectrum_all_eps'+str(myeps)+pixMask_suffix+cluCut_suffix+'_CluSize1', counts = countsAllClu, bins = bins)
-np.savez(shots_path+'spectrum_SUM'+pixMask_suffix, counts =image_SW.flatten(), bins = bins)
+np.savez(shots_path+'spectrum_all_ZeroSupp'+pixMask_suffixx+cluCut_suffix, counts = countsAllZeroSupp, bins = bins)
+np.savez(shots_path+'spectrum_all_eps'+str(myeps)+pixMask_suffix+cluCut_suffix, counts = countsAllClu, bins = bins)
+#np.savez(shots_path+'spectrum_SUM'+pixMask_suffix, counts =image_SW.flatten(), bins = bins)
 np.savez(shots_path+'cluSizes_spectrum'+pixMask_suffix, counts = h_cluSizeAll , bins =binsSize )
 
 
