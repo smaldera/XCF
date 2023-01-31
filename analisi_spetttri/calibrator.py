@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
 import pandas as pd
+import os.path as ospath
 
 import sys
 sys.path.insert(0, '../libs')
@@ -42,6 +43,7 @@ def calibrator(calibFileName):
     f=open(calibFileName)
     p=histogramSimo()
     n_spectra=0
+    base_path=''
     
     true=[]
     fitted_mean=[]
@@ -55,11 +57,15 @@ def calibrator(calibFileName):
         if line[0]=='#':
             continue
         splitted=line.split('=')
+        if splitted[0]=='BASE_PATH':
+           base_path=splitted[1]
+           print("BASE_PATH=",base_path)
+        
         if splitted[0]=='FILE':
 
             file_split=splitted[1].split(' ')
             print('file_split',file_split)
-            filename=file_split[0]
+            filename=ospath.join(base_path,file_split[0])
             fileFormat=file_split[1]
             print("reading file",filename)
             print ("file type = ",fileFormat)
@@ -94,11 +100,19 @@ def calibrator(calibFileName):
 if __name__ == "__main__":
 
 
-    #true,   fitted_mean,  fitted_meanErr = calibrator('calibrator_input.txt')
-    #true,   fitted_mean,  fitted_meanErr = calibrator('calibrator_inputDatiErik.txt')
-    true,   fitted_mean,  fitted_meanErr = calibrator('calibrator_inputIMX294_G120.txt')
+    import argparse
+    formatter = argparse.ArgumentDefaultsHelpFormatter
+    parser = argparse.ArgumentParser( prog='calibrator.py',  formatter_class=formatter)
+    parser.add_argument('infile', type=str, help='imput file')
+    args = parser.parse_args()
+    print('input file=',args.infile)
+    #check file exist:
+    if not (ospath.exists(args.infile)):
+        print ("file not found:",args.infile)
+        exit()
+        
+    true,   fitted_mean,  fitted_meanErr = calibrator(args.infile)
    
-    
 
     n_files=3
     plt.figure(n_files+1)
