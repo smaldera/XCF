@@ -1,0 +1,42 @@
+# CALIBRAZIONE IMX294 eureca @G=120
+#OKKIO che il doppio spazio non gli piace!!!! 
+#  DATI mcPherson gennaio 2023
+
+BASE_PATH=/home/maldera/Desktop/eXTP/data/xcf_tubo_camera/
+
+FILE=Nichel/10KV_0.0mA_120gain_100ms_1000f/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz npz
+LEGEND=Ni_10KV_0.0mA
+ACQ_TIME=100
+ADD_PLOT
+
+
+FILE=Nichel/10KV_0.1mA_120gain_10ms_1000f/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz npz
+LEGEND=Ni_10KV_0.1mA
+ACQ_TIME=10
+ADD_PLOT
+
+FILE=Ferro/10KV_0.0mA_120gain_100ms_1000f/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz npz
+LEGEND=Fe_10KV_0.0mA
+ACQ_TIME=100
+ADD_PLOT
+
+
+
+FILE=Ferro/10KV_0.1mA_120gain_100ms_1000f/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz npz
+LEGEND=Fe_10KV_0.1mA
+ACQ_TIME=100
+ADD_PLOT
+
+
+FILE=Molibdeno/10KV_0.1mA_120gain_10ms_1000f/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz npz
+LEGEND=Mo_10KV_0.1mA
+ACQ_TIME=10
+ADD_PLOT
+
+
+FILE=Molibdeno/6KV_0.6mA_120gain_10ms_1000f/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz npz
+LEGEND=Mo_10KV_0.6mA
+ACQ_TIME=10
+ADD_PLOT
+
+
