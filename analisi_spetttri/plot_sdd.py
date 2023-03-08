@@ -24,13 +24,15 @@ if __name__ == "__main__":
     calP0=-0.03544731540487446
     calP1=0.0015013787118821926
     
-    common_path='/home/maldera/Desktop/eXTP/datiSDD/mcPhersonNov2022/'
+    #common_path='/home/maldera/Desktop/eXTP/datiSDD/mcPhersonNov2022/'
+    common_path='/home/maldera/Desktop/eXTP/data/datiSDD/misureMcPhersonGenn2023/'
+   
    # mca_file=['Fe_10KV_0.0mA.mca','Fe_10KV_0.1mA.mca','Fe_8KV_0mA.mca','Mo_4KV_0.1mA.mca','Ti_6KV_0.0mA.mca','Ti_7KV_0.0mA.mca','Ti_8KV_0.0mA.mca','Ni_10KV_0.0mA.mca', 'Rh_10KV_0.0mA.mca','Rh_5KV_0.1mA.mca' ]
    # linesLabels=['Fe Ka','Fe kb','Ti ka', 'Ti kb','Ni ka', 'Ni kb', 'Mo La', 'Rh La','Pd La','Pd Lb']   
    
     #nuove misure No plastica
-    mca_file=['Mo_10KV_0.0mA_noPlastica.mca',  'Mo_55KV_0.0mA_noPlastica.mca',  'Pd_55KV_0.0mA_noPlastica.mca',  'Rh_55KV_0.0mA_noPlastica.mca']
-    linesLabels=['Mo La', 'Rh La','Pd La','Pd Lb']   
+    #mca_file=['Mo_10KV_0.0mA_noPlastica.mca',  'Mo_55KV_0.0mA_noPlastica.mca',  'Pd_55KV_0.0mA_noPlastica.mca',  'Rh_55KV_0.0mA_noPlastica.mca']
+   # linesLabels=['Mo La', 'Rh La','Pd La','Pd Lb']   
    
    
     #Fe
@@ -45,9 +47,8 @@ if __name__ == "__main__":
     #linesLabels=['Ni ka','Ni kb']
 
     #Ti
-    #mca_file=['Ti_6KV_0.0mA.mca','Ti_7KV_0.0mA.mca','Ti_8KV_0.0mA.mca']
-    #mca_file=[ 'Ti_10KV_0.0mA_orizzontale.mca','Ti_8KV_0.0mA.mca']
-    #linesLabels=['Ti ka','Ti kb']
+    mca_file=['Ti_10KV_0.0mA_verticale.mca',  'Ti_10KV_0.1mA_verticale.mca',  'Ti_6KV_0.1mA_verticale.mca']
+    linesLabels=['Ti ka','Ti kb']
 
     #Mo
     #mca_file=['Mo_4KV_0.1mA.mca', 'Mo_10KV_0.0mA.mca',   'Mo_4KV_0.1mA.mca',  'Mo_7KV_0.1mA.mca']
