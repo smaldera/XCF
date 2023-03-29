@@ -7,8 +7,8 @@ import utils_v2 as al
 from pedestal import bg_map
 
 
-shots_path = '/home/maldera/Desktop/eXTP/misureCMOS_24Jan2023/Mo/sensorPXR/10KV_0.1mA/G120_10ms/'
-bg_shots_path ='/home/maldera/Desktop/eXTP/misureCMOS_24Jan2023/Mo/sensorPXR/G120_10ms_bg/'
+shots_path = '/home/xcf/Desktop/ASI_polarizzata/Rodio/22Febb_10KV_0.3mA_120gain_200ms_1000f_h12.99_xtal_asse1-15ksx_asse2_80ksx_foro5mmLong/'
+bg_shots_path ='/home/xcf/Desktop/ASI_polarizzata/bkg/bg_22feb_g120_200ms/'
 
 
 
@@ -16,8 +16,8 @@ create_bg_map = False
 NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
 YBINS=4144
-PIX_CUT_SIGMA=10.
-CLU_CUT_SIGMA=10.
+PIX_CUT_SIGMA=15.
+CLU_CUT_SIGMA=15.
 REBINXY=20.
 APPLY_CLUSTERING=True
 SAVE_EVENTLIST=True
@@ -27,8 +27,8 @@ xbins2d=int(XBINS/REBINXY)
 ybins2d=int(YBINS/REBINXY)
 
 
-pixMask_suffix='_pixCut'+str(PIX_CUT_SIGMA)+'sigma5'
-cluCut_suffix='_CLUcut_'+str(CLU_CUT_SIGMA)+'sigma'
+pixMask_suffix='_pixCut'+str(PIX_CUT_SIGMA)+'sigma'
+cluCut_suffix='_CLUcut_'+str(CLU_CUT_SIGMA)+'sigma' 
 
 if create_bg_map == True:
     bg_map(bg_shots_path, bg_shots_path + 'mean_ped.fits', bg_shots_path + 'std_ped.fits', draw = 0 )
@@ -73,11 +73,12 @@ y_all=np.empty(0)
 x_allClu=np.empty(0)
 y_allClu=np.empty(0)
 w_all=np.empty(0)
+clusizes_all=np.empty(0)
 n=0.
 # inizio loop sui files
 print('reading files form:',shots_path)
 for image_file in f:
-    print(n," --> ", image_file)
+   # print(n," --> ", image_file)
     if n%10==0:
          frac=float(n/len(f))*100.
          print(" processed ",n," files  (  %.2f %%)" %frac )
@@ -136,13 +137,13 @@ for image_file in f:
             x_allClu=np.append(x_allClu,cluBary_trasposta[0])
             y_allClu=np.append(y_allClu,cluBary_trasposta[1])
             w_all=np.append(w_all,w_clusterAll)
-        
+            clusizes_all=np.append(clusizes_all,clu_sizes)
         # istogramma 2d dopo clustering solo baricentri!!!!
         counts2dClu,  xedges, yedges= np.histogram2d(cluBary_trasposta[0],cluBary_trasposta[1],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
         countsAll2dClu=countsAll2dClu+ counts2dClu
 
         # istogramma spettro dopo il clustering
-        size_mask=np.where(clu_sizes>-1) # select all clusters!!!!
+        size_mask=np.where(clu_sizes>0) # select all clusters!!!!   
         countsClu_i, bins_i = np.histogram(  w_clusterAll[size_mask], bins = 2*NBINS, range = (-NBINS,NBINS) )
         countsAllClu = countsAllClu +  countsClu_i
 
@@ -210,7 +211,7 @@ plt.title('CLU size')
 
 # save histos
 np.savez(shots_path+'spectrum_all_raw'+pixMask_suffix, counts = countsAll, bins = bins)
-np.savez(shots_path+'spectrum_all_ZeroSupp'+pixMask_suffixx+cluCut_suffix, counts = countsAllZeroSupp, bins = bins)
+np.savez(shots_path+'spectrum_all_ZeroSupp'+pixMask_suffix+cluCut_suffix, counts = countsAllZeroSupp, bins = bins)
 np.savez(shots_path+'spectrum_all_eps'+str(myeps)+pixMask_suffix+cluCut_suffix, counts = countsAllClu, bins = bins)
 #np.savez(shots_path+'spectrum_SUM'+pixMask_suffix, counts =image_SW.flatten(), bins = bins)
 np.savez(shots_path+'cluSizes_spectrum'+pixMask_suffix, counts = h_cluSizeAll , bins =binsSize )
@@ -222,13 +223,12 @@ al.write_fitsImage(countsAll2dClu, shots_path+'imageCUL'+pixMask_suffix+cluCut_s
 #al.write_fitsImage(image_SW, shots_path+'imageSUM'+pixMask_suffix +'.fits'  , overwrite = "False")
 al.write_fitsImage(countsAll2dRaw, shots_path+'imageRaw'+pixMask_suffix +'.fits'  , overwrite = "False")
 
-
 # salva vettori con event_list:
 if SAVE_EVENTLIST:
-  outfileVectors= shots_path+'events_list'+pixMask_suffix+cluCut_suffix+'.npz'
+  outfileVectors= shots_path+'events_list'+pixMask_suffix+cluCut_suffix+'_v2.npz'
   print('writing events in:',outfileVectors)
-  al.save_vectors(outfileVectors, w_all, x_allClu, y_allClu)
-
+  #al.save_vectors(outfileVectors, w_all, x_allClu, y_allClu,clusizes_all)
+  np.savez(outfileVectors, w=w_all, x_pix=x_allClu, y_pix=y_allClu, sizes=clusizes_all)
 
 
 plt.show()

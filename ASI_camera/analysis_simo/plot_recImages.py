@@ -6,8 +6,8 @@ import utils_v2 as al
 
 
 
-common_path='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/10mm/1s_G120/'
-files_img=['imageCUL_pixCut10.0sigma_CLUcut_5.0sigma.fits']
+common_path='/home/xcf/Desktop/ASI_polarizzata/Rodio/8Febb_10KV_0.3mA_120gain_200ms_1000f_h12.99_ruotato2/'
+files_img=['imageCUL_pixCut10.0sigma_CLUcut_10.0sigma.fits']
 leg_names=['G=120']
 
 

@@ -9,5 +9,5 @@ from cmos_pedestal import bg_map
 
 if __name__ == "__main__":
 
-   bg_shots_path='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/1ms_G120_bg/'
+   bg_shots_path='/home/xcf/Desktop/ASI_polarizzata/bkg/bg_22feb_g120_200ms/'
    bg_map(bg_shots_path,bg_shots_path+'mean_ped.fits', bg_shots_path+'std_ped.fits', draw=1)

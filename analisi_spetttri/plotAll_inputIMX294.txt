@@ -1,42 +1,75 @@
-# CALIBRAZIONE IMX294 eureca @G=120
 #OKKIO che il doppio spazio non gli piace!!!! 
 #  DATI mcPherson gennaio 2023
 
-BASE_PATH=/home/maldera/Desktop/eXTP/data/xcf_tubo_camera/
+BASE_PATH=/home/xcf/Desktop/xcf_tubo_camera/
 
 FILE=Nichel/10KV_0.0mA_120gain_100ms_1000f/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz npz
 LEGEND=Ni_10KV_0.0mA
 ACQ_TIME=100
-ADD_PLOT
+#ADD_PLOT
 
 
 FILE=Nichel/10KV_0.1mA_120gain_10ms_1000f/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz npz
 LEGEND=Ni_10KV_0.1mA
 ACQ_TIME=10
-ADD_PLOT
+#ADD_PLOT
 
 FILE=Ferro/10KV_0.0mA_120gain_100ms_1000f/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz npz
 LEGEND=Fe_10KV_0.0mA
 ACQ_TIME=100
-ADD_PLOT
+#ADD_PLOT
 
 
 
 FILE=Ferro/10KV_0.1mA_120gain_100ms_1000f/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz npz
 LEGEND=Fe_10KV_0.1mA
 ACQ_TIME=100
-ADD_PLOT
+#ADD_PLOT
 
 
 FILE=Molibdeno/10KV_0.1mA_120gain_10ms_1000f/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz npz
 LEGEND=Mo_10KV_0.1mA
 ACQ_TIME=10
-ADD_PLOT
+#ADD_PLOT
 
 
 FILE=Molibdeno/6KV_0.6mA_120gain_10ms_1000f/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz npz
 LEGEND=Mo_10KV_0.6mA
 ACQ_TIME=10
+#ADD_PLOT
+
+
+FILE=Titanio/10KV_0.1mA_120gain_20ms_2000f/spectrum_all_ZeroSupp_pixCut10.0sigma5_CLUcut_10.0sigma.npz npz
+LEGEND=Ti_10KV_0.1mA
+ACQ_TIME=40
+#ADD_PLOT
+
+
+FILE=Palladio/10KV_0.1mA_120gain_20ms_1000f/spectrum_all_ZeroSupp_pixCut10.0sigma5_CLUcut_10.0sigma.npz npz
+LEGEND=Pd_10KV_0.1mA
+ACQ_TIME=20
+#ADD_PLOT
+
+
+FILE=Palladio/6KV_0.1mA_120gain_20ms_1000f/spectrum_all_ZeroSupp_pixCut10.0sigma5_CLUcut_10.0sigma.npz npz
+LEGEND=Pd_6KV_0.1mA
+ACQ_TIME=20
+#ADD_PLOT
+
+FILE=Rodio/10KV_0.0mA_120gain_200ms_1000f/spectrum_all_ZeroSupp_pixCut10.0sigma5_CLUcut_10.0sigma.npz npz
+LEGEND=Rh_10KV_0.0mA
+ACQ_TIME=200
 ADD_PLOT
+
+
+FILE=Rodio/10KV_0.1mA_120gain_20ms_1000f/spectrum_all_ZeroSupp_pixCut10.0sigma5_CLUcut_10.0sigma.npz npz
+LEGEND=Rh_10KV_0.1mA
+ACQ_TIME=40
+ADD_PLOT
+
+
+
+
+
 
 
