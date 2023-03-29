@@ -23,11 +23,59 @@ if __name__ == "__main__":
     
     calP0=-0.03544731540487446
     calP1=0.0015013787118821926
+<<<<<<< HEAD
     common_path='/home/xcf/Desktop/datiSDD/misureMcPhersonGenn2023/'
     #Fe
     mca_file=['Fe_10KV_0.0mA_verticale.mca']
     linesLabels=['Fe Ka','Fe kb']
 
+=======
+    
+    #common_path='/home/maldera/Desktop/eXTP/datiSDD/mcPhersonNov2022/'
+    common_path='/home/maldera/Desktop/eXTP/data/datiSDD/misureMcPhersonGenn2023/'
+   
+   # mca_file=['Fe_10KV_0.0mA.mca','Fe_10KV_0.1mA.mca','Fe_8KV_0mA.mca','Mo_4KV_0.1mA.mca','Ti_6KV_0.0mA.mca','Ti_7KV_0.0mA.mca','Ti_8KV_0.0mA.mca','Ni_10KV_0.0mA.mca', 'Rh_10KV_0.0mA.mca','Rh_5KV_0.1mA.mca' ]
+   # linesLabels=['Fe Ka','Fe kb','Ti ka', 'Ti kb','Ni ka', 'Ni kb', 'Mo La', 'Rh La','Pd La','Pd Lb']   
+   
+    #nuove misure No plastica
+    #mca_file=['Mo_10KV_0.0mA_noPlastica.mca',  'Mo_55KV_0.0mA_noPlastica.mca',  'Pd_55KV_0.0mA_noPlastica.mca',  'Rh_55KV_0.0mA_noPlastica.mca']
+   # linesLabels=['Mo La', 'Rh La','Pd La','Pd Lb']   
+   
+   
+    #Fe
+    #mca_file=['Fe_10KV_0.0mA.mca','Fe_10KV_0.1mA.mca','Fe_8KV_0mA.mca']
+    #mca_file=['Fe_10KV_0.0mA_orizzontale.mca', 'Fe_10KV_0.0mA.mca']
+    #linesLabels=['Fe Ka','Fe kb']
+
+   #Ni
+  #  mca_file=['Ni_10KV_0.0mA.mca']
+   # mca_file=['Ni_10KV_0.0mA_orizzontale_nuovafinestra.mca','Ni_10KV_0.0mA_orizzontale_nuovafinestra1cmaria.mca','Ni_10KV_0.0mA.mca']
+    #mca_file=['Ni_10KV_0.0mA_orizzontale_nuovafinestra.mca']
+    #linesLabels=['Ni ka','Ni kb']
+
+    #Ti
+    mca_file=['Ti_10KV_0.0mA_verticale.mca',  'Ti_10KV_0.1mA_verticale.mca',  'Ti_6KV_0.1mA_verticale.mca']
+    linesLabels=['Ti ka','Ti kb']
+
+    #Mo
+    #mca_file=['Mo_4KV_0.1mA.mca', 'Mo_10KV_0.0mA.mca',   'Mo_4KV_0.1mA.mca',  'Mo_7KV_0.1mA.mca']
+    #mca_file=['Mo_10KV_0.0mA_orizzontale.mca','Mo_10KV_0.0mA.mca']
+    #linesLabels=['Mo La']
+
+    #Pd
+    #linesLabels=['Pd La']
+    #mca_file=['Pd_10KV_0.0mA.mca',  'Pd_10KV_0.1mA.mca', 'Pd_4KV_0.5mA.mca',  'Pd_4KV_1.0mA.mca',  'Pd_5KV_0.1mA.mca',  'Pd_5KV_0.3mA.mca']
+   # mca_file=[ 'Pd_10KV_0.0mA_orizzontale.mca','Pd_10KV_0.1mA.mca','Pd_10KV_0.0mA.mca']
+
+ #   linesLabels=['Rh La']
+    #mca_file=['Rh_10KV_0.0mA.mca',  'Rh_5KV_0.1mA.mca']
+    #mca_file=['Rh_10KV_0.0mA.mca']
+  #  mca_file=['Rh_10KV_0.0mA_orizzontale.mca','Rh_10KV_0.0mA.mca',  'Rh_5KV_0.1mA.mca']
+
+   #orizzontali:
+    #mca_file=['Fe_10KV_0.0mA_orizzontale.mca',  'Ni_10KV_0.0mA_orizzontale.mca', 'Rh_10KV_0.0mA_orizzontale.mca', 'Mo_10KV_0.0mA_orizzontale.mca',  'Pd_10KV_0.0mA_orizzontale.mca',  'Ti_10KV_0.0mA_orizzontale.mca']
+   
+>>>>>>> 0c99102693bca9d635a90f970ed2f9365c68f146
    
     
     for i in range (0,len(mca_file)):

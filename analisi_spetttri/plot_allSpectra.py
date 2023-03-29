@@ -22,12 +22,19 @@ def  plotAllSpectra(InputFileName):
     base_path=''
     legend=''
     calP0=-0.0013498026638486778  #calP0Err= 3.3894706711692284e-05
-    calP1= 0.0032116875215051385   #calP1Err= 3.284553141476064e-08
+    calP1=0.0032116875215051385   #calP1Err= 3.284553141476064e-08
+   
+    compute_rate=0 
     time=1
-    
+    normalize=0
+    low=0.
+    up=0.
     fig, ax = plt.subplots()
     for line in f:
+
+        
         line=line.strip('\n')
+        line=" ".join(line.split()) # rimuove tutti gli spazi doppi????? 
        # print(line)
         if len(line)==0:
             continue
@@ -58,15 +65,51 @@ def  plotAllSpectra(InputFileName):
             calP0=float(splitted[1])
         if splitted[0]=="P1":
             calP1=float(splitted[1])
+
+                    
         if splitted[0]=="ACQ_TIME":
-            time=float(splitted[1])
+            compute_time=1
+            if fileFormat=='sdd':
+                time=p.sdd_liveTime
+            else:    
+                time=float(splitted[1])
        
+
+        if  splitted[0]=="NORM_PEAK":
+            #normalize peak height to 1
+            print("!!!")
+            normalize=1
+            peak_limits=splitted[1].split(' ')
+            if len(peak_limits)!=2:
+                print("NORM_PEAK wrong limits... exit!")
+                exit()
+            low=float(peak_limits[0])
+            up=float(peak_limits[1])
+            if (up<=low):
+                print("NORM_PEAK wrong limits... exit!")
+                exit()
+            print ('up=',up, "low = ",low)
             
-            
+
+                
+ 
         if splitted[0]=="ADD_PLOT":    
             # plot istogramma?
             p.bins=p.bins*calP1+calP0
-            p.counts=p.counts/time
+
+            if compute_rate==1:
+                 p.counts=p.counts/time
+                 compute_rate=0
+                 time=1
+                 plt.ylabel('events/s')
+            if normalize==1:
+                 print("NORMALIZZO!!!!!")
+                 p.normalize(low,up)
+                 normalize=0
+                 low=0.
+                 up=0.
+                 plt.ylabel('normalized rate')
+                 
             p.plot(ax,legend)
             plt.legend()
           

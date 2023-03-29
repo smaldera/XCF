@@ -42,7 +42,7 @@ def fit_Gaushistogram(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1]
     
     print("Bounds=",(parsBoundsLow, parsBoundsUp ))
     
-    popt, pcov = curve_fit(gaussian_model, x_data, y_data,p0=initial_pars,absolute_sigma=True, sigma=sigma, bounds=(parsBoundsLow, parsBoundsUp ) )
+    popt, pcov = curve_fit(gaussian_model, x_data, y_data,p0=initial_pars,absolute_sigma=True, sigma=sigma, bounds=(parsBoundsLow, parsBoundsUp ), maxfev=5000)
     chisq = (((y_data - gaussian_model(x_data,popt[0],popt[1],popt[2]))/sigma)**2).sum()
     ndof= len(y_data) - len(popt)
     redChi2=chisq/ndof
@@ -57,6 +57,10 @@ def fit_Gaushistogram(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1]
 def fit_Gaushistogram_iterative(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1], nSigma=1.5 ):
     myparsBoundsLow=[0,xmin-50,0]
     myparsBoundsUp=[np.inf,xmax+50,np.inf]
+    #myparsBoundsLow=[0,-np.inf,0]
+    #myparsBoundsUp=[np.inf,np.inf,np.inf]
+
+    
     popt, pcov, redChi2 =fit_Gaushistogram(counts,bins,xmin,xmax, initial_pars,parsBoundsLow= myparsBoundsLow, parsBoundsUp= myparsBoundsUp  )
     k=popt[0]
     mean=popt[1]

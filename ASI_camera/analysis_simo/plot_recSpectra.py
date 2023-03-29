@@ -12,6 +12,7 @@ from  histogramSimo import histogramSimo
 
 
 
+<<<<<<< HEAD
 
 
 
@@ -31,6 +32,16 @@ files_histo=['15Febb_10KV_0.3mA_120gain_200ms_1000f_h12.99_xtal_asse1-15ksx/spec
 
 leg_names=['asse1 -15k','asse1 -15k asse2 +10k','asse1 -15k asse2 +20k']
 scale_factor=[1, 1,1]
+=======
+# CONFRONTO orizzontale - veritcal Mc_pherson
+#common_path='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/'
+#files_histo=['mcPherson_orizz/Ni/100ms_G120/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_40.0sigma.npz','mcPherson_orizz/Pd/100ms_G120/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_40.0sigma.npz','mcPherson_verticale/Pd/1ms_G120/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_5.0sigma.npz' ]
+
+common_path='/home/maldera/Desktop/eXTP/data/xcf_tubo_camera/'
+files_histo=['Molibdeno/10KV_0.1mA_120gain_10ms_1000f/spectrum_all_eps1.5_pixCut10.0sigma_CLUcut_10.0sigma_CluSize1.npz']
+leg_names=['Fe 0.1mA 100ms']
+scale_factor=[1000*10*1e-3] # divido per tempo di totale di acquiszione
+>>>>>>> 0c99102693bca9d635a90f970ed2f9365c68f146
 
 fig, ax = plt.subplots()
 
