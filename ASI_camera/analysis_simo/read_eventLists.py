@@ -14,12 +14,6 @@ from  histogramSimo import histogramSimo
 # plotta: spettro e mappa posizioni
 # 
 
-
-#filename='/home/xcf/Desktop/ASI_polarizzata/Rodio/13Febb_10KV_0.3mA_120gain_200ms_1000f_h12.99_3/events_list_pixCut15.0sigma_CLUcut_15.0sigma.npz'
-#filename='/home/xcf/Desktop/ASI_polarizzata/Rodio/13Febb_10KV_0.3mA_120gain_200ms_1000f_h12.99_xtal_asse1-20ksx/events_list_pixCut15.0sigma_CLUcut_15.0sigma.npz'
-filename='/home/xcf/Desktop/ASI_polarizzata/Rodio/22Febb_10KV_0.3mA_120gain_200ms_1000f_h12.99_xtal_asse1-15ksx_asse2_80ksx_foro5mmLong/events_list_pixCut15.0sigma_CLUcut_15.0sigma.npz'
-#filename='/home/xcf/Desktop/ASI_polarizzata/Rodio/prova_all.npz'
-
 fileListName='events_file_list.txt'
 ff=open(fileListName,'r')
 
