@@ -22,7 +22,7 @@ NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
 YBINS=4144
 
-REBINXY=5.
+REBINXY=30.
 
 
 xbins2d=int(XBINS/REBINXY)
@@ -43,8 +43,8 @@ for f in ff:
 
 #myCut=np.where( (w_all>2390)&(w_all<2393)  )
 #myCut=np.where( (x_all>800)&(x_all<1200)&(y_all>1900)&(y_all<2500)  )
-#myCut=np.where( (w_all>600)&(w_all<900)  )
-myCut=np.where( w_all>100 )
+myCut=np.where( (w_all>800)&(w_all<900)  )
+#myCut=np.where( w_all>600 )
 
 
 #plot 
@@ -52,8 +52,10 @@ counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbi
 counts2dClu=   counts2dClu.T
 plt.figure(1)
 
+
 #plt.imshow(np.log10(counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
-plt.imshow(np.log10(counts2dClu), interpolation='none',    origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+counts2dClu[counts2dClu>0]=1
+plt.imshow(counts2dClu, interpolation='none',    origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
 
 plt.colorbar()
 
