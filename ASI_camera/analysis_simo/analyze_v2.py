@@ -6,9 +6,15 @@ sys.path.insert(0, '../../libs')
 import utils_v2 as al
 from pedestal import bg_map
 
+import time
+start = time.time()
 
-shots_path = '/home/xcf/Desktop/ASI_polarizzata/Rodio/22Febb_10KV_0.3mA_120gain_200ms_1000f_h12.99_xtal_asse1-15ksx_asse2_80ksx_foro5mmLong/'
-bg_shots_path ='/home/xcf/Desktop/ASI_polarizzata/bkg/bg_22feb_g120_200ms/'
+
+#shots_path = '/home/xcf/Desktop/ASI_polarizzata/Rodio/22Febb_10KV_0.3mA_120gain_200ms_1000f_h12.99_xtal_asse1-15ksx_asse2_80ksx_foro5mmLong/'
+#bg_shots_path ='/home/xcf/Desktop/ASI_polarizzata/bkg/bg_22feb_g120_200ms/'
+
+shots_path = '/home/maldera/Desktop/eXTP/data/misureCMOS_24Jan2023/Mo/10KV_0.1mA/G120_10ms/'
+bg_shots_path ='/home/maldera/Desktop/eXTP/data/misureCMOS_24Jan2023/Mo/sensorPXR/G120_10ms_bg/'
 
 
 
@@ -77,11 +83,15 @@ clusizes_all=np.empty(0)
 n=0.
 # inizio loop sui files
 print('reading files form:',shots_path)
-for image_file in f:
+from tqdm import tqdm
+
+#for i in tqdm (range (len(f)), desc="Loading..."):
+for image_file in tqdm(f, colour='green'):
    # print(n," --> ", image_file)
-    if n%10==0:
-         frac=float(n/len(f))*100.
-         print(" processed ",n," files  (  %.2f %%)" %frac )
+  #  if n%10==0:
+  #       frac=float(n/len(f))*100.
+  #       print(" processed ",n," files  (  %.2f %%)" %frac )
+
     n=n+1
 
     # read image:
@@ -230,6 +240,7 @@ if SAVE_EVENTLIST:
   #al.save_vectors(outfileVectors, w_all, x_allClu, y_allClu,clusizes_all)
   np.savez(outfileVectors, w=w_all, x_pix=x_allClu, y_pix=y_allClu, sizes=clusizes_all)
 
-
+end = time.time()
+print(end - start) 
 plt.show()
 
