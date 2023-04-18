@@ -9,8 +9,8 @@ from pedestal import bg_map
 from multiprocessing import Process,  Queue ## TEST!!!###
 from tqdm import tqdm
 
-shots_path = '/home/maldera/Desktop/eXTP/data/misureCMOS_24Jan2023/Mo/10KV_0.1mA/G120_10ms/'
-bg_shots_path ='/home/maldera/Desktop/eXTP/data/misureCMOS_24Jan2023/Mo/sensorPXR/G120_10ms_bg/'
+shots_path = '/home/xcf/Desktop/xcf_tubo_camera/verticale/Titanio/10KV_0.0mA_120gain_200ms_1000f/'
+bg_shots_path ='/home/xcf/Desktop/xcf_tubo_camera/bkg_gain120_200ms/'
 
 
 class analize_v2():
@@ -118,10 +118,7 @@ class analize_v2():
            
         #for image_file in self.fileList:
         for image_file in tqdm(self.fileList, colour='green',position=n_job-1):   
-          #  print(n," --> ", image_file)
           
-          #  n=n+1
-
             # read image:
             image_data = al.read_image(image_file)/4.
             # subtract pedestal:
@@ -129,11 +126,11 @@ class analize_v2():
 
             #applica maschera
             image_data[mySigmaMask]=0 # maschero tutti i pixel con RMS pedestal > soglia 
-            flat_image = image_data.flatten()
+           # flat_image = image_data.flatten()
             
             # spettro "raw"
-            counts_i, bins_i = np.histogram(flat_image,  bins = 2*NBINS, range = (-NBINS,NBINS) ) 
-            self.countsAll = self.countsAll + counts_i
+           # counts_i, bins_i = np.histogram(flat_image,  bins = 2*NBINS, range = (-NBINS,NBINS) ) 
+           # self.countsAll = self.countsAll + counts_i
 
             #################
             #ZERO SUPPRESSION
@@ -174,8 +171,8 @@ class analize_v2():
                        self.countsAll2dClu=self.countsAll2dClu+ counts2dClu
 
                        # istogramma spettro dopo il clustering
-                       size_mask=np.where(clu_sizes>-1) # select all clusters!!!!
-                       countsClu_i, bins_i = np.histogram(  w_clusterAll[size_mask], bins = 2*NBINS, range = (-NBINS,NBINS) )
+                      
+                       countsClu_i, bins_i = np.histogram(  w_clusterAll, bins = 2*NBINS, range = (-NBINS,NBINS) )
                        self.countsAllClu = self.countsAllClu +  countsClu_i
 
                    #istogramma size clusters:
@@ -199,8 +196,8 @@ if __name__ == '__main__':
     print("reading images from: ",shots_path )
     print("pedestals from: ",bg_shots_path)
     
-    fileList= glob.glob(shots_path + "/*000*.FIT")
-    n_splits=2
+    fileList= glob.glob(shots_path + "/*.FIT")
+    n_splits=3
     print("n. of parallel jobs: ",n_splits)
     
     SAVE_EVENTLIST=True
