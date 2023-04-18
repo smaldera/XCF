@@ -6,11 +6,12 @@ sys.path.insert(0, '../../libs')
 import utils_v2 as al
 from pedestal import bg_map
 
-from multiprocessing import Process,  Queue ## TEST!!!###
+from multiprocessing import Process,  Queue
 from tqdm import tqdm
 
-shots_path = '/home/xcf/Desktop/xcf_tubo_camera/verticale/Titanio/10KV_0.0mA_120gain_200ms_1000f/'
-bg_shots_path ='/home/xcf/Desktop/xcf_tubo_camera/bkg_gain120_200ms/'
+
+shots_path = '/home/maldera/Desktop/eXTP/data/misureCMOS_24Jan2023/Mo/10KV_0.1mA/G120_10ms/'
+bg_shots_path ='/home/maldera/Desktop/eXTP/data/misureCMOS_24Jan2023/Mo/sensorPXR/G120_10ms_bg/'
 
 
 class analize_v2():
@@ -28,7 +29,8 @@ class analize_v2():
         self.APPLY_CLUSTERING=True
         self.SAVE_EVENTLIST=True
         self.myeps=1.5 # clustering DBSCAN
-
+        self.make_rawSpectrum=False
+        
         self.xbins2d=int(self.XBINS/self.REBINXY)
         self.ybins2d=int(self.YBINS/self.REBINXY)
 
@@ -70,11 +72,9 @@ class analize_v2():
 
         
     def do_analyze(self,queue,n_job):
-
-          
+     
         if self.create_bg_map == True:
            bg_map(self.bg_path, self.bg_path + 'mean_ped.fits', self.bg_path + 'std_ped.fits', draw = 0 )
-
 
         # inizio analisi...
         # leggo files pedestal (mean e rms)
@@ -83,28 +83,10 @@ class analize_v2():
         pedSigmafile  = self.bg_path + 'std_ped.fits'
         rms_ped = al.read_image(pedSigmafile)
 
-         
-        # copio le variabili self. su variabili locali della funzione per non riscriverle... 
-        NBINS=self.NBINS
-        XBINS=self.XBINS
-        YBINS=self.YBINS
-        PIX_CUT_SIGMA=self.PIX_CUT_SIGMA
-        CLU_CUT_SIGMA=self.CLU_CUT_SIGMA
-        REBINXY=self.REBINXY
-        APPLY_CLUSTERING=self.APPLY_CLUSTERING
-        SAVE_EVENTLIST=self.SAVE_EVENTLIST
-        myeps=self.myeps
-
-        xbins2d=self.xbins2d
-        ybins2d=self.ybins2d
-
-
-        rms_pedCut=np.mean(rms_ped)+PIX_CUT_SIGMA*np.std(rms_ped)
-   
-        # MASCHERA PIXEL RUMOROSI 
+        # MASCHERA PIXEL RUMOROSI
+        rms_pedCut=np.mean(rms_ped)+self.PIX_CUT_SIGMA*np.std(rms_ped)
         #mySigmaMask=np.where( (rms_ped>10)&(mean_ped>500) )
         mySigmaMask=np.where( (rms_ped>rms_pedCut) )
-
 
         #np array vuoti a cui appendo le coordinate
         #x_all=np.empty(0)
@@ -112,11 +94,8 @@ class analize_v2():
         self.x_allClu=np.empty(0)
         self.y_allClu=np.empty(0)
         self.w_all=np.empty(0)
-        #n=0.
-
+        
         # inizio loop sui files
-           
-        #for image_file in self.fileList:
         for image_file in tqdm(self.fileList, colour='green',position=n_job-1):   
           
             # read image:
@@ -126,17 +105,17 @@ class analize_v2():
 
             #applica maschera
             image_data[mySigmaMask]=0 # maschero tutti i pixel con RMS pedestal > soglia 
-           # flat_image = image_data.flatten()
-            
-            # spettro "raw"
-           # counts_i, bins_i = np.histogram(flat_image,  bins = 2*NBINS, range = (-NBINS,NBINS) ) 
-           # self.countsAll = self.countsAll + counts_i
+
+            if self.make_rawSpectrum==True:
+                flat_image = image_data.flatten()
+                counts_i, bins_i = np.histogram(flat_image,  bins = 2*self.NBINS, range = (-self.NBINS,self.NBINS) ) 
+                self.countsAll = self.countsAll + counts_i
 
             #################
             #ZERO SUPPRESSION
             # applico selezione su carica dei pixel
             # supp_coords, supp_weights=al.select_pixels2(image_data, 150)
-            supp_coords, supp_weights=al.select_pixels_RMS(image_data, rms_ped, CLU_CUT_SIGMA)
+            supp_coords, supp_weights=al.select_pixels_RMS(image_data, rms_ped, self.CLU_CUT_SIGMA)
      
             if len( supp_weights)==0:
                    print ('no pixel above zero supp. threshold... skipping image')
@@ -147,32 +126,32 @@ class analize_v2():
 
             
             #istogramma 2d immagine raw dopo zero suppression:
-            counts2dRaw,  xedgesRaw, yedgesRaw= np.histogram2d(zeroSupp_trasposta[0],zeroSupp_trasposta[1],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
+            counts2dRaw,  xedgesRaw, yedgesRaw= np.histogram2d(zeroSupp_trasposta[0],zeroSupp_trasposta[1],bins=[self.xbins2d, self.ybins2d ],range=[[0,self.XBINS],[0,self.YBINS]])
             self.countsAll2dRaw=self.countsAll2dRaw+counts2dRaw
 
             #spettro dopo zeroSuppression
-            countsZeroSupp_i, bins_i = np.histogram( supp_weights,  bins = 2*NBINS, range = (-NBINS,NBINS) ) 
+            countsZeroSupp_i, bins_i = np.histogram( supp_weights,  bins = 2*self.NBINS, range = (-self.NBINS,self.NBINS) ) 
             self.countsAllZeroSupp =self.countsAllZeroSupp  +  countsZeroSupp_i
 
             #CLUSTERING
-            if APPLY_CLUSTERING:
+            if self.APPLY_CLUSTERING:
        
                    # test clustering.... # uso v3 per avere anche le posizioni
-                   w_clusterAll, clu_coordsAll, clu_sizes, clu_baryCoords    =al.clustering_v3(np.transpose(supp_coords),supp_weights,myeps=myeps) 
+                   w_clusterAll, clu_coordsAll, clu_sizes, clu_baryCoords    =al.clustering_v3(np.transpose(supp_coords),supp_weights,myeps=self.myeps) 
                    cluBary_trasposta= clu_baryCoords.transpose()
    
-                   if SAVE_EVENTLIST:
+                   if self.SAVE_EVENTLIST:
                        self.x_allClu=np.append(self.x_allClu,cluBary_trasposta[0])
                        self.y_allClu=np.append(self.y_allClu,cluBary_trasposta[1])
                        self.w_all=np.append(self.w_all,w_clusterAll)
         
                        # istogramma 2d dopo clustering solo baricentri!!!!
-                       counts2dClu,  xedges, yedges= np.histogram2d(cluBary_trasposta[0],cluBary_trasposta[1],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
+                       counts2dClu,  xedges, yedges= np.histogram2d(cluBary_trasposta[0],cluBary_trasposta[1],bins=[self.xbins2d, self.ybins2d ],range=[[0,self.XBINS],[0,self.YBINS]])
                        self.countsAll2dClu=self.countsAll2dClu+ counts2dClu
 
                        # istogramma spettro dopo il clustering
                       
-                       countsClu_i, bins_i = np.histogram(  w_clusterAll, bins = 2*NBINS, range = (-NBINS,NBINS) )
+                       countsClu_i, bins_i = np.histogram(  w_clusterAll, bins = 2*self.NBINS, range = (-self.NBINS,self.NBINS) )
                        self.countsAllClu = self.countsAllClu +  countsClu_i
 
                    #istogramma size clusters:
@@ -200,10 +179,7 @@ if __name__ == '__main__':
     n_splits=3
     print("n. of parallel jobs: ",n_splits)
     
-    SAVE_EVENTLIST=True
-    
-
-    analizer_list=[]
+      
 
     countsAll2dRaw=None
     countsAll2dClu=None
@@ -214,7 +190,8 @@ if __name__ == '__main__':
     w_all=None
     x_allClu=None
     y_allClu=None
- 
+    
+    analizer_list=[]
     processes = []
     rets = []
     q = Queue()
@@ -290,7 +267,7 @@ if __name__ == '__main__':
             
             
         
-      # plot immagine
+     # plot immagini
     fig2, ax2 = plt.subplots()
 
     countsAll2dClu=  countsAll2dClu.T
@@ -309,7 +286,8 @@ if __name__ == '__main__':
     # plot spettro
     fig, h1 = plt.subplots()
     bins=analizer_list[0].bins
-    h1.hist(bins[:-1], bins = bins, weights = countsAll, histtype = 'step',label="raw")
+    if analizer_list[0].make_rawSpectrum==True:
+        h1.hist(bins[:-1], bins = bins, weights = countsAll, histtype = 'step',label="raw")
     h1.hist(bins[:-1], bins = bins, weights = countsAllZeroSupp, histtype = 'step',label="pixel thresold")
     h1.hist(bins[:-1], bins = bins, weights = countsAllClu, histtype = 'step',label='CLUSTERING')
     plt.legend()
@@ -337,7 +315,7 @@ if __name__ == '__main__':
 
 
     # salva vettori con event_list:
-    if SAVE_EVENTLIST:
+    if analizer_list[0].SAVE_EVENTLIST:
      outfileVectors= shots_path+'events_list'+analizer_list[0].pixMask_suffix+analizer_list[0].cluCut_suffix+'.npz'
      print('writing events in:',outfileVectors)
      al.save_vectors(outfileVectors, w_all, x_allClu, y_allClu)
