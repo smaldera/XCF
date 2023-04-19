@@ -10,10 +10,6 @@ from multiprocessing import Process,  Queue
 from tqdm import tqdm
 
 
-shots_path = '/home/maldera/Desktop/eXTP/data/misureCMOS_24Jan2023/Mo/10KV_0.1mA/G120_10ms/'
-bg_shots_path ='/home/maldera/Desktop/eXTP/data/misureCMOS_24Jan2023/Mo/sensorPXR/G120_10ms_bg/'
-
-
 class analize_v2():
     """
     """
@@ -40,7 +36,8 @@ class analize_v2():
         self.fileList=fileList
         self.bg_path=bg_path
 
-        # creo istogrammi 1d vuoti
+      
+    def reset_allVariables(self):
         x = []
         self.countsAll2dClu=np.array(x)
         self.xedges=np.array(x)
@@ -70,6 +67,8 @@ class analize_v2():
         self.y_allClu=np.empty(0)
         self.w_all=np.empty(0)
 
+     
+        
         
     def do_analyze(self,queue,n_job):
      
@@ -87,17 +86,12 @@ class analize_v2():
         rms_pedCut=np.mean(rms_ped)+self.PIX_CUT_SIGMA*np.std(rms_ped)
         #mySigmaMask=np.where( (rms_ped>10)&(mean_ped>500) )
         mySigmaMask=np.where( (rms_ped>rms_pedCut) )
-
-        #np array vuoti a cui appendo le coordinate
-        #x_all=np.empty(0)
-        #y_all=np.empty(0)
-        self.x_allClu=np.empty(0)
-        self.y_allClu=np.empty(0)
-        self.w_all=np.empty(0)
+        self.reset_allVariables()
+    
         
         # inizio loop sui files
-        for image_file in tqdm(self.fileList, colour='green',position=n_job-1):   
-          
+        bar_prefix='processing data chunk '+str(n_job)
+        for image_file in tqdm(self.fileList, desc=bar_prefix,  colour='green',position=n_job-1):             
             # read image:
             image_data = al.read_image(image_file)/4.
             # subtract pedestal:
@@ -161,25 +155,51 @@ class analize_v2():
        
         queue.put(self)
         
-###########
-#####################
+####################################
+####################################
+def     set_args(analizer,args):
 
-
-
+      analizer.REBINXY=args.xyrebin
+      analizer.APPLY_CLUSTERING=args.apply_clustering
+      analizer.SAVE_EVENTLIST=args.save_eventlist
+      analizer.myeps=args.myeps
+      analizer.make_rawSpectrum=args.make_rawspectrum
+      analizer.PIX_CUT_SIGMA=args.pix_cut_sigma # cut per pixel rumorosi
+      analizer.CLU_CUT_SIGMA=args.clu_cut_sigma # clustering cut
 
 if __name__ == '__main__':
     import time
-    start = time.time()
+    import argparse
+    formatter = argparse.ArgumentDefaultsHelpFormatter
+    parser = argparse.ArgumentParser(formatter_class=formatter)
 
-    print('===============================\n')
+    parser.add_argument('-in','--inFilesPath', type=str,  help='path to FIT files', required=True)
+    parser.add_argument('-bkg','--bkgFilesPath', type=str,  help='path to bkg files', required=True)
+    parser.add_argument('--n_jobs', type=int,  help='n. of parallel jobs', required=False, default=3)
+    parser.add_argument('--xyrebin', type=int,  help='rebin in image plot ', required=False, default=20)
+    parser.add_argument('--pix_cut_sigma', type=int,  help='pixel ped rms cut in sigma units ', required=False, default=10)
+    parser.add_argument('--clu_cut_sigma', type=int,  help='pixel cut in sigma units ', required=False, default=10)
+    parser.add_argument('--no_clustering', dest='apply_clustering',  help='do NOT apply clustering', required=False, default=True,action='store_false')
+    parser.add_argument('--no_eventlist', dest='save_eventlist',  help='do NOT save event list', required=False, default=True,  action='store_false'  )
+    parser.add_argument('--make_rawspectrum',  help='make raw spectrum ', required=False, default=False, action='store_true' )
+    parser.add_argument('--myeps', type=float,  help='DBSCAN eps', required=False, default=1.5)
+   
+    
+    args = parser.parse_args()
+
+    shots_path = args.inFilesPath
+    bg_shots_path =args.bkgFilesPath
+     
+    start = time.time()
+    print('\n==================================')
+    print(' *** starting images analysis  ***\n')
     print("reading images from: ",shots_path )
     print("pedestals from: ",bg_shots_path)
     
-    fileList= glob.glob(shots_path + "/*.FIT")
-    n_splits=3
+    fileList=glob.glob( shots_path  + "/*.FIT")
+    n_splits=args.n_jobs
     print("n. of parallel jobs: ",n_splits)
     
-      
 
     countsAll2dRaw=None
     countsAll2dClu=None
@@ -200,29 +220,33 @@ if __name__ == '__main__':
     
         frames_block=int(len(fileList)/n_splits)
     
-        low=(i-1)*frames_block+1
+        low=(i-1)*frames_block
         if i==1:
             low=0
     
         up=i*frames_block
         if i==n_splits:
-            up=len(fileList)-1
+            up=len(fileList)
         
  
         block_fileList=fileList[low:up]
-
-       
-        analizer= analize_v2( block_fileList,bg_shots_path)     
+        print("low=",low, "up=",up)
+        print('len chunk :',len(block_fileList))
+        analizer= analize_v2( block_fileList,bg_shots_path)
+        set_args(analizer,args)
         if (i==1):
-            print('pixel_cut_sigma= ',analizer.PIX_CUT_SIGMA, '  (cut on pixels pedestal RMS)' )
-            print('clustering cut sigma= ',analizer.CLU_CUT_SIGMA, '  (cut on pixel value)'  )
-            print('apply clustering= ',analizer.APPLY_CLUSTERING)
-            print('dbscan eps=',analizer.myeps)
-            print('rebin xy=',analizer.REBINXY)
-            print('save eventList=',analizer.SAVE_EVENTLIST)
-            print("=====================" )
+            print("\nanalize_v2 options:")
+            print('   pixel_cut_sigma= ',analizer.PIX_CUT_SIGMA, '  (cut on pixels pedestal RMS)' )
+            print('   clustering cut sigma= ',analizer.CLU_CUT_SIGMA, '  (cut on pixel value)'  )
+            print('   apply clustering= ',analizer.APPLY_CLUSTERING)
+            print('   dbscan eps=',analizer.myeps)
+            print('   rebin xy=',analizer.REBINXY)
+            print('   save eventList=',analizer.SAVE_EVENTLIST)
+            print('   make_rawSpectrum=', analizer.make_rawSpectrum)
+            print('==================================\n')
             
-        print("    LEN file_list=", len(block_fileList) )
+            
+     
         p=Process(target=analizer.do_analyze ,args=(q,i,))
         p.start()
         processes.append(p)
