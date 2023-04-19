@@ -167,30 +167,12 @@ def     set_args(analizer,args):
       analizer.PIX_CUT_SIGMA=args.pix_cut_sigma # cut per pixel rumorosi
       analizer.CLU_CUT_SIGMA=args.clu_cut_sigma # clustering cut
 
-if __name__ == '__main__':
-    import time
-    import argparse
-    formatter = argparse.ArgumentDefaultsHelpFormatter
-    parser = argparse.ArgumentParser(formatter_class=formatter)
 
-    parser.add_argument('-in','--inFilesPath', type=str,  help='path to FIT files', required=True)
-    parser.add_argument('-bkg','--bkgFilesPath', type=str,  help='path to bkg files', required=True)
-    parser.add_argument('--n_jobs', type=int,  help='n. of parallel jobs', required=False, default=3)
-    parser.add_argument('--xyrebin', type=int,  help='rebin in image plot ', required=False, default=20)
-    parser.add_argument('--pix_cut_sigma', type=int,  help='pixel ped rms cut in sigma units ', required=False, default=10)
-    parser.add_argument('--clu_cut_sigma', type=int,  help='pixel cut in sigma units ', required=False, default=10)
-    parser.add_argument('--no_clustering', dest='apply_clustering',  help='do NOT apply clustering', required=False, default=True,action='store_false')
-    parser.add_argument('--no_eventlist', dest='save_eventlist',  help='do NOT save event list', required=False, default=True,  action='store_false'  )
-    parser.add_argument('--make_rawspectrum',  help='make raw spectrum ', required=False, default=False, action='store_true' )
-    parser.add_argument('--myeps', type=float,  help='DBSCAN eps', required=False, default=1.5)
-   
+def run_analyze(args):
     
-    args = parser.parse_args()
-
     shots_path = args.inFilesPath
     bg_shots_path =args.bkgFilesPath
      
-    start = time.time()
     print('\n==================================')
     print(' *** starting images analysis  ***\n')
     print("reading images from: ",shots_path )
@@ -230,8 +212,7 @@ if __name__ == '__main__':
         
  
         block_fileList=fileList[low:up]
-        print("low=",low, "up=",up)
-        print('len chunk :',len(block_fileList))
+        
         analizer= analize_v2( block_fileList,bg_shots_path)
         set_args(analizer,args)
         if (i==1):
@@ -326,6 +307,7 @@ if __name__ == '__main__':
 
 
     # save histos
+    print('... saving histograms in:', shots_path )
     np.savez(shots_path+'spectrum_all_raw'+analizer_list[0].pixMask_suffix+'_parallel', counts = countsAll, bins = bins)
     np.savez(shots_path+'spectrum_all_ZeroSupp'+analizer_list[0].pixMask_suffix+analizer_list[0].cluCut_suffix+'_parallel', counts = countsAllZeroSupp, bins = bins)
     np.savez(shots_path+'spectrum_all_eps'+str(analizer_list[0].myeps)+analizer_list[0].pixMask_suffix+analizer_list[0].cluCut_suffix+'_parallel', counts = countsAllClu, bins = bins)
@@ -334,6 +316,7 @@ if __name__ == '__main__':
 
 
     # save figures
+    
     al.write_fitsImage(countsAll2dClu, shots_path+'imageCUL'+analizer_list[0].pixMask_suffix+analizer_list[0].cluCut_suffix+'_parallel.fits'  , overwrite = "False")
     al.write_fitsImage(countsAll2dRaw, shots_path+'imageRaw'+analizer_list[0].pixMask_suffix +'_parallel.fits'  , overwrite = "False")
 
@@ -345,6 +328,31 @@ if __name__ == '__main__':
      al.save_vectors(outfileVectors, w_all, x_allClu, y_allClu)
 
 
+
+
+      
+if __name__ == '__main__':
+    import time
+    import argparse
+    formatter = argparse.ArgumentDefaultsHelpFormatter
+    parser = argparse.ArgumentParser(formatter_class=formatter)
+
+    parser.add_argument('-in','--inFilesPath', type=str,  help='path to FIT files', required=True)
+    parser.add_argument('-bkg','--bkgFilesPath', type=str,  help='path to bkg files', required=True)
+    parser.add_argument('--n_jobs', type=int,  help='n. of parallel jobs', required=False, default=3)
+    parser.add_argument('--xyrebin', type=int,  help='rebin in image plot ', required=False, default=20)
+    parser.add_argument('--pix_cut_sigma', type=int,  help='pixel ped rms cut in sigma units ', required=False, default=10)
+    parser.add_argument('--clu_cut_sigma', type=int,  help='pixel cut in sigma units ', required=False, default=10)
+    parser.add_argument('--no_clustering', dest='apply_clustering',  help='do NOT apply clustering', required=False, default=True,action='store_false')
+    parser.add_argument('--no_eventlist', dest='save_eventlist',  help='do NOT save event list', required=False, default=True,  action='store_false'  )
+    parser.add_argument('--make_rawspectrum',  help='make raw spectrum ', required=False, default=False, action='store_true' )
+    parser.add_argument('--myeps', type=float,  help='DBSCAN eps', required=False, default=1.5)
+   
+    
+    args = parser.parse_args()
+
+    start = time.time()
+    run_analyze(args)
     end = time.time()
     print('\n\nelapsed time: ',end - start,' [s]') 
     plt.show()
