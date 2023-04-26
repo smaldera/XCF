@@ -14,8 +14,16 @@ from  histogramSimo import histogramSimo
 # plotta: spettro e mappa posizioni
 # 
 
-fileListName='events_file_list.txt'
-ff=open(fileListName,'r')
+import argparse
+formatter = argparse.ArgumentDefaultsHelpFormatter
+parser = argparse.ArgumentParser(formatter_class=formatter)
+parser.add_argument('-in','--inFile', type=str,  help='txt file with list of npz files', required=True)
+args = parser.parse_args()
+
+
+
+#fileListName='events_file_list.txt'
+ff=open(args.inFile,'r')
 
 
 NBINS=16384  # n.canali ADC (2^14)
