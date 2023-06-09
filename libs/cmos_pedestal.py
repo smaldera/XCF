@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 import glob
 #sys.path.insert(0, '../../libs')
 import utils_v2 as al
-
+from tqdm import tqdm
 
 
 def plot_pixel_dist(file_list,pixel):    
@@ -38,12 +38,12 @@ def bg_map(bg_shots_path,outMeanPed_file, outStdPed_file, ny=4144,nx=2822, draw=
    allSum2=np.zeros((nx,ny),dtype=np.int16 )
 
    n=0.
-   for image_file in f:
+   for image_file in tqdm(f):
       n=n+1.
      # print(n," --> ", image_file)
-      if n%10==0:
-         frac=float(n/len(f))*100.
-         print("Pedestal-> processed ",n," files  (  %.2f %%)" %frac )
+      #if n%10==0:
+      #   frac=float(n/len(f))*100.
+      #   print("Pedestal-> processed ",n," files  (  %.2f %%)" %frac )
       image_data=al.read_image(image_file)/4.
       allSum=allSum+ image_data
       allSum2=allSum2+ image_data**2

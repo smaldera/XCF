@@ -6,8 +6,8 @@ import utils_v2 as al
 
 
 
-common_path='/home/xcf/Desktop/ASI_polarizzata/Rodio/8Febb_10KV_0.3mA_120gain_200ms_1000f_h12.99_ruotato2/'
-files_img=['imageCUL_pixCut10.0sigma_CLUcut_10.0sigma.fits']
+common_path='/home/maldera/Desktop/eXTP/data/ASI_polarizzata/Rodio/8Febb_10KV_0.1mA_120gain_200ms_1000f_h12.99/'
+files_img=['imageRaw_pixCut10.0sigma.fits']
 leg_names=['G=120']
 
 
@@ -16,7 +16,7 @@ for i in range(0,len(files_img)):
 
     fig=plt.figure(i)
     image_data = al.read_image(common_path+files_img[i])
-    plt.imshow(image_data)
+    plt.imshow(image_data,origin='lower')
     plt.title(leg_names[i])
     plt.colorbar()
       

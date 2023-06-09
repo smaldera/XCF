@@ -9,7 +9,7 @@ from sklearn.cluster import DBSCAN
 from sklearn import metrics
 
 def read_image(nomefile):
-   data_f = pf.open(nomefile, memmap=True)
+   data_f = pf.open(nomefile, memmap=False)
    #data_f.info()
    image_data = pf.getdata(nomefile, ext=0) # NON dividi per 4!!!!
 

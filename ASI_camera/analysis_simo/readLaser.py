@@ -13,7 +13,7 @@ start = time.time()
 
 #hots_list =['/home/maldera/Desktop/eXTP/data/laserShots/nuovoAllineamento/6giu/h_11_m20000/']
 bg_shots_path = '/home/maldera/Desktop/eXTP/data/laserShots/nuovoAllineamento/6giu/bkg/'
-shots_list = glob.glob('/home/maldera/Desktop/eXTP/data/laserShots/nuovoAllineamento/6giu/h_*_m10000')
+shots_list = glob.glob('/home/maldera/Desktop/eXTP/data/laserShots/nuovoAllineamento/8giu/alldata')
 
 
 print(shots_list)

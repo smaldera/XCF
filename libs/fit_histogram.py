@@ -10,6 +10,10 @@ def linear_model(x,p0,p1):
        y=p0+p1*x
        return y
 
+def linear_model0(x,p1):
+       y=p1*x
+       return y
+
 
 def gaussian_model(x,p0,p1,p2):
        #x, pars sono numpy array!!

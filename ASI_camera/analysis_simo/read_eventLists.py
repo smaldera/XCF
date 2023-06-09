@@ -53,9 +53,9 @@ counts2dClu=   counts2dClu.T
 plt.figure(1)
 
 
-#plt.imshow(np.log10(counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
-counts2dClu[counts2dClu>0]=1
-plt.imshow(counts2dClu, interpolation='none',    origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+plt.imshow(np.log10(counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+#counts2dClu[counts2dClu>0]=1
+#plt.imshow(counts2dClu, interpolation='none',    origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
 
 plt.colorbar()
 
