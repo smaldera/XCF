@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import sys
-sys.path.insert(0, '../libs')
+sys.path.insert(0,'/home/maldera/Desktop/eXTP/softwareXCF/XCF/libs')
 import fit_histogram as fitSimo
 from  histogramSimo import histogramSimo
 import utils_v2 as al
@@ -37,14 +37,13 @@ def fit_peak(filename, fileFormat='npz',min_range=1, max_range=100000):
 
 
 
-
 XBINS=2822
 YBINS=4144
 
 commonpath='/home/maldera/Desktop/eXTP/data/laserShots/nuovoAllineamento/8giu/'
 folders= glob.glob('/home/maldera/Desktop/eXTP/data/laserShots/nuovoAllineamento/8giu/h_*')
 outdir= '/home/maldera/Desktop/eXTP/data/laserShots/nuovoAllineamento/8giu/plots/'
-
+nomefileout=outdir+'out.txt'
 nameXdist='/X_dist_ZeroSupp_pixCut15.0sigma_CLUcut_150.0sigma.npz'
 nameYdist='/Y_dist_ZeroSupp_pixCut15.0sigma_CLUcut_150.0sigma.npz'
 name_image='/imageRaw_pixCut15.0sigma.fits'
@@ -58,6 +57,7 @@ meanX=[]
 meanXerr=[]
 meanY=[]
 meanYerr=[]
+title=[]
 
 i=0
 for folder in folders :
@@ -78,7 +78,7 @@ for folder in folders :
       meanY.append(poptY[1])
       meanXerr.append( pcovX[1][1]**0.5)
       meanYerr.append( pcovY[1][1]**0.5)
-
+      title.append(folder.split('/')[-1])
       
       #draw
       fig=plt.figure(i,(18,10))
@@ -123,6 +123,12 @@ for folder in folders :
       i=i+1  
 
    
+miofile=open(nomefileout, 'w')
 
+for i in range (0,len(meanX)):
+   print(title[i],"  x= ",meanX[i],' +- ',meanXerr[i],"y= ",meanY[i],' +- ',meanYerr[i] )
+   mystring=title[i]+"  "+str(meanX[i])+' '+str(meanXerr[i])+" "+str(meanY[i])+' '+str(meanYerr[i])+'\n' 
+   miofile.write(mystring)
 
+miofile.close()   
 plt.show()
