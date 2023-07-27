@@ -10,6 +10,9 @@ import utils_v2 as al
 from read_sdd import  pharse_mca
 import fit_histogram as fitSimo
 from  histogramSimo import histogramSimo
+import matplotlib as mpl
+
+mpl.rcParams['font.size']=15  #!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 
@@ -29,7 +32,8 @@ def  plotAllSpectra(InputFileName):
     normalize=0
     low=0.
     up=0.
-    fig, ax = plt.subplots()
+    fig=plt.figure(1, (10,10))
+    ax = fig.subplots()
     for line in f:
 
         
@@ -41,6 +45,7 @@ def  plotAllSpectra(InputFileName):
         if line[0]=='#':
             continue
         splitted=line.split('=')
+        print("splitted[0]=",splitted[0])
         if splitted[0]=='BASE_PATH':
            base_path=splitted[1]
            print("BASE_PATH=",base_path)
@@ -111,6 +116,10 @@ def  plotAllSpectra(InputFileName):
                  plt.ylabel('normalized rate')
                  
             p.plot(ax,legend)
+            plt.xlabel('energy [keV]')
+            
+            plt.ylabel('events/s') # non so perche', ,ma nell'if non funziona!
+            
             plt.legend()
           
 
