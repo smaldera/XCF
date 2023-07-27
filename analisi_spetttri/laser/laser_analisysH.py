@@ -1,7 +1,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import sys
-sys.path.insert(0, '../libs')
+
+sys.path.insert(0,'/home/maldera/Desktop/eXTP/softwareXCF/XCF/libs')
 import fit_histogram as fitSimo
 from  histogramSimo import histogramSimo
 import utils_v2 as al
@@ -57,12 +58,14 @@ spectrum=['h_6.3_p10000/spectrum_all_ZeroSupp_pixCut15.0sigma_CLUcut_150.0sigma.
 #folders=['h_3.3/','h_4.3/','h_5.3/']
 
 
-
 dist=[3.3,4.3,5.3,6.3,7.3,7.65,8,9,10,11,12]
 folders=['h_3.3/','h_4.3/','h_5.3/','h_6.3/','h_7.3/','h_7.65/','h_8/','h_9/','h_10/','h_11/','h_12/']
 
+#dist=[4.3,5.3,7.3,7.65,8,10,11,12]
+#folders=['h_4.3/','h_5.3/','h_7.3/','h_7.65/','h_8/','h_10/','h_11/','h_12/']
+
 suffix='_m10000/'
-outdir='plots/m10k/'
+outdir='plots/'
 os.system('mkdir -p '+commonpath+outdir)
 
 meanX=[]
