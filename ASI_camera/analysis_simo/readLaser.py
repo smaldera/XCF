@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import glob
 import sys
-sys.path.insert(0, '../../libs')
+sys.path.insert(0, '/home/maldera/Desktop/eXTP/softwareXCF/XCF/libs')
 import utils_v2 as al
 from pedestal import bg_map
 
@@ -13,7 +13,7 @@ start = time.time()
 
 #hots_list =['/home/maldera/Desktop/eXTP/data/laserShots/nuovoAllineamento/6giu/h_11_m20000/']
 bg_shots_path = '/home/maldera/Desktop/eXTP/data/laserShots/nuovoAllineamento/6giu/bkg/'
-shots_list = glob.glob('/home/maldera/Desktop/eXTP/data/laserShots/nuovoAllineamento/8giu/alldata')
+shots_list = glob.glob('/home/maldera/Desktop/eXTP/data/laserShots/nuovoAllineamento/14giu/h_*')
 
 
 print(shots_list)
