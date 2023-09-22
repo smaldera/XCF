@@ -14,15 +14,23 @@ from  histogramSimo import histogramSimo
 # plotta: spettro e mappa posizioni
 # 
 
-fileListName='events_file_list.txt'
-ff=open(fileListName,'r')
+import argparse
+formatter = argparse.ArgumentDefaultsHelpFormatter
+parser = argparse.ArgumentParser(formatter_class=formatter)
+parser.add_argument('-in','--inFile', type=str,  help='txt file with list of npz files', required=True)
+args = parser.parse_args()
+
+
+
+#fileListName='events_file_list.txt'
+ff=open(args.inFile,'r')
 
 
 NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
 YBINS=4144
 
-REBINXY=30.
+REBINXY=20.
 
 
 xbins2d=int(XBINS/REBINXY)
@@ -43,8 +51,8 @@ for f in ff:
 
 #myCut=np.where( (w_all>2390)&(w_all<2393)  )
 #myCut=np.where( (x_all>800)&(x_all<1200)&(y_all>1900)&(y_all<2500)  )
-myCut=np.where( (w_all>800)&(w_all<900)  )
-#myCut=np.where( w_all>600 )
+#myCut=np.where( (w_all>800)&(w_all<900)  )
+myCut=np.where( w_all>600 )
 
 
 #plot 
@@ -54,11 +62,24 @@ plt.figure(1)
 
 
 plt.imshow(np.log10(counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
-#counts2dClu[counts2dClu>0]=1
-#plt.imshow(counts2dClu, interpolation='none',    origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+
+
+x=[1360.68854238]
+y=[2042.08672077]
+
+x2=[1705]
+y2=[1928]
+
+x3=[1518]
+y3=[1814]
+
+
+#plt.plot(x,y,'ro',label='win center')
+#plt.plot(x2,y2,'bo',label='spot_1')
+#plt.plot(x3,y3,'o',label='spot_2 (coperchio scambiato)')
 
 plt.colorbar()
-
+plt.legend()
 plt.figure(2)
 countsClu, bins = np.histogram( w_all[myCut]  , bins = 2*NBINS, range = (-NBINS,NBINS) )
 plt.hist(bins[:-1], bins = bins, weights = countsClu, histtype = 'step',label="clustering")
