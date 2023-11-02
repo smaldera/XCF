@@ -85,4 +85,6 @@ countsClu, bins = np.histogram( w_all[myCut]  , bins = 2*NBINS, range = (-NBINS,
 plt.hist(bins[:-1], bins = bins, weights = countsClu, histtype = 'step',label="clustering")
 
 
+print("w_all[myCut].size()=",w_all.size )
+
 plt.show()

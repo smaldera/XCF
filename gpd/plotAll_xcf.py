@@ -65,7 +65,8 @@ parser.add_argument('--degrees', action='store_true', default = False,
 
 parser.add_pha_options()
 #parser.set_defaults(pha_expr='TRK_PI')
-parser.set_defaults(pha_expr='TRK_PHA')
+#parser.set_defaults(pha_expr='TRK_PHA')
+parser.set_defaults(pha_expr='PHA_EQ')
 
 parser.add_cut_options()
 
@@ -74,6 +75,7 @@ parser.add_cut_options()
 ### PARAMETRI....
 cut_sigma=3
 cut_base='((abs(TRK_BARX) < 7.000) && (abs(TRK_BARY) < 7.000)) && ( (NUM_CLU > 0) && (LIVETIME > 15)  )'
+#cut_base='( TRK_BARX >-1) && ( TRK_BARX <-0.2) &&  ( TRK_BARY >0.4) && ( TRK_BARY <0.8)   && ( (NUM_CLU > 0) && (LIVETIME > 15)  )'
 
 
 def find_quantile(run, quantile, expr, cut):
@@ -131,6 +133,7 @@ class plotAll_simo(ixpeDqmTask):
         assert(pha_bins > 0)
         overwrite = kwargs.get('overwrite')
         pha_expr = kwargs.get('pha_expr')
+        print("!!! pha expr=",pha_expr)
         pha_binning = numpy.linspace(pha_min, pha_max, pha_bins + 1)
         pha_title='Pulse height [ADC counts]'
         if (pha_expr == 'TRK_PI'):

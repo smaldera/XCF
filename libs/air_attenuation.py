@@ -47,10 +47,10 @@ def attenuation_vs_d(E, d,  plot=0):
 
     if plot==1:
         plt.figure()
-        plt.semilogy(E,air_att, '-b',label='air')
+        plt.semilogy(E,air_att, '-b',label='air attenuation at 10cm')
         
         plt.ylabel('attenuation')
-        plt.ylabel('E')
+        plt.xlabel('E [keV]')
         plt.legend()
 
         plt.show()
@@ -63,7 +63,14 @@ def attenuation_vs_d(E, d,  plot=0):
 if __name__ == "__main__":
 
 
-    Ebins=np.arange(0,40,0.1)
-    att=attenuation_vs_d(Ebins,3,1)
+    Ebins=np.arange(2,10,0.1)
+    E=2.3
+    d=np.arange(1,20,0.1)
+    att=attenuation_vs_d(Ebins,10,1)
+
+   # plt.figure()
+   # plt.plot(d,att, '-b',label='air attenuation at 2.3 keV')
+   # plt.show()
+    
     print("att=",att)
 
