@@ -5,6 +5,7 @@ import sys
 sys.path.insert(0, '../../libs')
 import utils_v2 as al
 from pedestal import bg_map
+import clustering_cmos
 
 from multiprocessing import Process,  Queue
 from tqdm import tqdm
@@ -131,7 +132,7 @@ class analize_v2():
             if self.APPLY_CLUSTERING:
        
                    # test clustering.... # uso v3 per avere anche le posizioni
-                   w_clusterAll, clu_coordsAll, clu_sizes, clu_baryCoords    =al.clustering_v3(np.transpose(supp_coords),supp_weights,myeps=self.myeps) 
+                   w_clusterAll, clu_coordsAll, clu_sizes, clu_baryCoords    =clustering_cmos.clustering_v3(np.transpose(supp_coords),supp_weights,myeps=self.myeps) 
                    cluBary_trasposta= clu_baryCoords.transpose()
    
                    if self.SAVE_EVENTLIST:

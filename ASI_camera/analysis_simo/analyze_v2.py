@@ -5,6 +5,7 @@ import sys
 sys.path.insert(0, '../../libs')
 import utils_v2 as al
 from pedestal import bg_map
+import clustering_cmos 
 
 import time
 start = time.time()
@@ -140,7 +141,7 @@ for image_file in tqdm(f, colour='green'):
     if APPLY_CLUSTERING:
        
         # test clustering.... # uso v2 per avere anche le posizioni
-        w_clusterAll, clu_coordsAll, clu_sizes, clu_baryCoords    =al.clustering_v3(np.transpose(supp_coords),supp_weights,myeps=myeps) 
+        w_clusterAll, clu_coordsAll, clu_sizes, clu_baryCoords    =clustering_cmos.clustering_v3(np.transpose(supp_coords),supp_weights,myeps=myeps) 
         cluBary_trasposta= clu_baryCoords.transpose()
    
         if SAVE_EVENTLIST:
