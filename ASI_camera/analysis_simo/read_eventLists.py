@@ -11,7 +11,7 @@ from  histogramSimo import histogramSimo
 
 ####
 # small scripts to plot data from the event list con tagli
-# plotta: spettro e mappa posizioni
+# plotta: spettro, mappa posizioni, proiezioni x e y
 # 
 
 import argparse
@@ -22,17 +22,18 @@ args = parser.parse_args()
 
 
 
-#fileListName='events_file_list.txt'
+
 ff=open(args.inFile,'r')
 
+# retta calibrazione cmos
+calP1=0.0015013787118821926
+calP0=-0.03544731540487446
 
 NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
 YBINS=4144
 
 REBINXY=20.
-
-
 xbins2d=int(XBINS/REBINXY)
 ybins2d=int(YBINS/REBINXY)
 
@@ -49,40 +50,56 @@ for f in ff:
     y_all=np.append(y_all,y)
   
 
+# CUT di SELEZIONE EVENTI!!!
 #myCut=np.where( (w_all>2390)&(w_all<2393)  )
 #myCut=np.where( (x_all>800)&(x_all<1200)&(y_all>1900)&(y_all<2500)  )
 #myCut=np.where( (w_all>800)&(w_all<900)  )
-myCut=np.where( w_all>600 )
+myCut=np.where( w_all>100 )
 
+
+
+fig2=plt.figure(figsize=(10,10))
+#fig2=plt.figure()
+ax1=plt.subplot(221)
 
 #plot 
+# mappa posizioni:
 counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
 counts2dClu=   counts2dClu.T
-plt.figure(1)
+im=ax1.imshow(np.log10(counts2dClu), interpolation='nearest', origin='upper',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+ax1.set_xlabel('X')
+ax1.set_ylabel('Y')
+plt.colorbar(im,ax=ax1)
+ax1.legend()
 
-
-plt.imshow(np.log10(counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
-
-
-x=[1360.68854238]
-y=[2042.08672077]
-
-x2=[1705]
-y2=[1928]
-
-x3=[1518]
-y3=[1814]
-
-
-#plt.plot(x,y,'ro',label='win center')
-#plt.plot(x2,y2,'bo',label='spot_1')
-#plt.plot(x3,y3,'o',label='spot_2 (coperchio scambiato)')
-
-plt.colorbar()
-plt.legend()
-plt.figure(2)
+ax2=plt.subplot(222)
+# spettro energia
+#plt.figure(2)
 countsClu, bins = np.histogram( w_all[myCut]  , bins = 2*NBINS, range = (-NBINS,NBINS) )
-plt.hist(bins[:-1], bins = bins, weights = countsClu, histtype = 'step',label="clustering")
+bins=bins*calP1+calP0
+ax2.hist(bins[:-1], bins = bins, weights = countsClu, histtype = 'step',label="energy w. clustering")
+ax2.set_xlabel('E[keV]')
+ax2.set_xlim([0,10])
+ax2.set_yscale('log')
+ax2.legend()
+
+
+# proiezione X:
+#plt.figure(3)
+ax3=plt.subplot(223)
+xprojection, bins_x = np.histogram( x_all[myCut]  , bins =xbins2d , range = (0,XBINS) )
+ax3.hist(bins_x[:-1], bins = bins_x, weights = xprojection, histtype = 'step',label="x-projection")
+ax3.legend()
+ax3.set_yscale('log')
+
+# proiezione y:
+#plt.figure(4)
+ax4=plt.subplot(224)
+yprojection, bins_y = np.histogram( y_all[myCut]  , bins =ybins2d , range = (0,YBINS) )
+ax4.hist(bins_y[:-1], bins = bins_y, weights = yprojection, histtype = 'step',label="y-projection")
+ax4.legend()
+ax4.set_yscale('log')
+
 
 
 print("w_all[myCut].size()=",w_all.size )
