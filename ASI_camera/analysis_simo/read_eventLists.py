@@ -10,9 +10,11 @@ from  histogramSimo import histogramSimo
 
 
 ####
-# small scripts to plot data from the event list con tagli
-# plotta: spettro, mappa posizioni, proiezioni x e y
+# small scripts to plot CMOS data from the event list whit cuts
+# draws: 2D map,  energy, x-y projections
 # 
+
+
 
 import argparse
 formatter = argparse.ArgumentDefaultsHelpFormatter
@@ -25,6 +27,7 @@ args = parser.parse_args()
 
 ff=open(args.inFile,'r')
 
+
 # retta calibrazione cmos
 calP1=0.0015013787118821926
 calP0=-0.03544731540487446
@@ -34,6 +37,10 @@ XBINS=2822
 YBINS=4144
 
 REBINXY=20.
+
+SAVE_SPECTRUM=True
+spectrum_file_name='test_spectrum.npz'
+
 xbins2d=int(XBINS/REBINXY)
 ybins2d=int(YBINS/REBINXY)
 
@@ -75,9 +82,9 @@ ax1.legend()
 ax2=plt.subplot(222)
 # spettro energia
 #plt.figure(2)
-countsClu, bins = np.histogram( w_all[myCut]  , bins = 2*NBINS, range = (-NBINS,NBINS) )
-bins=bins*calP1+calP0
-ax2.hist(bins[:-1], bins = bins, weights = countsClu, histtype = 'step',label="energy w. clustering")
+countsClu, binsE = np.histogram( w_all[myCut]  , bins = 2*NBINS, range = (-NBINS,NBINS) )
+binsE=binsE*calP1+calP0
+ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="energy w. clustering")
 ax2.set_xlabel('E[keV]')
 ax2.set_xlim([0,10])
 ax2.set_yscale('log')
@@ -101,7 +108,14 @@ ax4.legend()
 ax4.set_yscale('log')
 
 
-
 print("w_all[myCut].size()=",w_all.size )
+
+
+if SAVE_SPECTRUM==True:
+   
+    print('... saving energy spectrun  in:', spectrum_file_name  )
+    np.savez(spectrum_file_name, counts = countsClu,  bins = binsE)
+
+
 
 plt.show()
