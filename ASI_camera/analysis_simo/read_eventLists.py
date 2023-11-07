@@ -38,8 +38,11 @@ YBINS=4144
 
 REBINXY=20.
 
-SAVE_SPECTRUM=True
+SAVE_HISTOGRAMS=True
 spectrum_file_name='test_spectrum.npz'
+xproj_file_name='test_xproj.npz'
+yproj_file_name='test_yproj.npz'
+
 
 xbins2d=int(XBINS/REBINXY)
 ybins2d=int(YBINS/REBINXY)
@@ -111,11 +114,13 @@ ax4.set_yscale('log')
 print("w_all[myCut].size()=",w_all.size )
 
 
-if SAVE_SPECTRUM==True:
+if SAVE_HISTOGRAMS==True:
    
     print('... saving energy spectrun  in:', spectrum_file_name  )
     np.savez(spectrum_file_name, counts = countsClu,  bins = binsE)
-
+    np.savez(xproj_file_name, counts = xprojection,  bins = bins_x)
+    np.savez(yproj_file_name, counts = yprojection,  bins = bins_y)
+    
 
 
 plt.show()
