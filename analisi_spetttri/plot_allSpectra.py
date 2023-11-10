@@ -24,8 +24,8 @@ def  plotAllSpectra(InputFileName):
     n_spectra=0
     base_path=''
     legend=''
-    calP0=-0.0013498026638486778  #calP0Err= 3.3894706711692284e-05
-    calP1=0.0032116875215051385   #calP1Err= 3.284553141476064e-08
+    #calP0=-0.0013498026638486778  #calP0Err= 3.3894706711692284e-05
+    #calP1=0.0032116875215051385   #calP1Err= 3.284553141476064e-08
    
     compute_rate=0 
     time=1
@@ -119,6 +119,31 @@ def  plotAllSpectra(InputFileName):
             plt.xlabel('energy [keV]')
             
             plt.ylabel('events/s') # non so perche', ,ma nell'if non funziona!
+            
+            plt.legend()
+
+
+        
+        if splitted[0]=="FIT":    
+            fit_parameter=splitted[1].split(' ')
+            
+            min = float(fit_parameter[0])
+            max = float(fit_parameter[1])
+            amplitude = float(fit_parameter[2])
+            peak = float(fit_parameter[3])
+            sigma = float(fit_parameter[4])
+            par, cov, chi2 = fitSimo.fit_Gaushistogram(p.counts, p.bins, xmin=min,xmax=max, initial_pars=[amplitude,peak,sigma], parsBoundsLow=-np.inf, parsBoundsUp=np.inf )
+            x=np.linspace(par[1]-par[2],par[1]+par[2],1000)
+            plt.plot(x,fitSimo.gaussian_model(x,par[0],par[1],par[2]),label='peak = '+"%.3f"%par[1]+' keV'+'\n'+'sigma = '+"%.3f"%par[2]+' keV')
+            print(' ')
+            print('FIT PARAMETERS')
+            #print('Gaussian amplitude = ', "%.3f"%par[0],' +- ',"%.3f"%np.sqrt(cov[0][0]))
+            print('Gaussian peak = ', "%.3f"%par[1],' +- ',"%.3f"%np.sqrt(cov[1][1]),' keV')
+            print('Gaussian sigma = ', "%.3f"%par[2],' +- ',"%.3f"%np.sqrt(cov[2][2]),' keV')
+            print(' ')
+            # plt.xlabel('energy [keV]')
+            
+            # plt.ylabel('events/s') # non so perche', ,ma nell'if non funziona!
             
             plt.legend()
           
