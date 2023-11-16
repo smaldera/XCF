@@ -14,13 +14,14 @@ from  histogramSimo import histogramSimo
 # plotta: spettro e mappa posizioni
 # 
 
-fileListName='events_file_list.txt'
+#fileListName='events_file_list.txt'
+fileListName='/home/maldera/Desktop/eXTP/data/ASI_newSphere/Ge_111/3nov2023/event_listsPd_POL.txt'
 ff=open(fileListName,'r')
 
 NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
 YBINS=4144
-REBINXY=2.
+REBINXY=20.
 xbins2d=int(XBINS/REBINXY)
 ybins2d=int(YBINS/REBINXY)
 
@@ -47,8 +48,10 @@ for f in ff:
 
 
 y0=2000.
-r=200.
+r=150.
+#x0s=np.linspace(r,XBINS-r,num=int(XBINS/(2.*r)) )
 x0s=np.linspace(r,XBINS-r,num=int(XBINS/(2.*r)) )
+
 
 low=2.55
 up=2.85
@@ -63,14 +66,16 @@ for x0 in x0s:
 
     print ("xO=",x0)
     
-    myCut=np.where( (w_all>100)&( (x_all-x0)**2+(y_all-y0)**2<r**2 ) )
+#    myCut=np.where( (w_all>100)&( (x_all-x0)**2+(y_all-y0)**2<r**2 ) ) # cerchi
+    myCut=np.where( (w_all>100)&(x_all>x0-r+10)&(x_all<x0+r-10)&(y_all>1500)&(y_all<3000)   ) # rettangoli
+    
     
     #plot 
     counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
     counts2dClu=   counts2dClu.T
     plt.figure(1)
-    plt.imshow(np.log10(counts2dClu), interpolation='none', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
-  #  plt.colorbar()
+    plt.imshow(np.log10(counts2dClu), interpolation='none', origin='upper',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]], vmin=0.1, vmax=1.6)
+    #  plt.colorbar()
 
     plt.figure(2)
     countsClu, bins = np.histogram( w_all[myCut]  , bins = 2*NBINS, range = (-NBINS,NBINS) )
@@ -92,12 +97,15 @@ for x0 in x0s:
     #y= fitSimo.gaussian_model(x,popt[0],popt[1],popt[2])
     #plt.plot(x,y,'r-')
     plt.hist(bins[:-1], bins = bins, weights = countsClu, histtype = 'step',label="x0="+str(x0))
-
-
+    
+plt.xlabel('E [keV]')
 plt.legend()
 
 
 plt.figure(3)
 #plt.error(x0s,fitted_mean,'or')
-plt.errorbar(x0s,fitted_mean,yerr=fitted_meanErr, fmt='ro') 
+plt.errorbar(x0s,fitted_mean,yerr=fitted_meanErr, xerr=r-10, fmt='ro')
+plt.xlabel('Xbin')
+plt.ylabel('meanE [keV]')
+
 plt.show()
