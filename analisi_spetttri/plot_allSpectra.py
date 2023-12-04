@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
 import pandas as pd
 import os.path as ospath
+from astropy.time import Time
 
 import sys
 sys.path.insert(0, '../libs')
@@ -14,8 +15,7 @@ import matplotlib as mpl
 
 mpl.rcParams['font.size']=15  #!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
-
+counts_array, dead_array, start_array, livetime_array, norm_array, peak_array, sigma_array = [], [], [], [], [], [], []
 
 def  plotAllSpectra(InputFileName):
 
@@ -70,6 +70,7 @@ def  plotAllSpectra(InputFileName):
             calP0=float(splitted[1])
         if splitted[0]=="P1":
             calP1=float(splitted[1])
+            #print('!!!!!!!!!!!',calP1)
 
                     
         if splitted[0]=="ACQ_TIME":
@@ -98,7 +99,7 @@ def  plotAllSpectra(InputFileName):
 
                 
  
-        if splitted[0]=="ADD_PLOT":    
+        if splitted[0]=="ADD_PLOT": 
             # plot istogramma?
             p.bins=p.bins*calP1+calP0
 
@@ -137,16 +138,72 @@ def  plotAllSpectra(InputFileName):
             plt.plot(x,fitSimo.gaussian_model(x,par[0],par[1],par[2]),label='peak = '+"%.3f"%par[1]+' keV'+'\n'+'sigma = '+"%.3f"%par[2]+' keV')
             print(' ')
             print('FIT PARAMETERS')
-            #print('Gaussian amplitude = ', "%.3f"%par[0],' +- ',"%.3f"%np.sqrt(cov[0][0]))
-            print('Gaussian peak = ', "%.3f"%par[1],' +- ',"%.3f"%np.sqrt(cov[1][1]),' keV')
-            print('Gaussian sigma = ', "%.3f"%par[2],' +- ',"%.3f"%np.sqrt(cov[2][2]),' keV')
+            print('Gaussian norm = ', "%.5f"%par[0],' +- ',"%.5f"%np.sqrt(cov[0][0]),' keV')
+            print('Gaussian peak = ', "%.5f"%par[1],' +- ',"%.5f"%np.sqrt(cov[1][1]),' keV')
+            print('Gaussian sigma = ', "%.5f"%par[2],' +- ',"%.5f"%np.sqrt(cov[2][2]),' keV')
             print(' ')
+            print('         ####################################################################################')
+            print('         ####################################################################################')
+
             # plt.xlabel('energy [keV]')
             
             # plt.ylabel('events/s') # non so perche', ,ma nell'if non funziona!
             
             plt.legend()
-          
+
+            counts_array.append(p.sdd_fastCounts)
+            dead_array.append(p.sdd_deadTime)
+            start_array.append(p.sdd_start)
+            livetime_array.append(p.sdd_liveTime)
+            norm_array.append(par[0])
+            peak_array.append(par[1])
+            sigma_array.append(par[2])
+
+
+        if splitted[0]=='STABILITY':
+            time_array = []
+            for s in start_array:
+                time_obj = Time(s, format='mjd', scale='utc')
+                time_converted = time_obj.iso.split('T')[0]
+                time_array.append(time_converted.split('.')[0])
+            rate=[]
+            for i in range(len(counts_array)):
+                rate.append(counts_array[i]/livetime_array[i])
+            rate_mean = np.mean(rate)
+            norm_mean = np.mean(norm_array)
+            peak_mean = np.mean(peak_array)
+            fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True, figsize=(12,8))
+            #fig.suptitle('STABILITY')
+            ax1.plot(time_array, rate,marker='o',color='blue')
+            ax1.set_ylabel('rate [Hz]')
+            ax1.axhline(y=rate_mean,color='black',label=str(rate_mean)+' Hz',linewidth=3)
+            ax1.grid()
+            ax1.legend()
+            ax2.plot(time_array, norm_array,marker='o',color='green')
+            ax2.set_ylabel('norm [counts]')
+            ax2.axhline(y=norm_mean,color='black',label=str(norm_mean),linewidth=3)
+            ax2.grid()
+            ax2.legend()
+            ax3.plot(time_array, peak_array,marker='o',color='red')
+            ax3.set_ylabel('peak [keV]')
+            ax3.set_yticks([peak_mean, peak_mean-0.0005*peak_mean, peak_mean+0.0005*peak_mean, \
+                            peak_mean-0.00025*peak_mean, peak_mean+0.00025*peak_mean])
+            ax3.axhline(y=peak_mean,color='black',label=str(peak_mean)+' keV',linewidth=3)
+            ax3.grid()
+            plt.xticks(rotation=90,size=10)
+            ax3.set_xlabel='time'
+            plt.subplots_adjust(wspace=0.01,hspace=0.2,top=0.975,bottom=0.25)
+            ax3.legend()
+
+            
+        if splitted[0]=='SAVE':
+            np.save(base_path+'counts.npy',counts_array)
+            np.save(base_path+'dead.npy',dead_array)
+            np.save(base_path+'start.npy',start_array)
+            np.save(base_path+'livetime.npy',livetime_array)
+            np.save(base_path+'norm.npy',norm_array)
+            np.save(base_path+'peak.npy',peak_array)
+            np.save(base_path+'sigma.npy',sigma_array)
 
       
 

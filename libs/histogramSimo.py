@@ -23,6 +23,7 @@ class histogramSimo():
              self.sdd_liveTime=None
              self.sdd_deadTime=None
              self.sdd_fastCounts=None
+             self.sdd_start=None
 
      # def get_from_file(self,filename):
      #       data=np.load(filename)
@@ -51,7 +52,7 @@ class histogramSimo():
             data_array=None
      
             if fileFormat=='sdd':
-                data_array, deadTime, livetime, fast_counts =pharse_mca(filename)
+                data_array, deadTime, livetime, fast_counts, start =pharse_mca(filename)
                 size=len(data_array)      
                 bin_edges=np.linspace(0,size+1,size+1)
                 self.counts=data_array
@@ -59,6 +60,7 @@ class histogramSimo():
                 self.sdd_liveTime=livetime
                 self.sdd_deadTime=deadTime
                 self.sdd_fastCounts=fast_counts
+                self.sdd_start=start
           
             if fileFormat=='Eric_mcPherson':
                  df=pd.read_csv(filename,header=None)

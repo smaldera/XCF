@@ -1,9 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
-
-
-
-
+from astropy.time import Time
 
 
 def pharse_mca(filename):
@@ -47,7 +44,7 @@ def pharse_mca(filename):
              
        if line.split()[0]=='Fast' and   line.split()[1]=='Count:' :
             try:
-                print ('couts=',line.split()[2])
+                print ('counts=',line.split()[2])
                 fast_counts= float(line.split()[2])
             except:
                 fast_counts='' 
@@ -59,11 +56,30 @@ def pharse_mca(filename):
                 livetime= float(line.split()[2])
             except:
                 livetime=''   
-            continue    
+            continue   
+       
+       if line.split()[0]=='START_TIME':
+            try:
+                print ('start=',line.split()[2],' ',line.split()[3])
+                hour = line.split()[3]
+                date = line.split()[2]
+                seconds = float(hour.split(':')[2])+60*float(hour.split(':')[1])+3600*float(hour.split(':')[0])
+                month = date.split('/')[0]
+                day = date.split('/')[1]
+                year = date.split('/')[2]
+                date_iso = year+'-'+month+'-'+day+'T'+hour
+                MJD = Time(date_iso, format='isot').mjd
+                start = MJD
+
+            except:
+                start=''   
+            continue     
+        
+        
 
    data_array=np.array(data)               
                 
-   return data_array, deadTime, livetime, fast_counts 
+   return data_array, deadTime, livetime, fast_counts, start
 
 
 
@@ -73,9 +89,9 @@ if __name__ == "__main__":
 
     mca_file='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/SDD/Fe_14Oct2022_5mm.mca'
    # mca_file= '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/SDD/Fe_14Oct2022_2mm.mca'
-    data_array, deadTime, livetime, fast_counts =pharse_mca(mca_file)
+    data_array, deadTime, livetime, fast_counts, start =pharse_mca(mca_file)
     print("livetime=",livetime,"counts=", fast_counts, "RATE=",fast_counts/livetime,' Hz' )
-    print("deadTime=",deadTime)
+    print("deadTime=",deadTime,"starting=",start)
 
 
 
