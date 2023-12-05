@@ -24,6 +24,7 @@ def  plotAllSpectra(InputFileName):
     n_spectra=0
     base_path=''
     legend=''
+    show_legend=0
     #calP0=-0.0013498026638486778  #calP0Err= 3.3894706711692284e-05
     #calP1=0.0032116875215051385   #calP1Err= 3.284553141476064e-08
    
@@ -66,6 +67,7 @@ def  plotAllSpectra(InputFileName):
         if   splitted[0]=='LEGEND':   
               legend=splitted[1] 
               print ("legend=",legend)
+              show_legend=1
         if splitted[0]=="P0":
             calP0=float(splitted[1])
         if splitted[0]=="P1":
@@ -101,6 +103,12 @@ def  plotAllSpectra(InputFileName):
  
         if splitted[0]=="ADD_PLOT": 
             # plot istogramma?
+            if fileFormat=='sdd':
+                calP0=-0.03544731540487446
+                calP1=0.0015013787118821926
+            if fileFormat=='npz':
+                calP0=0.0032132721459619882
+                calP1=-0.003201340833319255
             p.bins=p.bins*calP1+calP0
 
             if compute_rate==1:
@@ -115,8 +123,10 @@ def  plotAllSpectra(InputFileName):
                  low=0.
                  up=0.
                  plt.ylabel('normalized rate')
-                 
-            p.plot(ax,legend)
+            if show_legend==1:
+                p.plot(ax,legend)
+            else:
+                p.plot(ax,None)
             plt.xlabel('energy [keV]')
             
             plt.ylabel('events/s') # non so perche', ,ma nell'if non funziona!
@@ -135,7 +145,11 @@ def  plotAllSpectra(InputFileName):
             sigma = float(fit_parameter[4])
             par, cov, chi2 = fitSimo.fit_Gaushistogram(p.counts, p.bins, xmin=min,xmax=max, initial_pars=[amplitude,peak,sigma], parsBoundsLow=-np.inf, parsBoundsUp=np.inf )
             x=np.linspace(par[1]-par[2],par[1]+par[2],1000)
-            plt.plot(x,fitSimo.gaussian_model(x,par[0],par[1],par[2]),label='peak = '+"%.3f"%par[1]+' keV'+'\n'+'sigma = '+"%.3f"%par[2]+' keV')
+            if show_legend==1:
+                label='peak = '+"%.3f"%par[1]+' keV'+'\n'+'sigma = '+"%.3f"%par[2]+' keV'
+            else:
+                label=None
+            plt.plot(x,fitSimo.gaussian_model(x,par[0],par[1],par[2]),label=label)
             print(' ')
             print('FIT PARAMETERS')
             print('Gaussian norm = ', "%.5f"%par[0],' +- ',"%.5f"%np.sqrt(cov[0][0]),' keV')
@@ -148,8 +162,8 @@ def  plotAllSpectra(InputFileName):
             # plt.xlabel('energy [keV]')
             
             # plt.ylabel('events/s') # non so perche', ,ma nell'if non funziona!
-            
-            plt.legend()
+
+
 
             counts_array.append(p.sdd_fastCounts)
             dead_array.append(p.sdd_deadTime)
@@ -170,30 +184,36 @@ def  plotAllSpectra(InputFileName):
             for i in range(len(counts_array)):
                 rate.append(counts_array[i]/livetime_array[i])
             rate_mean = np.mean(rate)
+            rate_rms = np.std(rate, ddof=1)
             norm_mean = np.mean(norm_array)
+            norm_rms = np.std(norm_array, ddof=1)
             peak_mean = np.mean(peak_array)
-            fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True, figsize=(12,8))
+            peak_rms = np.std(peak_array, ddof=1)
+            fig1, (ax1, ax2, ax3) = plt.subplots(3, sharex=True, figsize=(12,8))
             #fig.suptitle('STABILITY')
-            ax1.plot(time_array, rate,marker='o',color='blue')
-            ax1.set_ylabel('rate [Hz]')
-            ax1.axhline(y=rate_mean,color='black',label=str(rate_mean)+' Hz',linewidth=3)
+            ax1.plot(start_array, (rate-rate_mean)/rate_mean*100.,marker='o',color='blue')
+            ax1.set_ylabel('RATE' +'\n'+'res % [Hz]')
+            ax1.axhline(y=0,color='black',label="%.3f"%rate_mean+' Hz'+'\n'+'rms= '+"%.3f"%rate_rms,linewidth=3)
             ax1.grid()
             ax1.legend()
-            ax2.plot(time_array, norm_array,marker='o',color='green')
-            ax2.set_ylabel('norm [counts]')
-            ax2.axhline(y=norm_mean,color='black',label=str(norm_mean),linewidth=3)
+            ax2.plot(start_array, (norm_array-norm_mean)/norm_mean*100.,marker='o',color='green')
+            ax2.set_ylabel('NORM' +'\n'+'res % [counts]')
+            ax2.axhline(y=0,color='black',label="%.3f"%norm_mean+'\n'+'rms= '+"%.3f"%norm_rms,linewidth=3)
             ax2.grid()
             ax2.legend()
-            ax3.plot(time_array, peak_array,marker='o',color='red')
-            ax3.set_ylabel('peak [keV]')
-            ax3.set_yticks([peak_mean, peak_mean-0.0005*peak_mean, peak_mean+0.0005*peak_mean, \
-                            peak_mean-0.00025*peak_mean, peak_mean+0.00025*peak_mean])
-            ax3.axhline(y=peak_mean,color='black',label=str(peak_mean)+' keV',linewidth=3)
+            ax3.plot(start_array, (peak_array-peak_mean)/peak_mean*100.,marker='o',color='red')
+            ax3.set_ylabel('PEAK' +'\n'+'res % [keV]')
+            # ax3.set_yticks([peak_mean, peak_mean-0.0005*peak_mean, peak_mean+0.0005*peak_mean, \
+            #                 peak_mean-0.00025*peak_mean, peak_mean+0.00025*peak_mean])
+            ax3.axhline(y=0,color='black',label="%.3f"%peak_mean+' keV'+'\n'+'rms= '+"%.5f"%peak_rms,linewidth=3)
             ax3.grid()
-            plt.xticks(rotation=90,size=10)
+            plt.xticks(start_array,time_array,rotation=90,size=10)
             ax3.set_xlabel='time'
             plt.subplots_adjust(wspace=0.01,hspace=0.2,top=0.975,bottom=0.25)
             ax3.legend()
+
+            
+
 
             
         if splitted[0]=='SAVE':

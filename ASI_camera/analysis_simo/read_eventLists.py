@@ -43,8 +43,8 @@ ff=open(args.inFile,'r')
 
 
 # retta calibrazione cmos
-calP1=0.0015013787118821926
-calP0=-0.03544731540487446
+calP1=0.0032132721459619882
+calP0=-0.003201340833319255
 
 NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
