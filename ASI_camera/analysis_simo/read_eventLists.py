@@ -22,10 +22,10 @@ from  histogramSimo import histogramSimo
 
 cut='None'
 
-x_inf = 360
-x_sup = 1180
-y_inf = 1000
-y_sup = 3000
+x_inf = 1260
+x_sup = 1700
+y_inf = 1100
+y_sup = 3175
 
 
 import argparse
@@ -43,14 +43,14 @@ ff=open(args.inFile,'r')
 
 
 # retta calibrazione cmos
-calP1=0.0032132721459619882
-calP0=-0.003201340833319255
+calP1=1
+calP0=1
 
 NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
 YBINS=4144
 
-REBINXY=40.
+REBINXY=50.
 
 SAVE_HISTOGRAMS=True
 spectrum_file_name='test_spectrum.npz'
