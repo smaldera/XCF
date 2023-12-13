@@ -27,12 +27,15 @@ def  plotAllSpectra(InputFileName):
     show_legend=0
     #calP0=-0.0013498026638486778  #calP0Err= 3.3894706711692284e-05
     #calP1=0.0032116875215051385   #calP1Err= 3.284553141476064e-08
-   
+    P0_ = 0
+    P1_ = 0
+
     compute_rate=0 
     time=1
     normalize=0
     low=0.
     up=0.
+
     fig=plt.figure(1, (10,10))
     ax = fig.subplots()
     for line in f:
@@ -69,9 +72,9 @@ def  plotAllSpectra(InputFileName):
               print ("legend=",legend)
               show_legend=1
         if splitted[0]=="P0":
-            calP0=float(splitted[1])
+            P0_=float(splitted[1])
         if splitted[0]=="P1":
-            calP1=float(splitted[1])
+            P1_=float(splitted[1])
             #print('!!!!!!!!!!!',calP1)
 
                     
@@ -107,8 +110,12 @@ def  plotAllSpectra(InputFileName):
                 calP0=-0.03544731540487446
                 calP1=0.0015013787118821926
             if fileFormat=='npz':
-                calP0=0.0032132721459619882
-                calP1=-0.003201340833319255
+                calP1=0.0032132721459619882
+                calP0=-0.003201340833319255
+            if P0_ != 0:
+                calP0 = P0_
+            if P1_ != 0:
+                calP1 = P1_
             p.bins=p.bins*calP1+calP0
 
             if compute_rate==1:
@@ -163,7 +170,7 @@ def  plotAllSpectra(InputFileName):
             
             # plt.ylabel('events/s') # non so perche', ,ma nell'if non funziona!
 
-
+            plt.legend()
 
             counts_array.append(p.sdd_fastCounts)
             dead_array.append(p.sdd_deadTime)
