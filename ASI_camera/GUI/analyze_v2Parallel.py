@@ -10,6 +10,7 @@ import clustering_cmos
 
 from multiprocessing import Process, Queue
 from tqdm import tqdm
+from tqdm.gui import  tqdm_gui
 
 
 class analize_v2():
@@ -154,7 +155,7 @@ class analize_v2():
                 # istogramma size clusters:
                 h_cluSizes_i, binsSizes_i = np.histogram(clu_sizes, bins=100, range=(0, 100))
                 self.h_cluSizeAll = self.h_cluSizeAll + h_cluSizes_i
-                #QUI POSSO ELIMINARE IL FILE
+               
 
         queue.put(self)
 
@@ -356,5 +357,5 @@ if __name__ == '__main__':
     run_analyze(args)
     end = time.time()
     print('\n\nelapsed time: ', end - start, ' [s]')
-    plt.show()
+    #plt.show()
 

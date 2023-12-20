@@ -7,9 +7,10 @@ import utils_v2 as al
 from tqdm import tqdm
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib
-
+import PySimpleGUI as sg
 matplotlib.use('TkAgg')
 import math
+from tqdm.gui import  tqdm_gui
 from matplotlib import use as use_agg
 
 
@@ -43,7 +44,7 @@ def bg_map(bg_shots_path, outMeanPed_file, outStdPed_file, ny=4144, nx=2822, dra
     allSum2 = np.zeros((nx, ny), dtype=np.int16)
 
     n = 0.
-    for image_file in tqdm(f):
+    for image_file in tqdm_gui(f):
         n = n + 1.
         # print(n," --> ", image_file)
         # if n%10==0:

@@ -7,6 +7,8 @@ import time
 import argparse
 import numbers
 import shutil
+import zwoasi
+from zwoasi import Camera
 from cmos_pedestal2 import bg_map
 from utils_v2 import read_image
 from utils_v2 import plot_image
@@ -16,8 +18,7 @@ from utils_v2 import isto_all
 # # PROSSIMI STEP
 # AGGIUNGERE LA POSSIBILITà DI VEDERE I PLOT IN ANALYS E CHE NON VENGANO PUSHATI QUANDO SI FA L'ANALISI
 # MODIFICARE IL PROCESSO DI ANALISI IN MODO DA RENDERE POSSIBILE L'ANALISI IN BKG COSì CHE NON SI BLOCCHI
-# AGGIUNGERE BARRE DI CARICAMENTO PER QUANTO RIGUARDA LA CREAZIONE DEL PIEDISTALLO E L'ANALISI
-# MODIFICARE CONDIZIONI DI CONTROLLO SUI PARAMETRI DI ANALISI
+# AGGIUNGERE BARRE DI CARICAMENTO PER QUANTO RIGUARDA LA CREAZIONE DEL PIEDISTALLO E L'ANALISI // fatto male
 # INTEGRAZIONE LIBRERIE ZWO
 
 #default values
@@ -31,6 +32,8 @@ Raw = False
 Eps =1.5
 
 file_types = [("JPEG (*.jpg)", "*.jpg", "*.png")]
+id = None
+
 
 def keep_files(directory, files_to_keep):
     # Get a list of all files in the directory
@@ -68,13 +71,23 @@ def Rm_Fits_Analy(path_to_fits):  # Cancella i file .FIT nella cartella e la car
 def Analyze(path_to_fit, path_to_bkg, cores, rebins, sigma, cluster, clu, event, raw, eps): #Accede allo script analyze_v2Parallel.py
 
     script_path = 'analyze_v2Parallel.py'
-    script_parameters = [' -in ' + path_to_fit+'/', ' -bkg ' + path_to_bkg+'/', '--n_jobs ' + str(cores)]
+    script_parameters = [' -in ' + path_to_fit+'/', ' -bkg ' + path_to_bkg+'/', ' --n_jobs ' + str(cores), ' --xyrebin ' + str(rebins), ' --pix_cut_sigma ' + str(sigma), ' --clu_cut_sigma ' + str(cluster), ' --myeps ' + str(eps)]
+
+    if clu == False:
+        script_parameters.append(' --no_clustering ')
+    if event == False:
+        script_parameters.append(' --no_eventlist ')
+    if raw == True:
+        script_parameters.append(' --make_rawspectrum ')
+
+
     try:
         # Run the script with parameters using subprocess
         command = f'python3 "{script_path}" {" ".join(script_parameters)}'
         subprocess.run(command, check=True, shell=True)
     except subprocess.CalledProcessError as e:
         print(f"Error running the script: {e}")
+
 
 
 TBackground = [ #Prima Tab per il calcolo del BackGround
@@ -132,14 +145,12 @@ TAnalyze = [ #Seconda tab per l'analisi del segnale
 ]
 
 
-TEventList = [ #Terza tab per visualizzare la lista eventi
+TCamera = [ #Terza tab per visualizzare la lista eventi
     [
-        sg.Text("Event list folder    ", tooltip="Path to event list files"),
-        sg.In(size=(45, 1), enable_events=True, key="_EVENT_FOLDER_"),
-        sg.FolderBrowse(),
+        sg.Text("Camera info:"),
+
     ],
     [
-        sg.Button('Show event list', key='_EVENT_', tooltip="Obvious from button, innit?"),
 
     ],
 ]
@@ -150,11 +161,11 @@ TEventList = [ #Terza tab per visualizzare la lista eventi
 
 
 # ----- Full layout -----
-Tab1 = sg.Tab("Background", TBackground)
-Tab2 = sg.Tab("Analyze", TAnalyze)
-Tab3 = sg.Tab("Event List", TEventList)
+Tab2 = sg.Tab("Background", TBackground)
+Tab3 = sg.Tab("Analyze", TAnalyze)
+Tab1 = sg.Tab("Camera", TCamera)
 
-TabGrp = sg.TabGroup([[Tab1, Tab2]], tab_location='centertop',
+TabGrp = sg.TabGroup([[Tab1, Tab2,Tab3]], tab_location='centertop',
                      selected_title_color='Green', selected_background_color='Gray', border_width=3)
 window = sg.Window("CMOS analyzer V0.1.1", [[TabGrp]])
 
@@ -270,20 +281,7 @@ while True:
             sg.popup('location of data is not defined.')
     #if event == "_AN_START_":
     #     Analyze(fit_folder, bkg_folder_a, nCore, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
-#-------------------------------------EVENT LIST-----------------------------------
-    if event == "_EVENT_FOLDER_":
-        if os.path.exists(values["_EVENT_FOLDER_"]):
-            event_folder = values["_EVENT_FOLDER_"]
 
-    if event == "_EVENT_":
-        if os.path.exists(values["_EVENT_FOLDER_"]):
-            try:
-                2+2
-                #INSERT EVENTLIST CALLER
-            except NameError:
-                sg.popup('An ERROR OCCURRED: cannot lauch EVENT LIST CALLER')
-        else:
-            sg.popup_annoying('Dir not found')
 
 
 
