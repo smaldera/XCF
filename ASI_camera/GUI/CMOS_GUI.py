@@ -315,7 +315,7 @@ TCamera = [ #Terza tab per visualizzare la lista eventi
     [
 
         sg.Text("BKG folder    ", tooltip="where is pedestal"),
-        sg.In(size=(10, 1), enable_events=True, key="_BKG_FOLDER_"),
+        sg.In(size=(10, 1), enable_events=True, key="_BKG_FOLDER_2_"),
         sg.FolderBrowse(),
 
     ],
@@ -365,8 +365,8 @@ while True:
     if event == "_BKG_FOLDER_":
         if os.path.exists(values["_BKG_FOLDER_"]):
             bkg_folder = values["_BKG_FOLDER_"]
-        # else:
-        #     sg.popup_annoying('Dir not found')
+        else:
+            sg.popup_annoying('Dir not valid')
 
 
     if event == "_PLOT_MEAN_":

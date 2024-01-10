@@ -357,5 +357,5 @@ if __name__ == '__main__':
     run_analyze(args)
     end = time.time()
     print('\n\nelapsed time: ', end - start, ' [s]')
-    #plt.show()
+    plt.show()
 

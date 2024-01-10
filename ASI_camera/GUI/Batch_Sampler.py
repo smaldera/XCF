@@ -6,7 +6,7 @@ import time
 def capture(camera,file_name, file_path, sample_size, WB_R, WB_B, EXPO, GAIN):
     try:
         # Use minimum USB bandwidth permitted
-        camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, camera.get_controls()['BandWidth']['MinValue'])
+        #camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, camera.get_controls()['BandWidth']['MinValue'])
 
         # Set some sensible defaults. They will need adjusting depending upon
         # the sensitivity, lens and lighting conditions used.
@@ -43,7 +43,7 @@ def capture(camera,file_name, file_path, sample_size, WB_R, WB_B, EXPO, GAIN):
             # Salva l'immagine come file FITS
             hdu = fits.PrimaryHDU(data, header=header)
             hdulist = fits.HDUList([hdu])
-            hdulist.writeto(file_path + "/"+file_name+str(i)+".fits", overwrite=True)
+            hdulist.writeto(file_path + "/"+file_name+str(i)+".FIT", overwrite=True)
 
         print(f"Immagine salvata in: {file_path}")
 
@@ -51,26 +51,4 @@ def capture(camera,file_name, file_path, sample_size, WB_R, WB_B, EXPO, GAIN):
         # Arresta l'esposizione e rilascia la telecamera
         camera.stop_exposure()
         camera.close()
-
-
-def GetCameraID():
-
-    num_cameras = asi.get_num_cameras()
-    if num_cameras == 0:
-        print('No cameras found')
-
-    cameras_found = asi.list_cameras()  # Models names of the connected cameras
-
-    if num_cameras == 1:
-        camera_id = 0
-        print('Found one camera: %s' % cameras_found[0])
-    else:
-        print('Found %d cameras' % num_cameras)
-        for n in range(num_cameras):
-            print('    %d: %s' % (n, cameras_found[n]))
-        # TO DO: allow user to select a camera
-        camera_id = 0
-        print('Using #%d: %s' % (camera_id, cameras_found[camera_id]))
-    return(camera_id)
-
 
