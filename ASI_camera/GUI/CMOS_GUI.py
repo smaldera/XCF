@@ -274,7 +274,7 @@ TCamera = [ #Terza tab per visualizzare la lista eventi
     ],[
         ],
     [
-         sg.Text("--------------------------Batch samples (NOT 100% WORKING YET (80%))-------------------------------------------------------------------"),
+         sg.Text("--------------------------Batch samples-------------------------------------------------------------------"),
     ],
     [    sg.Text(" "),
     ]
@@ -287,7 +287,7 @@ TCamera = [ #Terza tab per visualizzare la lista eventi
         sg.FolderBrowse(),
 
     ],
-    [   sg.Text("Exposure  in mu-s   ", tooltip="how long ?"),
+    [   sg.Text("Exposure  in UNIT TO BE DETERMINED   ", tooltip="how long ?"),
         sg.In(30000,size=(5, 1), enable_events=True, key="_EXPOSURE_"),
         sg.Text("   Exposure  gain         ", tooltip=""),
         sg.In(5,size=(5, 1), enable_events=True, key="_GAIN_"),
@@ -308,6 +308,9 @@ TCamera = [ #Terza tab per visualizzare la lista eventi
 
     ],[
     sg.Text(" "),
+    ],
+[
+         sg.Text("--------------------------Batch samples and directly analyze (WORK IN PROGRESS. NOT WORKING YET)-------------------------------------------------------------------"),
     ],
     [
         sg.Text("Collect data and analize ", tooltip="capture and analyze data.     "),
