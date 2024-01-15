@@ -8,10 +8,11 @@ from cmos_pedestal2 import bg_map
 from utils_v2 import read_image
 from utils_v2 import plot_image
 from utils_v2 import isto_all
-from gui_analyzer import CaptureAnalyze
+import gui_analyzer
 from Cam_Test2 import capture_as_fit
 from Batch_Sampler import capture
 
+sg.theme('LightGreen')  # Choose a theme
 
 env_filename = os.getenv('ZWO_ASI_LIB')
 
@@ -52,7 +53,7 @@ WBR =75
 WBB =99
 exposure= 30000
 gain = 5
-file_name = "prova"
+file_name = "batch"
 
 
 file_types = [("JPEG (*.jpg)", "*.jpg", "*.png")]
@@ -157,7 +158,9 @@ def CaptureAndAnalyze(path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyReb
     try:
         camera = asi.Camera(camera_id)
         try:
-            CaptureAnalyze(camera, path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
+            OBJ = aotr(path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
+            OBJ.CaptureAnalyze(camera)
+            #CaptureAnalyze(camera, path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
             sg.popup("Snaps taken and saved in " + path)
         except Exception as e:
             sg.popup(f"Cannot capture fit: {e}")
@@ -188,9 +191,16 @@ def update_info():
 
 
 TBackground = [ #Prima Tab per il calcolo del BackGround
-    [  
-        sg.Text("Bkg folder  ",tooltip="Path to .FITS files"),
-        sg.In(size=(45, 1), enable_events=True, key="_BKG_FOLDER_"),
+
+]
+
+TAnalyze = [ #Seconda tab per l'analisi del segnale
+    [
+        sg.Text('Background Map', font=('Helvetica', 20), text_color='Green'),
+    ],
+    [
+    sg.Text("Bkg folder  ",tooltip="Path to .FITS files"),
+        sg.In(size=(35, 1), enable_events=True, key="_BKG_FOLDER_"),
         sg.FolderBrowse(),
     ],
     [
@@ -204,30 +214,34 @@ TBackground = [ #Prima Tab per il calcolo del BackGround
     ],
     #DEVE ESSERE AGGIUNTA UNA BOX PER VISUALIZZARE I PLOT DELLO SCRIPT (magari con uno slider)
     #IDEA: faccio salvare i plot e poi li leggo dalla cartella...poco pratico, ma va bene per cominciare
-]
 
-TAnalyze = [ #Seconda tab per l'analisi del segnale
-    [  
+[
+        sg.Text('Analyze collected data', font=('Helvetica', 20), text_color='Green'),
+    ],
+
+    [
         sg.Text("Bkg folder    ",tooltip="Path to Bkg files"),
-        sg.In(size=(45, 1), enable_events=True, key="_BKG_FOLDER_A_"),
+        sg.In(size=(35, 1), enable_events=True, key="_BKG_FOLDER_A_"),
         sg.FolderBrowse(),
     ],
     [  
         sg.Text("Data folder   ",tooltip="Path to .FIT files"),
-        sg.In(size=(45, 1), enable_events=True, key="_FIT_FOLDER_"),
+        sg.In(size=(35, 1), enable_events=True, key="_FIT_FOLDER_"),
         sg.FolderBrowse(),
     ],
     [#InputBox per i parametri dello script
         sg.Text('N° Process at simultaneous time'), #non si vede bene il testo!
-        sg.In( 3,    key='_CORE_', enable_events=True,   tooltip="PC cores used",                size=(10, 1)),
+        sg.In( 3,    key='_CORE_', enable_events=True,   tooltip="PC cores used",                size=(5, 1)),
         sg.Text('XY Rebin'),        
-        sg.In(20,    key='_REBIN_', enable_events=True,  tooltip="Rebin XY",                     size=(10, 1)),
-        sg.Text('Sigma Cut'),       
-        sg.In(10,    key='_SIGMA_', enable_events=True,  tooltip="Cuts based on n*RMS",          size=(10, 1)),
+        sg.In(20,    key='_REBIN_', enable_events=True,  tooltip="Rebin XY",                     size=(5, 1)),
+    ],
+    [
+        sg.Text('Sigma Cut'),
+        sg.In(10,    key='_SIGMA_', enable_events=True,  tooltip="Cuts based on n*RMS",          size=(5, 1)),
         sg.Text('Cluster Cut'),     
-        sg.In(10,    key='_CLUSTER_', enable_events=True,tooltip="Cuts based on mean + n*RMS",   size=(10, 1)),
+        sg.In(10,    key='_CLUSTER_', enable_events=True,tooltip="Cuts based on mean + n*RMS",   size=(5, 1)),
         sg.Text('EPS parameter'),       
-        sg.In(1.5,    key='_EPS_', enable_events=True,    tooltip="Allows DBSCAN eps parameter",  size=(10, 1)),
+        sg.In(1.5,    key='_EPS_', enable_events=True,    tooltip="Allows DBSCAN eps parameter",  size=(5, 1)),
     ],
     [#Checkbox per le opzioni aggiuntive
         sg.Checkbox('Clustering',  key='_CLUSTERING_', tooltip="Clustering On/Off"      , default=True),
@@ -245,102 +259,110 @@ TAnalyze = [ #Seconda tab per l'analisi del segnale
 TCamera = [ #Terza tab per visualizzare la lista eventi
 
     [
-        sg.Text(
-            "--------------------------Camera infos--------------------------------------------------------------------------------------------------------------------"),
+        sg.Text('Camera infos', font=('Helvetica', 20), text_color='Green')
+
     ],
     [
         sg.Text("Camera info:"),
-        sg.Text(" Press update to check if a camera is connected ",size=(45,1), key='_OUTPUT_'),
+        sg.Text(" Press update to check",size=(20,1), key='_OUTPUT_'),
         sg.Button('Update', key='_CAMERA_UPDATE_', tooltip="CHECK IF THERE IS A CAMERA")
 
     ],
     [
         # sg.Text("CLICK ON TEST TO TAKE A SNAP. TIFF FILE"),
         # sg.Button('CAMERA TEST1',     key='_CAMERA_TEST_',    tooltip="CAMERA TRYS TO TAKE A FOTO")
+    ],[ sg.Text("")
+        ],
+    [
+        sg.Text('Test', font=('Helvetica', 20), text_color='Green')
     ],[
         ],
     [
-         sg.Text("--------------------------Test--------------------------------------------------------------------------------------------------------------------------------"),
-    ],[
-        ],
-    [
-        sg.Text("TEST: will take a snap and save it as .fit      ")
+        sg.Text("This will take a snap and save it as .fit  in the folder of execution")
     ],
     [
         sg.Text("Destination folder    ", tooltip="WHERE DO YOU WANT THEM FITS?"),
-        sg.In(size=(10, 1), enable_events=True, key="_FITS_FOLDER_"),
+        sg.In(size=(15, 1), enable_events=True, key="_FITS_FOLDER_"),
         sg.FolderBrowse(),
-        sg.Button('TEST',     key='_CAMERA_TEST2_',    tooltip="GIVEN INPUT VALUES CAMERA TRYES TO TAKE A FOTO AND SAVE IT AS FITS")
-    ],[
-        ],
-    [
-         sg.Text("--------------------------Batch samples-------------------------------------------------------------------"),
+        sg.Button('Test',     key='_CAMERA_TEST2_',    tooltip="GIVEN INPUT VALUES CAMERA TRYES TO TAKE A FOTO AND SAVE IT AS FITS")
     ],
     [    sg.Text(" "),
+    ],
+    [
+        sg.Text('Batch samples', font=('Helvetica', 20), text_color='Green')
+
     ]
     ,[
         sg.Text("Data collection only ", tooltip="Only capture and save fits files.     "),
 
     ],
-    [   sg.Text("Destination folder    ", tooltip="WHERE DO YOU WANT THEM FITS?"),
-        sg.In(size=(10, 1), enable_events=True, key="_DATA_FOLDER_"),
+    [   sg.Text("Destination folder   ", tooltip="WHERE DO YOU WANT THEM FITS?"),
+        sg.In(size=(15, 1), enable_events=True, key="_DATA_FOLDER_"),
         sg.FolderBrowse(),
 
     ],
-    [   sg.Text("Exposure  in UNIT TO BE DETERMINED   ", tooltip="how long ?"),
+    [   sg.Text("Exposure (mu-s?)  ", tooltip="how long ?"),
         sg.In(30000,size=(5, 1), enable_events=True, key="_EXPOSURE_"),
-        sg.Text("   Exposure  gain         ", tooltip=""),
+        sg.Text("   Exposure  gain        ", tooltip=""),
         sg.In(5,size=(5, 1), enable_events=True, key="_GAIN_"),
     ],
-    [   sg.Text("White Balance Red ", tooltip="?"),
+    [   sg.Text("White Balance Red", tooltip="?"),
         sg.In(75,size=(5, 1), enable_events=True, key="_WB_R_"),
         sg.Text("   White Balance Blue ", tooltip=""),
         sg.In(99,size=(5, 1), enable_events=True, key="_WB_B_"),
     ],
-    [   sg.Text("Number of samples ", tooltip="HOW MANY OF THEM FITS?"),
+    [   sg.Text("Number of samples", tooltip="HOW MANY OF THEM FITS?"),
         sg.In(10,size=(5, 1), enable_events=True, key="_SAMPLE_SIZE_"),
-        sg.Text("Files name ", tooltip="?"),
-        sg.In("prova",size=(5, 1), enable_events=True, key="_FILE_NAME_"),
+        sg.Text("   Files name              ", tooltip="?"),
+        sg.In("batch",size=(5, 1), enable_events=True, key="_FILE_NAME_"),
     ],
 
     [
-        sg.Button('Start', key='_COLLECT_DATA_', tooltip="Start data acquisition")
+        sg.Button('Batch collecting', key='_COLLECT_DATA_', tooltip="Start data acquisition")
 
     ],[
     sg.Text(" "),
     ],
-[
-         sg.Text("--------------------------Batch samples and directly analyze (WORK IN PROGRESS. NOT WORKING YET)-------------------------------------------------------------------"),
+    [
+        sg.Text('Collect and analyze', font=('Helvetica', 15), text_color='Green'),
+        sg.Text('***work in progress, code to be tested in lab***', font=('Helvetica', 10),text_color='Green')
+
     ],
     [
-        sg.Text("Collect data and analize ", tooltip="capture and analyze data.     "),
+        sg.Text("With this section data can be analyzed directly without being saved on disk", tooltip="capture and analyze data.     "),
+
+
+    ],
+    [
+        sg.Text(    "Note: previus section needs to be filled to set camera values",
+            tooltip="capture and analyze data.     "),
     ],
     [
 
-        sg.Text("BKG folder    ", tooltip="where is pedestal"),
-        sg.In(size=(10, 1), enable_events=True, key="_BKG_FOLDER_2_"),
+        sg.Text("BKG folder ", tooltip="Folder conteining std_ped.fits and mean_ped.fits"),
+        sg.In(size=(15, 1), enable_events=True, key="_BKG_FOLDER_2_"),
         sg.FolderBrowse(),
 
     ],
     [#InputBox per i parametri dello script
-        sg.Text('XY Rebin'),
-        sg.In(20,    key='_REBIN_', enable_events=True,  tooltip="Rebin XY",                     size=(10, 1)),
-        sg.Text('Sigma Cut'),
-        sg.In(10,    key='_SIGMA_', enable_events=True,  tooltip="Cuts based on n*RMS",          size=(10, 1)),
+        sg.Text('XY Rebin    '),
+        sg.In(20,    key='_REBIN2_', enable_events=True,  tooltip="Rebin XY",                     size=(5, 1)),
+        sg.Text('Sigma Cut        '),
+        sg.In(10,    key='_SIGMA2_', enable_events=True,  tooltip="Cuts based on n*RMS",          size=(5, 1)),
         ],[
-        sg.Text('Cluster Cut'),
-        sg.In(10,    key='_CLUSTER_', enable_events=True,tooltip="Cuts based on mean + n*RMS",   size=(10, 1)),
+        sg.Text('Cluster Cut '),
+        sg.In(10,    key='_CLUSTER2_', enable_events=True,tooltip="Cuts based on mean + n*RMS",   size=(5, 1)),
         sg.Text('EPS parameter'),
-        sg.In(1.5,    key='_EPS_', enable_events=True,    tooltip="Allows DBSCAN eps parameter",  size=(10, 1)),
+        sg.In(1.5,    key='_EPS2_', enable_events=True,    tooltip="Allows DBSCAN eps parameter",  size=(5, 1)),
     ],
     [#Checkbox per le opzioni aggiuntive
-        sg.Checkbox('Clustering',  key='_CLUSTERING_', tooltip="Clustering On/Off"      , default=True),
-        sg.Checkbox('Event List',  key='_EVENTS_',     tooltip="Makes the Event List"   , default=True),
-        sg.Checkbox('Raw Spectrum',key='_RAW_',        tooltip="Plots the Raw Spectrum" , default=False),
+        sg.Checkbox('Clustering',  key='_CLUSTERING2_', tooltip="Clustering On/Off"      , default=True),
+        sg.Checkbox('Event List',  key='_EVENTS2_',     tooltip="Makes the Event List"   , default=True),
+        sg.Checkbox('Raw Spectrum',key='_RAW2_',        tooltip="Plots the Raw Spectrum" , default=False),
     ],
 
     [
-        sg.Button('Start', key='_CAPTURE_AND_ANALYZE_', tooltip="Start data acquiring and analysis")
+        sg.Button('Collect and Analyze', key='_CAPTURE_AND_ANALYZE_', tooltip="Start data acquiring and analysis")
 
     ]
 ]
@@ -351,13 +373,12 @@ TCamera = [ #Terza tab per visualizzare la lista eventi
 
 
 # ----- Full layout -----
-Tab2 = sg.Tab("Background", TBackground)
 Tab3 = sg.Tab("Analyze", TAnalyze)
 Tab1 = sg.Tab("Camera", TCamera)
 
-TabGrp = sg.TabGroup([[Tab1, Tab2,Tab3]], tab_location='centertop',
+TabGrp = sg.TabGroup([[Tab1,Tab3]], tab_location='centertop',
                      selected_title_color='Green', selected_background_color='Gray', border_width=3)
-window = sg.Window("CMOS analyzer V0.1.1", [[TabGrp]])
+window = sg.Window("CMOS analyzer V0.2", [[TabGrp]])
 
 # ----- Commands -----
 while True:
@@ -453,6 +474,8 @@ while True:
         NoEvent = False
     if values['_RAW_']==True:
         Raw = True
+
+
     if event == "_AN_START_":
         try:
             fit_folder
@@ -518,9 +541,47 @@ while True:
             DataChunk(StoreDataIn, file_name, int(SampleSize),int(WBR),int(WBB),int(exposure),int(gain))
         except Exception as e:
             sg.popup(f"Cannot capture fits : {e}")
+
+
+
+
+    if event == "_REBIN2_":
+        if (values['_REBIN2_'] in ('0123456789')):  # Rebin number
+            xyRebin2 = values["_REBIN2_"]
+        else:
+            sg.popup("Only idigit allowed")
+
+    if event == "_SIGMA2_":
+        if (values['_SIGMA2_'] in ('0123456789')):  # Number of sigma used for cuts
+            sigma2 = values["_SIGMA2_"]
+        else:
+            sg.popup("Only idigit allowed")
+
+    if event == "_CLUSTER2_":
+        if (values['_CLUSTER2_'] in ('0123456789')):  # Minimum number of pixel per cluster
+            cluster2 = int(values["_CLUSTER2_"])
+        else:
+            sg.popup("Only idigit allowed")
+
+    if event == "_EPS2_":
+        if (values['_EPS2_'] in ('0123456789.')):  # EPS parameter
+            Eps2 = values["_EPS2_"]
+        else:
+            sg.popup("Only idigit allowed (i.e. 1.56)")
+
+    if values['_CLUSTERING2_'] == False:
+        NoClustering2 = False
+    if values['_EVENTS2_'] == False:
+        NoEvent2= False
+    if values['_RAW2_'] == True:
+        Raw2 = True
+    if event == "_BKG_FOLDER_B_":
+        if os.path.exists(values["_BKG_FOLDER_B_"]):
+            bkg_folder_b = values["_BKG_FOLDER_B_"]
+
     if event == "_CAPTURE_AND_ANALYZE_":
         try:
-            CaptureAndAnalyze(StoreDataIn, int(SampleSize),int(WBR),int(WBB),int(exposure),int(gain),bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
+            CaptureAndAnalyze(StoreDataIn, int(SampleSize),int(WBR),int(WBB),int(exposure),int(gain),bkg_folder_b, xyRebin2, sigma2, cluster2, NoClustering2, NoEvent2, Raw2, Eps2)
         except Exception as e:
             sg.popup(f"Cannot capture fits : {e}")
 
