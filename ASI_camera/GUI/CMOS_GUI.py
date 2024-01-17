@@ -33,12 +33,9 @@ else:
 
 
 # # PROSSIMI STEP
-# AGGIUNGERE LA POSSIBILITà DI VEDERE I PLOT IN ANALYS E CHE NON VENGANO PUSHATI QUANDO SI FA L'ANALISI
-# MODIFICARE IL PROCESSO DI ANALISI IN MODO DA RENDERE POSSIBILE L'ANALISI IN BKG COSì CHE NON SI BLOCCHI
-# AGGIUNGERE BARRE DI CARICAMENTO PER QUANTO RIGUARDA LA CREAZIONE DEL PIEDISTALLO E L'ANALISI // fatto male
 # INTEGRAZIONE LIBRERIE ZWO
 
-#default values
+#default values to avoid unespected crash
 nCore =3
 xyRebin =20
 sigma = 10
@@ -47,7 +44,7 @@ NoClustering = True
 NoEvent = True
 Raw = False
 Eps =1.5
-StoreDataIn = '/home/x/Desktop'
+StoreDataIn = ''
 SampleSize = 10
 WBR =75
 WBB =99
@@ -113,11 +110,11 @@ def Analyze(path_to_fit, path_to_bkg, cores, rebins, sigma, cluster, clu, event,
     except subprocess.CalledProcessError as e:
         print(f"Error running the script: {e}")
 
-def AnalyzeGui(path_to_fit, path_to_bkg, cores, rebins, sigma, cluster, clu, event, raw, eps): #Accede allo script analyze_v2Parallel.py
-    try:
-        guiAnalyze(path_to_fit,path_to_bkg)
-    except subprocess.CalledProcessError as e:
-        print(f"Error running the script: {e}")
+# def AnalyzeGui(path_to_fit, path_to_bkg, cores, rebins, sigma, cluster, clu, event, raw, eps): #Accede allo script analyze_v2Parallel.py
+#     try:
+#         guiAnalyze(path_to_fit,path_to_bkg)
+#     except subprocess.CalledProcessError as e:
+#         print(f"Error running the script: {e}")
 #
 # def CameraTest():
 #
@@ -155,15 +152,16 @@ def DataChunk(path, name, sample_size, WB_R,WB_B,EXPO,GAIN):
 
 def CaptureAndAnalyze(path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps):
     camera_id = 0
+    OBJ = aotr(path, sample_size, WB_R, WB_B, EXPO, GAIN, bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent,
+               Raw, Eps)
     try:
         camera = asi.Camera(camera_id)
         try:
-            OBJ = aotr(path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
             OBJ.CaptureAnalyze(camera)
             #CaptureAnalyze(camera, path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
-            sg.popup("Snaps taken and saved in " + path)
+            sg.popup("Analize is complete and files are saved in " + path)
         except Exception as e:
-            sg.popup(f"Cannot capture fit: {e}")
+            sg.popup(f" there are trobles: {e}")
     except :
         sg.popup("There is no camera connected")
 
@@ -181,11 +179,6 @@ def update_info():
     if num_cameras > 1:
         2+2
         #to be implemented
-
-
-
-
-
 
 
 
@@ -325,7 +318,7 @@ TCamera = [ #Terza tab per visualizzare la lista eventi
     ],
     [
         sg.Text('Collect and analyze', font=('Helvetica', 15), text_color='Green'),
-        sg.Text('***work in progress, code to be tested in lab***', font=('Helvetica', 10),text_color='Green')
+        sg.Text('***code to be tested***', font=('Helvetica', 10),text_color='Green', tooltip="potrebbe funzionare")
 
     ],
     [

@@ -42,9 +42,11 @@ def bg_map(bg_shots_path, outMeanPed_file, outStdPed_file, ny=4144, nx=2822, dra
     allSum = np.zeros((nx, ny), dtype=np.int16)
     # array somma^2 (ogni pixel sum(x_i^2)... )
     allSum2 = np.zeros((nx, ny), dtype=np.int16)
+    custom_style = "{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]"
+
 
     n = 0.
-    for image_file in tqdm_gui(f):
+    for image_file in tqdm_gui(f,desc="Processing", bar_format=custom_style):
         n = n + 1.
         # print(n," --> ", image_file)
         # if n%10==0:
