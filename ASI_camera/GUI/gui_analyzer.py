@@ -7,7 +7,7 @@ import utils_v2 as al
 import clustering_cmos 
 import time
 import zwoasi as asi
-from tqdm.gui import  tqdm_gui
+from tqdm import  tqdm
 from astropy.io import fits
 
 #inserire variabili globali
@@ -37,10 +37,10 @@ class aotr:
         self.sample_size = sample_size
 
         #Variabili dell'analisi     DA RIVEDERE L'ORDINE
-        self.xbins2d = int(XBINS / REBINXY)
-        self.ybins2d = int(YBINS / REBINXY)
-        self.pixMask_suffix='_pixCut'+str(PIX_CUT_SIGMA)+'sigma'
-        self.cluCut_suffix='_CLUcut_'+str(CLU_CUT_SIGMA)+'sigma'
+        self.xbins2d = int(self.XBINS / self.REBINXY)
+        self.ybins2d = int(self.YBINS / self.REBINXY)
+        self.pixMask_suffix='_pixCut'+str(self.PIX_CUT_SIGMA)+'sigma'
+        self.cluCut_suffix='_CLUcut_'+str(self.CLU_CUT_SIGMA)+'sigma'
 
         self.x = []
         self.file_path = file_path
@@ -53,8 +53,13 @@ class aotr:
         self.w_all = np.empty(0)
         self.clusizes_all = np.empty(0)
         # creo histo2d vuoto:
-        self.countsAll2dClu, self.xedges, self.yedges = np.histogram2d(x, x, bins=[self.xbins2d, self.ybins2d], range=[[0, XBINS], [0, YBINS]])
-        self.countsAll2dRaw, self.xedgesRaw, self.yedgesRaw = np.histogram2d(x, x, bins=[self.xbins2d, self.ybins2d], range=[[0, XBINS], [0, YBINS]])
+        self.countsAll2dClu, self.xedges, self.yedges = np.histogram2d(self.x, self.x, bins=[self.xbins2d, self.ybins2d], range=[[0, self.XBINS], [0, self.YBINS]])
+        self.countsAll2dRaw, self.xedgesRaw, self.yedgesRaw = np.histogram2d(self.x, self.x, bins=[self.xbins2d, self.ybins2d], range=[[0, self.XBINS], [0, self.YBINS]])
+
+
+
+
+
 
 
 
@@ -90,12 +95,79 @@ class aotr:
 
             custom_style = "{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]"
 
-            for i in tqdm_gui(range (self.sample_size), desc = "Processing", bar_format=custom_style):
+            for i in tqdm(range (self.sample_size)):
+
 
                 # Ottieni i dati dell'immagine
                 data = np.empty((2822, 4144), dtype=np.uint16)
                 data = camera.capture()
-                guiAnalyze(data)
+
+                rms_pedCut=np.mean(self.rms_ped)+self.PIX_CUT_SIGMA*np.std(self.rms_ped)
+                # MASCHERA PIXEL RUMOROSI
+
+                mySigmaMask=np.where( (self.rms_ped>rms_pedCut) )
+        
+                # read image:
+                image_data = data/4.
+                # subtract pedestal:
+                image_data = image_data -  self.mean_ped #
+
+                #applica maschera
+                image_data[mySigmaMask]=0 # maschero tutti i pixel con RMS pedestal > soglia
+
+                #image_SW = image_SW + image_data
+                flat_image = image_data.flatten()
+
+                # spettro "raw"
+                counts_i, bins_i = np.histogram(flat_image,  bins = 2*self.NBINS, range = (-self.NBINS,self.NBINS) )
+                self.countsAll = self.countsAll + counts_i
+
+
+
+                #################
+                #ZERO SUPPRESSION
+                # applico selezione su carica dei pixel
+                supp_coords, supp_weights=al.select_pixels_RMS(image_data, self.rms_ped, self.CLU_CUT_SIGMA)
+
+                # salvo pixel che sopravvivono alla selezione:
+                zeroSupp_trasposta= supp_coords
+
+                #istogramma 2d immagine raw dopo zero suppression:
+                counts2dRaw,  xedgesRaw, yedgesRaw= np.histogram2d(zeroSupp_trasposta[0],zeroSupp_trasposta[1],bins=[self.xbins2d, self.ybins2d ],range=[[0,self.XBINS],[0,self.YBINS]])
+                self.countsAll2dRaw=self.countsAll2dRaw+counts2dRaw
+
+                #spettro dopo zeroSuppression
+                countsZeroSupp_i, bins_i = np.histogram( supp_weights,  bins = 2*self.NBINS, range = (-self.NBINS,self.NBINS) )
+                self.countsAllZeroSupp =self.countsAllZeroSupp  +  countsZeroSupp_i
+                #CLUSTERING
+
+                if self.APPLY_CLUSTERING:
+
+                    # test clustering.... # uso v2 per avere anche le posizioni
+                    self.w_clusterAll, self.clu_coordsAll, clu_sizes, clu_baryCoords    =clustering_cmos.clustering_v3(np.transpose(supp_coords),supp_weights,myeps=self.myeps)
+                    cluBary_trasposta= clu_baryCoords.transpose()
+
+                    if self.SAVE_EVENTLIST:
+                        self.x_allClu=np.append(self.x_allClu,cluBary_trasposta[0])
+                        self.y_allClu=np.append(self.y_allClu,cluBary_trasposta[1])
+                        self.w_all=np.append(self.w_all,self.w_clusterAll)
+                        self.clusizes_all=np.append(self.clusizes_all,clu_sizes)
+                    # istogramma 2d dopo clustering solo baricentri!!!!
+                    counts2dClu,  xedges, yedges= np.histogram2d(cluBary_trasposta[0],cluBary_trasposta[1],bins=[self.xbins2d, self.ybins2d ],range=[[0,self.XBINS],[0,self.YBINS]])
+                    self.countsAll2dClu=self.countsAll2dClu+ counts2dClu
+
+                    # istogramma spettro dopo il clustering
+                    size_mask=np.where(clu_sizes>0) # select all clusters!!!!
+                    countsClu_i, bins_i = np.histogram(  self.w_clusterAll[size_mask], bins = 2*self.NBINS, range = (-self.NBINS,self.NBINS) )
+                    self.countsAllClu = self.countsAllClu +  countsClu_i
+
+                    #istogramma size clusters:
+                    h_cluSizes_i, binsSizes_i = np.histogram(clu_sizes , bins = 100, range = (0,100) )
+                    self.h_cluSizeAll= self.h_cluSizeAll+ h_cluSizes_i
+
+
+
+
 
         finally:
             # Arresta l'esposizione e rilascia la telecamera
@@ -150,7 +222,7 @@ class aotr:
         al.write_fitsImage(self.countsAll2dRaw, self.file_path + 'imageRaw' + self.pixMask_suffix + '.fits', overwrite="False")
 
         # salva vettori con event_list:
-        if SAVE_EVENTLIST:
+        if self.SAVE_EVENTLIST:
             outfileVectors = self.file_path + 'events_list' + self.pixMask_suffix + self.cluCut_suffix + '_v2.npz'
             print('writing events in:', outfileVectors)
             # al.save_vectors(outfileVectors, w_all, x_allClu, y_allClu,clusizes_all)
@@ -158,70 +230,5 @@ class aotr:
 
         plt.show()
 
-
-
-    def guiAnalyze(self, foto):
-
-        rms_pedCut=np.mean(self.rms_ped)+self.PIX_CUT_SIGMA*np.std(self.rms_ped)
-        # MASCHERA PIXEL RUMOROSI
-
-        mySigmaMask=np.where( (self.rms_ped>rms_pedCut) )
-
-        # read image:
-        image_data = foto/4.
-        # subtract pedestal:
-        image_data = image_data -  self.mean_ped #
-
-        #applica maschera
-        image_data[mySigmaMask]=0 # maschero tutti i pixel con RMS pedestal > soglia
-
-        #image_SW = image_SW + image_data
-        flat_image = image_data.flatten()
-
-        # spettro "raw"
-        counts_i, bins_i = np.histogram(flat_image,  bins = 2*self.NBINS, range = (-self.NBINS,self.NBINS) )
-        self.countsAll = self.countsAll + counts_i
-
-
-
-        #################
-        #ZERO SUPPRESSION
-        # applico selezione su carica dei pixel
-        supp_coords, supp_weights=al.select_pixels_RMS(image_data, self.rms_ped, self.CLU_CUT_SIGMA)
-
-        # salvo pixel che sopravvivono alla selezione:
-        zeroSupp_trasposta= supp_coords
-
-        #istogramma 2d immagine raw dopo zero suppression:
-        counts2dRaw,  xedgesRaw, yedgesRaw= np.histogram2d(zeroSupp_trasposta[0],zeroSupp_trasposta[1],bins=[self.xbins2d, self.ybins2d ],range=[[0,self.XBINS],[0,self.YBINS]])
-        self.countsAll2dRaw=self.countsAll2dRaw+counts2dRaw
-
-        #spettro dopo zeroSuppression
-        countsZeroSupp_i, bins_i = np.histogram( supp_weights,  bins = 2*self.NBINS, range = (-self.NBINS,self.NBINS) )
-        self.countsAllZeroSupp =self.countsAllZeroSupp  +  countsZeroSupp_i
-        #CLUSTERING
-        if APPLY_CLUSTERING:
-
-            # test clustering.... # uso v2 per avere anche le posizioni
-            self.w_clusterAll, self.clu_coordsAll, clu_sizes, clu_baryCoords    =clustering_cmos.clustering_v3(np.transpose(supp_coords),supp_weights,myeps=self.myeps)
-            cluBary_trasposta= clu_baryCoords.transpose()
-
-            if SAVE_EVENTLIST:
-                self.x_allClu=np.append(self.x_allClu,cluBary_trasposta[0])
-                self.y_allClu=np.append(self.y_allClu,cluBary_trasposta[1])
-                self.w_all=np.append(self.w_all,self.w_clusterAll)
-                self.clusizes_all=np.append(self.clusizes_all,clu_sizes)
-            # istogramma 2d dopo clustering solo baricentri!!!!
-            counts2dClu,  xedges, yedges= np.histogram2d(cluBary_trasposta[0],cluBary_trasposta[1],bins=[self.xbins2d, self.ybins2d ],range=[[0,self.XBINS],[0,self.YBINS]])
-            self.countsAll2dClu=self.countsAll2dClu+ counts2dClu
-
-            # istogramma spettro dopo il clustering
-            size_mask=np.where(clu_sizes>0) # select all clusters!!!!
-            countsClu_i, bins_i = np.histogram(  self.w_clusterAll[size_mask], bins = 2*self.NBINS, range = (-self.NBINS,self.NBINS) )
-            self.countsAllClu = self.countsAllClu +  countsClu_i
-
-            #istogramma size clusters:
-            h_cluSizes_i, binsSizes_i = np.histogram(clu_sizes , bins = 100, range = (0,100) )
-            self.h_cluSizeAll= self.h_cluSizeAll+ h_cluSizes_i
 
 

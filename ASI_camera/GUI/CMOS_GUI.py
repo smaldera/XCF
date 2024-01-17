@@ -8,11 +8,15 @@ from cmos_pedestal2 import bg_map
 from utils_v2 import read_image
 from utils_v2 import plot_image
 from utils_v2 import isto_all
-import gui_analyzer
+from gui_analyzer import aotr
 from Cam_Test2 import capture_as_fit
 from Batch_Sampler import capture
 
 sg.theme('LightGreen')  # Choose a theme
+##VARIABILI DI ENV DA AGGIUNGERE 
+#PYTHONUNBUFFERED=1;ZWO_ASI_LIB=/home/x/Documents/XCF/venv/lib/python3.10/site-packages/ZWO_ASI_LIB/lib/x64/libASICamera2.so.1.32
+#ZWO_ASI_LIB = "/home/x/Documents/XCF/venv/lib/python3.10/site-packages/ASI_Camera_SDK/ASI_linux_mac_SDK_V1.32/lib/x64/libASICamera2.so.1.32"
+
 
 env_filename = os.getenv('ZWO_ASI_LIB')
 
@@ -51,6 +55,13 @@ WBB =99
 exposure= 30000
 gain = 5
 file_name = "batch"
+xyRebin2 = 20
+sigma2 = 10
+cluster2 = 10
+NoClustering2 = True
+NoEvent2 = True
+Raw2=False
+Eps2 =1.5
 
 
 file_types = [("JPEG (*.jpg)", "*.jpg", "*.png")]
@@ -318,7 +329,7 @@ TCamera = [ #Terza tab per visualizzare la lista eventi
     ],
     [
         sg.Text('Collect and analyze', font=('Helvetica', 15), text_color='Green'),
-        sg.Text('***code to be tested***', font=('Helvetica', 10),text_color='Green', tooltip="potrebbe funzionare")
+        
 
     ],
     [
@@ -533,7 +544,7 @@ while True:
         try:
             DataChunk(StoreDataIn, file_name, int(SampleSize),int(WBR),int(WBB),int(exposure),int(gain))
         except Exception as e:
-            sg.popup(f"Cannot capture fits : {e}")
+            sg.popup(f"Cannot launch DataChunck : {e}")
 
 
 
@@ -568,15 +579,14 @@ while True:
         NoEvent2= False
     if values['_RAW2_'] == True:
         Raw2 = True
-    if event == "_BKG_FOLDER_B_":
-        if os.path.exists(values["_BKG_FOLDER_B_"]):
-            bkg_folder_b = values["_BKG_FOLDER_B_"]
+    if event == "_BKG_FOLDER_2_":
+        bkg_folder_b = values["_BKG_FOLDER_2_"]
 
     if event == "_CAPTURE_AND_ANALYZE_":
         try:
             CaptureAndAnalyze(StoreDataIn, int(SampleSize),int(WBR),int(WBB),int(exposure),int(gain),bkg_folder_b, xyRebin2, sigma2, cluster2, NoClustering2, NoEvent2, Raw2, Eps2)
         except Exception as e:
-            sg.popup(f"Cannot capture fits : {e}")
+            sg.popup(f"Cannot launch CaptureAndAnalyze: {e}")
 
 
 window.close()
