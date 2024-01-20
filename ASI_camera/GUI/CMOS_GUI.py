@@ -11,6 +11,7 @@ from utils_v2 import isto_all
 from gui_analyzer import aotr
 from Cam_Test2 import capture_as_fit
 from Batch_Sampler import capture
+from gui_analyzer_parallel import aotr2
 
 sg.theme('LightGreen')  # Choose a theme
 ##VARIABILI DI ENV DA AGGIUNGERE 
@@ -62,6 +63,7 @@ NoClustering2 = True
 NoEvent2 = True
 Raw2=False
 Eps2 =1.5
+num =2
 
 
 file_types = [("JPEG (*.jpg)", "*.jpg", "*.png")]
@@ -176,7 +178,20 @@ def CaptureAndAnalyze(path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyReb
     except :
         sg.popup("There is no camera connected")
 
-
+def CaptureAndAnalyze2(path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num):
+    camera_id = 0
+    OBJ = aotr2(path, sample_size, WB_R, WB_B, EXPO, GAIN, bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent,
+               Raw, Eps,num)
+    try:
+        camera = asi.Camera(camera_id)
+        try:
+            OBJ.CaptureAnalyze(camera)
+            #CaptureAnalyze(camera, path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
+            sg.popup("Analize is complete and files are saved in " + path)
+        except Exception as e:
+            sg.popup(f" there are trobles: {e}")
+    except :
+        sg.popup("There is no camera connected")
 
 
 
@@ -368,8 +383,25 @@ TCamera = [ #Terza tab per visualizzare la lista eventi
     [
         sg.Button('Collect and Analyze', key='_CAPTURE_AND_ANALYZE_', tooltip="Start data acquiring and analysis")
 
+    ],
+    [
+        sg.Text('TUTTO SOPRA è TESTATO E FUNZIONANTE. PARTE SOTTO DA TESTARE'),
+
+    ],
+
+
+
+    [
+    sg.Text('Numero di processi in parallelo'),
+    sg.In(2, key='_NUM_', enable_events=True, tooltip="Allows DBSCAN eps parameter", size=(5, 1)),
+    sg.Button('Collect and Analyze in Parallel', key='_CAPTURE_AND_ANALYZE_PARALLEL_',
+                  tooltip="Start data acquiring and analysis")
+    ],
+    [
+
+    ],
+
     ]
-]
 
 
 
@@ -581,10 +613,18 @@ while True:
         Raw2 = True
     if event == "_BKG_FOLDER_2_":
         bkg_folder_b = values["_BKG_FOLDER_2_"]
+    if event == "_NUM_":
+        bkg_folder_b = values["_NUM_"]
 
     if event == "_CAPTURE_AND_ANALYZE_":
         try:
             CaptureAndAnalyze(StoreDataIn, int(SampleSize),int(WBR),int(WBB),int(exposure),int(gain),bkg_folder_b, xyRebin2, sigma2, cluster2, NoClustering2, NoEvent2, Raw2, Eps2)
+        except Exception as e:
+            sg.popup(f"Cannot launch CaptureAndAnalyze: {e}")
+
+    if event == "_CAPTURE_AND_ANALYZE_PARALLEL_":
+        try:
+            CaptureAndAnalyze2(StoreDataIn, int(SampleSize),int(WBR),int(WBB),int(exposure),int(gain),bkg_folder_b, xyRebin2, sigma2, cluster2, NoClustering2, NoEvent2, Raw2, Eps2, num)
         except Exception as e:
             sg.popup(f"Cannot launch CaptureAndAnalyze: {e}")
 
