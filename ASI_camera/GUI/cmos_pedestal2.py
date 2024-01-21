@@ -44,10 +44,19 @@ def bg_map(bg_shots_path, outMeanPed_file, outStdPed_file, ny=4144, nx=2822, dra
     allSum2 = np.zeros((nx, ny), dtype=np.int16)
     custom_style = "{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]"
 
+    layout = [
+        [sg.Text('Progresso:', size=(10, 1)), sg.ProgressBar(100, orientation='h', size=(20, 20), key='progress')],
+        
+    ]
+
+    # Crea la finestra
+    window = sg.Window('Barra di Progresso', layout, finalize=True)
 
     n = 0.
-    for image_file in tqdm_gui(f,desc="Processing", bar_format=custom_style):
+    for image_file in tqdm(f,desc="Processing", bar_format=custom_style):
         n = n + 1.
+        window['progress'].update(n)
+
         # print(n," --> ", image_file)
         # if n%10==0:
         #   frac=float(n/len(f))*100.

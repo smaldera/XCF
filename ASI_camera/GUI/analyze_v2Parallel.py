@@ -7,6 +7,8 @@ sys.path.insert(0, '../../libs')
 import utils_v2 as al
 from cmos_pedestal2 import bg_map
 import clustering_cmos
+import PySimpleGUI as sg
+
 
 from multiprocessing import Process, Queue
 from tqdm import tqdm
@@ -71,7 +73,14 @@ class analize_v2():
         self.w_all = np.empty(0)
 
     def do_analyze(self, queue, n_job):
+        j = 0
+        layout = [
+            [sg.Text('Progresso:', size=(10, 1)),
+             sg.ProgressBar(len(self.fileList), orientation='h', size=(20, 20), key='progress')],
+        ]
+        window_progress = sg.Window('Analisi' + str(n_job)+' corso', layout, finalize=True)
 
+        progress_bar = window_progress['progress']
         if self.create_bg_map == True:
             bg_map(self.bg_path, self.bg_path + 'mean_ped.fits', self.bg_path + 'std_ped.fits', draw=0)
 
@@ -155,8 +164,11 @@ class analize_v2():
                 # istogramma size clusters:
                 h_cluSizes_i, binsSizes_i = np.histogram(clu_sizes, bins=100, range=(0, 100))
                 self.h_cluSizeAll = self.h_cluSizeAll + h_cluSizes_i
-               
+            j+=1
+            progress_bar.UpdateBar(j)
 
+
+        window_progress.Close()
         queue.put(self)
 
 

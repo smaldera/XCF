@@ -29,8 +29,17 @@ def capture(camera,file_name, file_path, sample_size, WB_R, WB_B, EXPO, GAIN):
         except:
             pass
 
-        for i in range (sample_size):
+        # Creare una finestra per la barra di avanzamento della cattura delle foto
+        layout_capture = [
+            [sg.Text('Cattura in corso:', size=(15, 1)), sg.ProgressBar(self.sample_size, orientation='h', size=(20, 20), key='progress_capture')],
+        ]
+        window_capture = sg.Window('Cattura in corso', layout_capture, finalize=True)
 
+        progress_bar_capture = window_capture['progress_capture']
+
+
+        for i in range (sample_size):
+            progress_bar_capture.UpdateBar(i)
             # Ottieni i dati dell'immagine
             data = np.empty((2822, 4144), dtype=np.uint16)
             data = camera.capture()

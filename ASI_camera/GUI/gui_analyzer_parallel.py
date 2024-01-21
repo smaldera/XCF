@@ -10,9 +10,13 @@ import zwoasi as asi
 from tqdm import  tqdm
 from astropy.io import fits
 import multiprocessing
+import PySimpleGUI as sg
+
 
 #inserire variabili globali
 class aotr2:
+    """
+    """
     def __init__(self, file_path, sample_size, WB_R, WB_B, EXPO, GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num):
         self.NBINS = 16384  # n.canali ADC (2^14)
         self.XBINS = 2822
@@ -45,7 +49,7 @@ class aotr2:
         self.list = []
 
         self.x = []
-        self.file_path = file_path
+        self.file_path = file_path + '/'
         self.countsAll, self.bins = np.histogram(self.x, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
         self.countsAllZeroSupp, self.bins = np.histogram(self.x, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
         self.countsAllClu, self.bins = np.histogram(self.x, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
@@ -54,25 +58,239 @@ class aotr2:
         self.y_allClu = np.empty(0)
         self.w_all = np.empty(0)
         self.clusizes_all = np.empty(0)
+        self.make_rawSpectrum = False
+
         # creo histo2d vuoto:
         self.countsAll2dClu, self.xedges, self.yedges = np.histogram2d(self.x, self.x, bins=[self.xbins2d, self.ybins2d], range=[[0, self.XBINS], [0, self.YBINS]])
         self.countsAll2dRaw, self.xedgesRaw, self.yedgesRaw = np.histogram2d(self.x, self.x, bins=[self.xbins2d, self.ybins2d], range=[[0, self.XBINS], [0, self.YBINS]])
 
         #variabili per il multiprocess
-    def Analizzatore(self, queue):
-        while True:
-            data = queue.get()
-            if data is None:
-                break
+    def reset_allVariables(self):
+        x = []
+        self.countsAll2dClu = np.array(x)
+        self.xedges = np.array(x)
+        self.yedges = np.array(x)
+        self.countsAll = np.array(x)
+        self.bins = np.array(x)
+        self.countsAllZeroSupp = np.array(x)
+        self.countsAllClu = np.array(x)
+        self.h_cluSizeAll = np.array(x)
+        self.countsAll2dRaw = np.array(x)
+        self.xedgesRaw = np.array(x)
+        self.yedgesRaw = np.array(x)
 
+        self.countsAll, self.bins = np.histogram(x, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
+        self.countsAllZeroSupp, self.bins = np.histogram(x, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
+        self.countsAllClu, self.bins = np.histogram(x, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
+        self.h_cluSizeAll, self.binsSize = np.histogram(x, bins=100, range=(0, 100))
+
+        # creo histo2d vuoto:
+        self.countsAll2dClu, self.xedges, self.yedges = np.histogram2d(x, x, bins=[self.xbins2d, self.ybins2d],
+                                                                       range=[[0, self.XBINS], [0, self.YBINS]])
+        self.countsAll2dRaw, self.xedgesRaw, self.yedgesRaw = np.histogram2d(x, x, bins=[self.xbins2d, self.ybins2d],
+                                                                             range=[[0, self.XBINS], [0, self.YBINS]])
+
+        # x_all=np.empty(0)
+        # y_all=np.empty(0)
+        self.x_allClu = np.empty(0)
+        self.y_allClu = np.empty(0)
+        self.w_all = np.empty(0)
+
+    def CaptureAnalyze(self, camera):
+        data_queue = multiprocessing.Queue()
+        data_queue2 = multiprocessing.Queue()
+
+        #creo gli analizzatori
+
+        numero_analizzatori = self.num
+        processi = []
+
+        for i in range(numero_analizzatori):
+            processo = multiprocessing.Process(target=self.Analizza, args= ( data_queue, data_queue2))
+            processi.append(processo)
+        # faccio partire i processi
+        for processo in processi:
+            processo.start()
+
+
+
+        # Creare una finestra per la barra di avanzamento della cattura delle foto
+        layout_capture = [
+            [sg.Text('Cattura in corso:', size=(15, 1)), sg.ProgressBar(self.sample_size, orientation='h', size=(20, 20), key='progress_capture')],
+        ]
+        window_capture = sg.Window('Cattura in corso', layout_capture, finalize=True)
+
+        progress_bar_capture = window_capture['progress_capture']
+
+
+
+        # for i in tqdm(range(self.sample_size), colour='green'):
+        #     # Ottieni i dati dell'immagine
+        #     data = np.empty((2822, 4144), dtype=np.uint16)
+        #     data = camera.capture()
+        #     data_queue.put(data)
+        #     progress_bar_capture.UpdateBar(i)
+        #
+        #
+        # for processo in processi:
+        #     data_queue.put(None)
+
+        try:
+            # Use minimum USB bandwidth permitted
+            camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, camera.get_controls()['BandWidth']['MinValue'])
+
+            # Set some sensible defaults. They will need adjusting depending upon
+            camera.disable_dark_subtract()
+            camera.set_control_value(asi.ASI_GAMMA, 50)
+            camera.set_control_value(asi.ASI_BRIGHTNESS, 50)
+            camera.set_control_value(asi.ASI_FLIP, 0)
+            camera.set_control_value(asi.ASI_GAIN, self.GAIN)
+            camera.set_control_value(asi.ASI_WB_B, self.WB_B)
+            camera.set_control_value(asi.ASI_WB_R, self.WB_R)
+            camera.set_control_value(asi.ASI_EXPOSURE, self.EXPO)
+            camera.set_image_type(asi.ASI_IMG_RAW16)
+
+            try:
+                # Force any single exposure to be halted
+                camera.stop_video_capture()
+                camera.stop_exposure()
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except:
+                pass
+
+            bar_prefix = 'acquiring data'
+            for i in tqdm(range (self.sample_size, desc=bar_prefix, colour='green')):
+                progress_bar_capture.UpdateBar(i)
+                # Ottieni i dati dell'immagine
+                data = np.empty((2822, 4144), dtype=np.uint16)
+                data = camera.capture()
+                data_queue.put(data)
+            for processo in processi:
+                data_queue.put(None)
+
+        finally:
+            # Arresta l'esposizione e rilascia la telecamera
+            camera.stop_exposure()
+            camera.close()
+        analizer_list = []
+
+        #aspettiamo che tutti i processi siano finiti
+        for processo in processi:
+            ret = data_queue2.get()  # will block
+            analizer_list.append(ret)
+
+        for processo in processi:
+            processo.join()
+
+        for i in range(0, self.num):
+            if i == 0:
+                self.countsAll2dRaw = analizer_list[i].countsAll2dRaw
+                self.countsAll2dClu = analizer_list[i].countsAll2dClu
+                self.countsAll = analizer_list[i].countsAll
+                self.countsAllZeroSupp = analizer_list[i].countsAllZeroSupp
+                self.countsAllClu = analizer_list[i].countsAllClu
+                self.h_cluSizeAll = analizer_list[i].h_cluSizeAll
+                self.w_all = analizer_list[i].w_all
+                self.x_allClu = analizer_list[i].x_allClu
+                self.y_allClu = analizer_list[i].y_allClu
+
+            if i > 0:
+                self.countsAll2dRaw =  self.countsAll2dRaw + analizer_list[i].countsAll2dRaw
+                self.countsAll2dClu =  self.countsAll2dClu + analizer_list[i].countsAll2dClu
+                self.countsAll =  self.countsAll + analizer_list[i].countsAll
+                self.countsAllZeroSupp =  self.countsAllZeroSupp + analizer_list[i].countsAllZeroSupp
+                self.countsAllClu =  self.countsAllClu + analizer_list[i].countsAllClu
+                self.h_cluSizeAll =  self.h_cluSizeAll + analizer_list[i].h_cluSizeAll
+                self.w_all = np.append( self.w_all, analizer_list[i].w_all)
+                self.x_allClu = np.append( self.x_allClu, analizer_list[i].x_allClu)
+                self.y_allClu = np.append( self.y_allClu, analizer_list[i].y_allClu)
+
+        ###########
+        # plot immagine
+        fig2, ax2 = plt.subplots()
+
+
+        self.countsAll2dClu = self.countsAll2dClu.T
+        plt.imshow(self.countsAll2dClu, interpolation='nearest', origin='lower',
+                   extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
+        plt.colorbar()
+        plt.title('hit pixels (rebinned)')
+
+        # plot immagine Raw
+        fig3, ax3 = plt.subplots()
+        self.countsAll2dRaw = self.countsAll2dRaw.T
+        plt.imshow(self.countsAll2dRaw, interpolation='nearest', origin='lower',
+                   extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
+        plt.colorbar()
+        plt.title('pixels>zero_suppression threshold')
+
+        # plot spettro
+        fig, h1 = plt.subplots()
+        h1.hist(self.bins[:-1], bins=self.bins, weights=self.countsAll, histtype='step', label="raw")
+        h1.hist(self.bins[:-1], bins=self.bins, weights=self.countsAllZeroSupp, histtype='step', label="pixel thresold")
+        h1.hist(self.bins[:-1], bins=self.bins, weights=self.countsAllClu, histtype='step', label='CLUSTERING')
+        plt.legend()
+        plt.title('spectra')
+
+
+        # plot spettro sizes
+        fig5, h5 = plt.subplots()
+        h5.hist(self.binsSize[:-1], bins=self.binsSize, weights=self.h_cluSizeAll, histtype='step', label='Cluster sizes')
+        plt.legend()
+        plt.title('CLU size')
+
+        # save histos
+        np.savez(self.file_path + 'spectrum_all_raw' + self.pixMask_suffix, counts=self.countsAll, bins=self.bins)
+        np.savez(self.file_path + 'spectrum_all_ZeroSupp' + self.pixMask_suffix + self.cluCut_suffix, counts=self.countsAllZeroSupp, bins=self.bins)
+        np.savez(self.file_path + 'spectrum_all_eps' + str(self.myeps) + self.pixMask_suffix + self.cluCut_suffix, counts=self.countsAllClu,
+                 bins=self.bins)
+        np.savez(self.file_path + 'cluSizes_spectrum' + self.pixMask_suffix, counts=self.h_cluSizeAll, bins=self.binsSize)
+
+        # save figures
+        al.write_fitsImage(self.countsAll2dClu, self.file_path + 'imageCUL' + self.pixMask_suffix + self.cluCut_suffix + '.fits',
+                           overwrite="False")
+        # al.write_fitsImage(image_SW, shots_path+'imageSUM'+pixMask_suffix +'.fits'  , overwrite = "False")
+        al.write_fitsImage(self.countsAll2dRaw, self.file_path + 'imageRaw' + self.pixMask_suffix + '.fits', overwrite="False")
+
+        # salva vettori con event_list:
+        if self.SAVE_EVENTLIST:
+            outfileVectors = self.file_path + 'events_list' + self.pixMask_suffix + self.cluCut_suffix + '_v2.npz'
+            print('writing events in:', outfileVectors)
+            # al.save_vectors(outfileVectors, w_all, x_allClu, y_allClu,clusizes_all)
+            np.savez(outfileVectors, w=self.w_all, x_pix=self.x_allClu, y_pix=self.y_allClu, sizes=self.clusizes_all)
+
+        plt.show()
+
+    def Analizza(self, data_queue, data_queue2):
+        self.reset_allVariables()
+        i = 0
+        progress_bar2 = tqdm(total=(self.sample_size/self.num), desc="Progresso", colour='green', position=self.num)
+        layout = [
+            [sg.Text('Progresso:', size=(10, 1)),
+             sg.ProgressBar((self.sample_size/self.num), orientation='h', size=(20, 20), key='progress')],
+        ]
+        window_progress = sg.Window('Analisi in corso', layout, finalize=True)
+
+        progress_bar = window_progress['progress']
+
+
+
+
+        while True:
+            data= data_queue.get()
+            if data is None:
+                progress_bar2.close()
+                window_progress.Close()
+                data_queue2.put(self)
+                break
             rms_pedCut = np.mean(self.rms_ped) + self.PIX_CUT_SIGMA * np.std(self.rms_ped)
             # MASCHERA PIXEL RUMOROSI
 
             mySigmaMask = np.where((self.rms_ped > rms_pedCut))
 
             # read image:
-            image_data = self.list[1] / 4.
-            self.list.pop(1)
+            image_data = data / 4.
             # subtract pedestal:
             image_data = image_data - self.mean_ped  #
 
@@ -132,117 +350,9 @@ class aotr2:
                 # istogramma size clusters:
                 h_cluSizes_i, binsSizes_i = np.histogram(clu_sizes, bins=100, range=(0, 100))
                 self.h_cluSizeAll = self.h_cluSizeAll + h_cluSizes_i
-
-    def CaptureAnalyze(self, camera):
-
-        try:
-            # Use minimum USB bandwidth permitted
-            camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, camera.get_controls()['BandWidth']['MinValue'])
-
-            # Set some sensible defaults. They will need adjusting depending upon
-            camera.disable_dark_subtract()
-            camera.set_control_value(asi.ASI_GAMMA, 50)
-            camera.set_control_value(asi.ASI_BRIGHTNESS, 50)
-            camera.set_control_value(asi.ASI_FLIP, 0)
-            camera.set_control_value(asi.ASI_GAIN, self.GAIN)
-            camera.set_control_value(asi.ASI_WB_B, self.WB_B)
-            camera.set_control_value(asi.ASI_WB_R, self.WB_R)
-            camera.set_control_value(asi.ASI_EXPOSURE, self.EXPO)
-            camera.set_image_type(asi.ASI_IMG_RAW16)
-
-            try:
-                # Force any single exposure to be halted
-                camera.stop_video_capture()
-                camera.stop_exposure()
-            except (KeyboardInterrupt, SystemExit):
-                raise
-            except:
-                pass
-            data_queue = multiprocessing.Queue()
-
-            numero_analizzatori = self.num
-            #creo gli analizzatori
-            processi = []
-            for i in range(numero_analizzatori):
-                processo = multiprocessing.Process(target=Analizzatore, args= (data_queue,))
-                processi.append(processo)
-            #faccio partire i processi
-            for processo in processi:
-                processo.start()
-            bar_prefix = 'acquiring data'
-            for i in tqdm(range (self.sample_size, desc=bar_prefix, colour='green')):
-
-                # Ottieni i dati dell'immagine
-                data = np.empty((2822, 4144), dtype=np.uint16)
-                data = camera.capture()
-                data_queue.put(data)
-            for processo in processi:
-                data_queue.put(None)
-
-        finally:
-            # Arresta l'esposizione e rilascia la telecamera
-            camera.stop_exposure()
-            camera.close()
-
-        #aspettiamo che tutti i processi siano finiti
-        for processo in processi:
-            processo.join()
-
-        ###########
-        # plot immagine
-        fig2, ax2 = plt.subplots()
-
-
-        self.countsAll2dClu = self.countsAll2dClu.T
-        plt.imshow(self.countsAll2dClu, interpolation='nearest', origin='lower',
-                   extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
-        plt.colorbar()
-        plt.title('hit pixels (rebinned)')
-
-        # plot immagine Raw
-        fig3, ax3 = plt.subplots()
-        self.countsAll2dRaw = self.countsAll2dRaw.T
-        plt.imshow(self.countsAll2dRaw, interpolation='nearest', origin='lower',
-                   extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
-        plt.colorbar()
-        plt.title('pixels>zero_suppression threshold')
-
-        # plot spettro
-        fig, h1 = plt.subplots()
-        h1.hist(self.bins[:-1], bins=self.bins, weights=self.countsAll, histtype='step', label="raw")
-        h1.hist(self.bins[:-1], bins=self.bins, weights=self.countsAllZeroSupp, histtype='step', label="pixel thresold")
-        h1.hist(self.bins[:-1], bins=self.bins, weights=self.countsAllClu, histtype='step', label='CLUSTERING')
-        plt.legend()
-        plt.title('spectra')
-
-
-        # plot spettro sizes
-        fig5, h5 = plt.subplots()
-        h5.hist(self.binsSize[:-1], bins=self.binsSize, weights=self.h_cluSizeAll, histtype='step', label='Cluster sizes')
-        plt.legend()
-        plt.title('CLU size')
-
-        # save histos
-        np.savez(self.file_path + 'spectrum_all_raw' + self.pixMask_suffix, counts=self.countsAll, bins=self.bins)
-        np.savez(self.file_path + 'spectrum_all_ZeroSupp' + self.pixMask_suffix + self.cluCut_suffix, counts=self.countsAllZeroSupp, bins=self.bins)
-        np.savez(self.file_path + 'spectrum_all_eps' + str(self.myeps) + self.pixMask_suffix + self.cluCut_suffix, counts=self.countsAllClu,
-                 bins=self.bins)
-        np.savez(self.file_path + 'cluSizes_spectrum' + self.pixMask_suffix, counts=self.h_cluSizeAll, bins=self.binsSize)
-
-        # save figures
-        al.write_fitsImage(self.countsAll2dClu, self.file_path + 'imageCUL' + self.pixMask_suffix + self.cluCut_suffix + '.fits',
-                           overwrite="False")
-        # al.write_fitsImage(image_SW, shots_path+'imageSUM'+pixMask_suffix +'.fits'  , overwrite = "False")
-        al.write_fitsImage(self.countsAll2dRaw, self.file_path + 'imageRaw' + self.pixMask_suffix + '.fits', overwrite="False")
-
-        # salva vettori con event_list:
-        if self.SAVE_EVENTLIST:
-            outfileVectors = self.file_path + 'events_list' + self.pixMask_suffix + self.cluCut_suffix + '_v2.npz'
-            print('writing events in:', outfileVectors)
-            # al.save_vectors(outfileVectors, w_all, x_allClu, y_allClu,clusizes_all)
-            np.savez(outfileVectors, w=self.w_all, x_pix=self.x_allClu, y_pix=self.y_allClu, sizes=self.clusizes_all)
-
-        plt.show()
+            progress_bar2.update(1)
+            i+=1
+            progress_bar.UpdateBar(i)
 
 
 

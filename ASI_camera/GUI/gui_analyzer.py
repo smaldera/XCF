@@ -43,7 +43,7 @@ class aotr:
         self.cluCut_suffix='_CLUcut_'+str(self.CLU_CUT_SIGMA)+'sigma'
 
         self.x = []
-        self.file_path = file_path
+        self.file_path = file_path + '/'
         self.countsAll, self.bins = np.histogram(self.x, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
         self.countsAllZeroSupp, self.bins = np.histogram(self.x, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
         self.countsAllClu, self.bins = np.histogram(self.x, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
@@ -95,8 +95,17 @@ class aotr:
 
             custom_style = "{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]"
 
-            for i in tqdm(range (self.sample_size)):
+            # Creare una finestra per la barra di avanzamento della cattura delle foto
+            layout_capture = [
+                [sg.Text('Cattura ed Analisi in corso:', size=(15, 1)),
+                 sg.ProgressBar(self.sample_size, orientation='h', size=(20, 20), key='progress_capture')],
+            ]
+            window_capture = sg.Window('Cattura ed Analisi in corso', layout_capture, finalize=True)
 
+            progress_bar_capture = window_capture['progress_capture']
+
+            for i in tqdm(range (self.sample_size)):
+                progress_bar_capture.UpdateBar(i)
 
                 # Ottieni i dati dell'immagine
                 data = np.empty((2822, 4144), dtype=np.uint16)
