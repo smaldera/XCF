@@ -3,12 +3,18 @@ import zwoasi as asi
 from astropy.io import fits
 import time
 
-def capture_as_fit(camera, file_path, file_name):
-    try:
-        # Configura la telecamera
+def capture_as_fit():
+   
+    file_path='/home/xcf/testCMOS_genn2024/'
 
+    try:
+        cameraID = 0
+        camera = asi.Camera(cameraID)
+        
+        # Configura la telecamera
+        
         # Use minimum USB bandwidth permitted
-        camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, camera.get_controls()['BandWidth']['MinValue'])
+        camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, 95)
 
         # Set some sensible defaults. They will need adjusting depending upon
         # the sensitivity, lens and lighting conditions used.
@@ -33,20 +39,22 @@ def capture_as_fit(camera, file_path, file_name):
         except:
             pass
 
-        exposure_time=30000
+        exposure_time=10000
         # Ottieni i dati dell'immagine
-        data = np.empty((2822, 4144), dtype=np.uint16)
-        data = camera.capture()
+        for i in 1000:
+            data = np.empty((2822, 4144), dtype=np.uint16)
+            data = camera.capture()
 
-        # Crea l'header FITS
-        header = fits.Header()
-        header['EXPTIME'] = exposure_time
-        header['DATE-OBS'] = time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime())
+            # Crea l'header FITS
+            header = fits.Header()
+            header['EXPTIME'] = exposure_time
+            header['DATE-OBS'] = time.strftime('%Y-%m-%dT%H:%M:%S_'  + str(i), time.gmtime())
 
-        # Salva l'immagine come file FITS
-        hdu = fits.PrimaryHDU(data, header=header)
-        hdulist = fits.HDUList([hdu])
-        hdulist.writeto(file_path + "/"+file_name+".fits", overwrite=True)
+            # Salva l'immagine come file FITS
+            hdu = fits.PrimaryHDU(data, header=header)
+            hdulist = fits.HDUList([hdu])
+            file_name='foto_'+str(i)
+            hdulist.writeto(file_path + "/"+file_name+".fits", overwrite=True)
 
         print(f"Immagine salvata in: {file_path}")
 
@@ -77,3 +85,6 @@ def GetCameraID():
     return(camera_id)
 
 
+
+
+capture_as_fit()

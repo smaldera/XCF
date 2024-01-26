@@ -96,7 +96,13 @@ class aotr2:
         self.y_allClu = np.empty(0)
         self.w_all = np.empty(0)
 
-    def CaptureAnalyze(self, camera):
+    def CaptureAnalyze(self):
+        try:
+            camera_id = 0
+            camera = asi.Camera(camera_id)
+        except Exception as e:
+            sg.popup(f" there are trobles: {e}")
+    	
         data_queue = multiprocessing.Queue()
         data_queue2 = multiprocessing.Queue()
 
@@ -136,10 +142,12 @@ class aotr2:
         #     data_queue.put(None)
 
         try:
-            # Use minimum USB bandwidth permitted
-            camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, camera.get_controls()['BandWidth']['MinValue'])
-
-            # Set some sensible defaults. They will need adjusting depending upon
+            #Use minimum USB bandwidth permitted
+            #camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, camera.get_controls()['BandWidth']['MaxValue'])
+            camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, 100)
+            
+            camera.set_control_value(asi.ASI_HIGH_SPEED_MODE, True)
+            #Set some sensible defaults. They will need adjusting depending upon
             camera.disable_dark_subtract()
             camera.set_control_value(asi.ASI_GAMMA, 50)
             camera.set_control_value(asi.ASI_BRIGHTNESS, 50)
@@ -160,7 +168,7 @@ class aotr2:
                 pass
 
             bar_prefix = 'acquiring data'
-            for i in tqdm(range (self.sample_size, desc=bar_prefix, colour='green')):
+            for i in tqdm(range (self.sample_size), desc=bar_prefix, colour='green'):
                 progress_bar_capture.UpdateBar(i)
                 # Ottieni i dati dell'immagine
                 data = np.empty((2822, 4144), dtype=np.uint16)
@@ -174,6 +182,7 @@ class aotr2:
             camera.stop_exposure()
             camera.close()
         analizer_list = []
+        #progress_bar_capture.close()
 
         #aspettiamo che tutti i processi siano finiti
         for processo in processi:

@@ -9,7 +9,7 @@ from utils_v2 import read_image
 from utils_v2 import plot_image
 from utils_v2 import isto_all
 from gui_analyzer import aotr
-from Cam_Test2 import capture_as_fit
+#from Cam_Test2 import capture_as_fit
 from Batch_Sampler import capture
 from gui_analyzer_parallel import aotr2
 from fakecamera import FakeCam
@@ -54,10 +54,10 @@ if __name__ == "__main__":
     Eps =1.5
     StoreDataIn = ''
     SampleSize = 10
-    WBR =75
-    WBB =99
+    WBR =50
+    WBB =50
     exposure= 30000
-    gain = 5
+    gain = 120
     file_name = "batch"
     xyRebin2 = 20
     sigma2 = 10
@@ -184,16 +184,16 @@ if __name__ == "__main__":
             sg.popup("There is no camera connected")
 
     def CaptureAndAnalyze2(path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num):
-        camera_id = 0
+
         OBJ = aotr2(path, sample_size, WB_R, WB_B, EXPO, GAIN, bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent,
                    Raw, Eps,num)
 
         try:
-            camera = asi.Camera(camera_id)
+
             #camera = FakeCam()
 
             try:
-                OBJ.CaptureAnalyze(camera)
+                OBJ.CaptureAnalyze()
                 #CaptureAnalyze(camera, path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
                 sg.popup("Analize is complete and files are saved in " + path)
             except Exception as e:
@@ -328,17 +328,17 @@ if __name__ == "__main__":
 
         ],
         [   sg.Text("Exposure (mu-s?)  ", tooltip="how long ?"),
-            sg.In(30000,size=(5, 1), enable_events=True, key="_EXPOSURE_"),
+            sg.In(exposure,size=(5, 1), enable_events=True, key="_EXPOSURE_"),
             sg.Text("   Exposure  gain        ", tooltip=""),
-            sg.In(5,size=(5, 1), enable_events=True, key="_GAIN_"),
+            sg.In(gain,size=(5, 1), enable_events=True, key="_GAIN_"),
         ],
         [   sg.Text("White Balance Red", tooltip="?"),
-            sg.In(75,size=(5, 1), enable_events=True, key="_WB_R_"),
+            sg.In(WBR,size=(5, 1), enable_events=True, key="_WB_R_"),
             sg.Text("   White Balance Blue ", tooltip=""),
-            sg.In(99,size=(5, 1), enable_events=True, key="_WB_B_"),
+            sg.In(WBB,size=(5, 1), enable_events=True, key="_WB_B_"),
         ],
         [   sg.Text("Number of samples", tooltip="HOW MANY OF THEM FITS?"),
-            sg.In(10,size=(5, 1), enable_events=True, key="_SAMPLE_SIZE_"),
+            sg.In(SampleSize,size=(5, 1), enable_events=True, key="_SAMPLE_SIZE_"),
             sg.Text("   Files name              ", tooltip="?"),
             sg.In("batch",size=(5, 1), enable_events=True, key="_FILE_NAME_"),
         ],
