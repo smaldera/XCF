@@ -35,6 +35,9 @@ CFLAGS += -lrt
 all:ASItakeShots_simo.cpp 
 	$(CC)  ASItakeShots_simo.cpp -o ASItakeShots_simo  $(CFLAGS) -lASICamera2 -lcfitsio
 
+all:ASItakeShots_simo_v2.cpp
+	$(CC)  ASItakeShots_simo_v2.cpp -o ASItakeShots_simo_v2  $(CFLAGS) -lASICamera2 -lcfitsio
+	 
 
 clean:
 	rm -f ASItakeShots_simo
