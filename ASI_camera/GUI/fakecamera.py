@@ -17,5 +17,5 @@ class FakeCam:
         lines_to_set = 20
 
         data[100:100 + lines_to_set, :] = value_to_set
-        #time.sleep(1)
+        time.sleep(.07)
         return data

@@ -17,10 +17,11 @@ import PySimpleGUI as sg
 class aotr2:
     """
     """
-    def __init__(self, file_path, sample_size, WB_R, WB_B, EXPO, GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num):
+    def __init__(self, file_path, sample_size, WB_R, WB_B, EXPO, GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num ,leng):
         self.NBINS = 16384  # n.canali ADC (2^14)
         self.XBINS = 2822
         self.YBINS = 4144
+        self.length = leng
         # Variabili passate all'analisi
         self.PIX_CUT_SIGMA = sigma
         self.CLU_CUT_SIGMA = cluster
@@ -67,6 +68,7 @@ class aotr2:
         #variabili per il multiprocess
     def reset_allVariables(self):
         x = []
+
         self.countsAll2dClu = np.array(x)
         self.xedges = np.array(x)
         self.yedges = np.array(x)
@@ -102,7 +104,17 @@ class aotr2:
             camera = asi.Camera(camera_id)
         except Exception as e:
             sg.popup(f" there are trobles: {e}")
-    	
+        try:
+            # Force any single exposure to be halted
+            camera.stop_video_capture()
+            camera.stop_exposure()
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+            pass
+
+
+
         data_queue = multiprocessing.Queue()
         data_queue2 = multiprocessing.Queue()
 
@@ -112,7 +124,7 @@ class aotr2:
         processi = []
 
         for i in range(numero_analizzatori):
-            processo = multiprocessing.Process(target=self.Analizza, args= ( data_queue, data_queue2))
+            processo = multiprocessing.Process(target=self.Analizza, args= ( data_queue, data_queue2, i))
             processi.append(processo)
         # faccio partire i processi
         for processo in processi:
@@ -140,11 +152,11 @@ class aotr2:
         #
         # for processo in processi:
         #     data_queue.put(None)
-
+        
         try:
             #Use minimum USB bandwidth permitted
             #camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, camera.get_controls()['BandWidth']['MaxValue'])
-            camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, 100)
+            camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, 95)
             
             camera.set_control_value(asi.ASI_HIGH_SPEED_MODE, True)
             #Set some sensible defaults. They will need adjusting depending upon
@@ -157,23 +169,34 @@ class aotr2:
             camera.set_control_value(asi.ASI_WB_R, self.WB_R)
             camera.set_control_value(asi.ASI_EXPOSURE, self.EXPO)
             camera.set_image_type(asi.ASI_IMG_RAW16)
-
-            try:
-                # Force any single exposure to be halted
-                camera.stop_video_capture()
-                camera.stop_exposure()
-            except (KeyboardInterrupt, SystemExit):
-                raise
-            except:
-                pass
+            #timeout raccomandato
+            timeout = (camera.get_control_value(asi.ASI_EXPOSURE)[0] / 1000) * 2 + 10500
+            camera.default_timeout = timeout
 
             bar_prefix = 'acquiring data'
+
             for i in tqdm(range (self.sample_size), desc=bar_prefix, colour='green'):
+                if i == 0 :
+                    camera.start_video_capture()
+                while data_queue.qsize() > self.length:
+                    camera.stop_video_capture()
+                    print("waiting for analyzer to catch up")
+                    time.sleep(15)
+                    camera.start_video_capture()
+                while True:
+                    try:
+                        data = np.empty((2822, 4144), dtype=np.uint16)
+                        data = camera.capture_video_frame()
+                        data_queue.put(data)
+                        break
+                    except zwoasi.ZWO_IOError as io_error:
+                        camera.stop_video_capture()
+                        camera.start_video_capture()    
+                    except Exception as generic_exception:
+                        camera.stop_video_capture()
+                        camera.start_video_capture()                        
                 progress_bar_capture.UpdateBar(i)
-                # Ottieni i dati dell'immagine
-                data = np.empty((2822, 4144), dtype=np.uint16)
-                data = camera.capture()
-                data_queue.put(data)
+            window_capture.Close()
             for processo in processi:
                 data_queue.put(None)
 
@@ -271,22 +294,21 @@ class aotr2:
 
         plt.show()
 
-    def Analizza(self, data_queue, data_queue2):
+    def Analizza(self, data_queue, data_queue2,id):
         self.reset_allVariables()
-        i = 0
         progress_bar2 = tqdm(total=(self.sample_size/self.num), desc="Progresso", colour='green', position=self.num)
+
         layout = [
             [sg.Text('Progresso:', size=(10, 1)),
              sg.ProgressBar((self.sample_size/self.num), orientation='h', size=(20, 20), key='progress')],
         ]
-        window_progress = sg.Window('Analisi in corso', layout, finalize=True)
+        window_progress = sg.Window('Data cruncher number: ' + str(id), layout, finalize=True)
 
         progress_bar = window_progress['progress']
-
-
-
-
+        print("dormo")
+        time.sleep(15)
         while True:
+            i = 0 
             data= data_queue.get()
             if data is None:
                 progress_bar2.close()
@@ -360,8 +382,9 @@ class aotr2:
                 h_cluSizes_i, binsSizes_i = np.histogram(clu_sizes, bins=100, range=(0, 100))
                 self.h_cluSizeAll = self.h_cluSizeAll + h_cluSizes_i
             progress_bar2.update(1)
-            i+=1
+
             progress_bar.UpdateBar(i)
+            i+=1
 
 
 

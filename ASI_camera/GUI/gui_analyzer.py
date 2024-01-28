@@ -8,6 +8,7 @@ import clustering_cmos
 import time
 import zwoasi as asi
 from tqdm import  tqdm
+import PySimpleGUI as sg
 from astropy.io import fits
 
 #inserire variabili globali
@@ -69,28 +70,28 @@ class aotr:
 
 
         try:
-            # Use minimum USB bandwidth permitted
-            camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, camera.get_controls()['BandWidth']['MinValue'])
-
-            # Set some sensible defaults. They will need adjusting depending upon
-            camera.disable_dark_subtract()
-            camera.set_control_value(asi.ASI_GAMMA, 50)
-            camera.set_control_value(asi.ASI_BRIGHTNESS, 50)
-            camera.set_control_value(asi.ASI_FLIP, 0)
-            camera.set_control_value(asi.ASI_GAIN, self.GAIN)
-            camera.set_control_value(asi.ASI_WB_B, self.WB_B)
-            camera.set_control_value(asi.ASI_WB_R, self.WB_R)
-            camera.set_control_value(asi.ASI_EXPOSURE, self.EXPO)
-            camera.set_image_type(asi.ASI_IMG_RAW16)
-
-            try:
-                # Force any single exposure to be halted
-                camera.stop_video_capture()
-                camera.stop_exposure()
-            except (KeyboardInterrupt, SystemExit):
-                raise
-            except:
-                pass
+            # # Use minimum USB bandwidth permitted
+            # camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, camera.get_controls()['BandWidth']['MinValue'])
+            #
+            # # Set some sensible defaults. They will need adjusting depending upon
+            # camera.disable_dark_subtract()
+            # camera.set_control_value(asi.ASI_GAMMA, 50)
+            # camera.set_control_value(asi.ASI_BRIGHTNESS, 50)
+            # camera.set_control_value(asi.ASI_FLIP, 0)
+            # camera.set_control_value(asi.ASI_GAIN, self.GAIN)
+            # camera.set_control_value(asi.ASI_WB_B, self.WB_B)
+            # camera.set_control_value(asi.ASI_WB_R, self.WB_R)
+            # camera.set_control_value(asi.ASI_EXPOSURE, self.EXPO)
+            # camera.set_image_type(asi.ASI_IMG_RAW16)
+            #
+            # try:
+            #     # Force any single exposure to be halted
+            #     camera.stop_video_capture()
+            #     camera.stop_exposure()
+            # except (KeyboardInterrupt, SystemExit):
+            #     raise
+            # except:
+            #     pass
 
 
             custom_style = "{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]"
@@ -180,9 +181,9 @@ class aotr:
 
         finally:
             # Arresta l'esposizione e rilascia la telecamera
-            camera.stop_exposure()
-            camera.close()
-
+           # camera.stop_exposure()
+            #camera.close()
+            2+2
         ###########
         # plot immagine
         fig2, ax2 = plt.subplots()
