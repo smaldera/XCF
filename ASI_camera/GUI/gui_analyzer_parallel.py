@@ -189,10 +189,7 @@ class aotr2:
                         data = camera.capture_video_frame()
                         data_queue.put(data)
                         break
-                    except zwoasi.ZWO_IOError as io_error:
-                        camera.stop_video_capture()
-                        camera.start_video_capture()    
-                    except Exception as generic_exception:
+                    except Exception as :
                         camera.stop_video_capture()
                         camera.start_video_capture()                        
                 progress_bar_capture.UpdateBar(i)
@@ -296,7 +293,7 @@ class aotr2:
 
     def Analizza(self, data_queue, data_queue2,id):
         self.reset_allVariables()
-        progress_bar2 = tqdm(total=(self.sample_size/self.num), desc="Progresso", colour='green', position=self.num)
+        progress_bar2 = tqdm(total=(self.sample_size/self.num), desc="Analizzatore_" + str(id), colour='green', position=self.num+id)
 
         layout = [
             [sg.Text('Progresso:', size=(10, 1)),
@@ -306,9 +303,7 @@ class aotr2:
 
         progress_bar = window_progress['progress']
         print("dormo")
-        time.sleep(15)
         while True:
-            i = 0 
             data= data_queue.get()
             if data is None:
                 progress_bar2.close()
