@@ -14,8 +14,9 @@ from  histogramSimo import histogramSimo
 # plotta: spettro e mappa posizioni
 # 
 
-#fileListName='events_file_list.txt'
-fileListName='/home/maldera/Desktop/eXTP/data/ASI_newSphere/Ge_111/3nov2023/event_listsPd_POL.txt'
+fileListName='events_file_list.txt'
+#fileListName='/home/maldera/Desktop/eXTP/data/ASI_newSphere/Ge_111/3nov2023/event_listsPd_POL.txt'
+
 ff=open(fileListName,'r')
 
 NBINS=16384  # n.canali ADC (2^14)
@@ -48,9 +49,10 @@ for f in ff:
 
 
 y0=2000.
-r=150.
+r=100.
 #x0s=np.linspace(r,XBINS-r,num=int(XBINS/(2.*r)) )
 x0s=np.linspace(r,XBINS-r,num=int(XBINS/(2.*r)) )
+y0s=np.linspace(r,YBINS-r,num=int(YBINS/(2.*r)) )
 
 
 low=2.55
@@ -62,13 +64,16 @@ fitted_mean=np.empty(0)
 fitted_meanErr=np.empty(0)
 
 
-for x0 in x0s:
+#for x0 in x0s:
+for y0 in y0s:
 
-    print ("xO=",x0)
+    #print ("xO=",x0)
+    print ("yO=",y0)
     
 #    myCut=np.where( (w_all>100)&( (x_all-x0)**2+(y_all-y0)**2<r**2 ) ) # cerchi
-    myCut=np.where( (w_all>100)&(x_all>x0-r+10)&(x_all<x0+r-10)&(y_all>1500)&(y_all<3000)   ) # rettangoli
-    
+    #myCut=np.where( (w_all>100)&(y_all>x0-r+10)&(x_all<x0+r-10)&(y_all>1500)&(y_all<3000)   ) # rettangoli
+    myCut=np.where( (w_all>100)&(y_all>y0-r)&(y_all<y0+r)&(x_all>0)&(x_all<XBINS)   ) # rettangoli
+  
     
     #plot 
     counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
@@ -96,7 +101,10 @@ for x0 in x0s:
     #x=np.linspace(xmin,xmax,1000)
     #y= fitSimo.gaussian_model(x,popt[0],popt[1],popt[2])
     #plt.plot(x,y,'r-')
-    plt.hist(bins[:-1], bins = bins, weights = countsClu, histtype = 'step',label="x0="+str(x0))
+    #plt.hist(bins[:-1], bins = bins, weights = countsClu, histtype = 'step',label="x0="+str(x0))
+   
+    plt.hist(bins[:-1], bins = bins, weights = countsClu, histtype = 'step',label="y0="+str(y0))
+    
     
 plt.xlabel('E [keV]')
 plt.legend()
