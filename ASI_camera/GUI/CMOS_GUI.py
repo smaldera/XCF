@@ -125,6 +125,9 @@ if __name__ == "__main__":
         script_path = 'analyze_v2Parallel.py'
         script_parameters = [' -in ' + path_to_fit+'/', ' -bkg ' + path_to_bkg+'/', ' --n_jobs ' + str(cores), ' --xyrebin ' + str(rebins), ' --pix_cut_sigma ' + str(sigma), ' --clu_cut_sigma ' + str(cluster), ' --myeps ' + str(eps)]
 
+         
+        print('event= ',event) 
+        
         if clu == False:
             script_parameters.append(' --no_clustering ')
         if event == False:
@@ -196,6 +199,9 @@ if __name__ == "__main__":
 
     def CaptureAndAnalyze2(path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num,leng):
 
+
+        print('make event list in  CaptureAndAnalyze2=',NoEvent)     
+        
         OBJ = aotr2(path, sample_size, WB_R, WB_B, EXPO, GAIN, bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent,
                    Raw, Eps,num ,leng)
         try:
@@ -564,6 +570,9 @@ if __name__ == "__main__":
             NoClustering = False
         if values['_EVENTS_']==False:
             NoEvent = False
+        else:
+            NoEvent = True
+             
         if values['_RAW_']==True:
             Raw = True
 
@@ -659,15 +668,26 @@ if __name__ == "__main__":
             Eps2 = values["_EPS2_"]
             update_config()
 
-        if values['_CLUSTERING2_'] == False:
-            NoClustering2 = False
-            update_config()
-        if values['_EVENTS2_'] == False:
-            NoEvent2= False
-            update_config()
-        if values['_RAW2_'] == True:
-            Raw2 = True
-            update_config()
+
+
+            
+       # if values['_CLUSTERING2_'] == False:
+       #      NoClustering2 = False
+       #      update_config()
+       
+       # if values['_EVENTS2_'] == False:
+       #     NoEvent2= False
+       #     update_config()
+             
+       # if values['_RAW2_'] == True:
+       #     Raw2 = True
+       #     update_config()
+
+        NoEvent2= values['_EVENTS2_']  
+        Raw2 =  values['_RAW2_']   
+        NoClustering2 =values['_CLUSTERING2_']
+        update_config()
+        
         if event == "_BKG_FOLDER_2_":
             bkg_folder_b = values["_BKG_FOLDER_2_"]
             update_config()
