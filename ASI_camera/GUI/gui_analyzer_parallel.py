@@ -11,6 +11,8 @@ from tqdm import  tqdm
 from astropy.io import fits
 import multiprocessing
 import PySimpleGUI as sg
+from datetime import datetime
+
 
 
 #inserire variabili globali
@@ -169,13 +171,35 @@ class aotr2:
             camera.set_control_value(asi.ASI_WB_R, self.WB_R)
             camera.set_control_value(asi.ASI_EXPOSURE, self.EXPO)
             camera.set_image_type(asi.ASI_IMG_RAW16)
+            
             #timeout raccomandato
             timeout = (camera.get_control_value(asi.ASI_EXPOSURE)[0] / 1000) * 2 + 10500
             camera.default_timeout = timeout
 
+ 
+            
             bar_prefix = 'acquiring data'
 
+            temp=[]
+            mytime=[]
             for i in tqdm(range (self.sample_size), desc=bar_prefix, colour='green'):
+
+                if(i%100==0): 
+                    t=camera.get_control_value(asi.ASI_TEMPERATURE)[0]/10.
+                    temp.append(t)
+                    mytime.append(datetime.utcnow().timestamp())
+                    np.savez('temps.npz',time=mytime, temp=temp)
+                    #if t>50 
+                    while (t>50): 
+                        # stop video capture and wait for t to drop below 50
+                        camera.stop_video_capture()
+                        time.sleep(900)
+                        t=camera.get_control_value(asi.ASI_TEMPERATURE)[0]/10.
+                        temp.append(t)
+                        mytime.append(datetime.utcnow().timestamp())
+                        np.savez('temps.npz',time=mytime, temp=temp)
+                        camera.start_video_capture()
+
                 if i == 0 :
                     camera.start_video_capture()
                 while data_queue.qsize() > self.length:
@@ -189,7 +213,7 @@ class aotr2:
                         data = camera.capture_video_frame()
                         data_queue.put(data)
                         break
-                    except Exception as :
+                    except Exception :
                         camera.stop_video_capture()
                         camera.start_video_capture()                        
                 progress_bar_capture.UpdateBar(i)
@@ -283,6 +307,7 @@ class aotr2:
         al.write_fitsImage(self.countsAll2dRaw, self.file_path + 'imageRaw' + self.pixMask_suffix + '.fits', overwrite="False")
 
         # salva vettori con event_list:
+        print ('SAVE_EVENTLIST=',self.SAVE_EVENTLIST)
         if self.SAVE_EVENTLIST:
             outfileVectors = self.file_path + 'events_list' + self.pixMask_suffix + self.cluCut_suffix + '_v2.npz'
             print('writing events in:', outfileVectors)
@@ -302,7 +327,7 @@ class aotr2:
         window_progress = sg.Window('Data cruncher number: ' + str(id), layout, finalize=True)
 
         progress_bar = window_progress['progress']
-        print("dormo")
+        i=0
         while True:
             data= data_queue.get()
             if data is None:
