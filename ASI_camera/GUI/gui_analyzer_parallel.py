@@ -99,7 +99,8 @@ class aotr2:
         self.x_allClu = np.empty(0)
         self.y_allClu = np.empty(0)
         self.w_all = np.empty(0)
-
+        self.clusizes_all = np.empty(0)
+        
     def CaptureAnalyze(self):
         try:
             camera_id = 0
@@ -247,6 +248,7 @@ class aotr2:
                 self.w_all = analizer_list[i].w_all
                 self.x_allClu = analizer_list[i].x_allClu
                 self.y_allClu = analizer_list[i].y_allClu
+                self.clusizes_all= analizer_list[i].clusizes_all
 
             if i > 0:
                 self.countsAll2dRaw =  self.countsAll2dRaw + analizer_list[i].countsAll2dRaw
@@ -258,6 +260,8 @@ class aotr2:
                 self.w_all = np.append( self.w_all, analizer_list[i].w_all)
                 self.x_allClu = np.append( self.x_allClu, analizer_list[i].x_allClu)
                 self.y_allClu = np.append( self.y_allClu, analizer_list[i].y_allClu)
+                self.clusizes_all = np.append( self.clusizes_all, analizer_list[i].clusizes_all)
+                
 
         ###########
         # plot immagine
