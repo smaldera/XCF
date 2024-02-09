@@ -1,0 +1,38 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+
+<head> 
+	<meta charset="utf-8"> 
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
+		integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous"> 
+
+	<!-- <link href="http://cdn.bokeh.org/bokeh/release/bokeh-3.0.1.min.css" rel="stylesheet" type="text/css"> -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bokeh/3.0.1/bokeh.js"
+		integrity="sha512-p7EUyPmeDeOwHiu7fIZNboAcQLxei3sWtXoHoShWWiPNUSRng/Xs5JPcaFPRa4dKy9IuHjyIQuLE4caGCwuewA=="
+		crossorigin="anonymous" referrerpolicy="no-referrer"></script> 
+	
+	<title>Bokeh Charts</title> 
+
+	{{ resources|safe }}
+
+</head> 
+
+<body> 
+
+	<div class="container"> 
+		<h1 class="text-center py-4">Responsive Chart with Bokeh, Flask and Python aaa</h1> 
+		<div class="row mb-5"> 
+			<div class="col-md-6"> 
+				<h4 class="text-center">Scatter Plot</h4> 
+				{{ div[0] | safe }} 
+				{{ script[0] | safe }} 
+			</div> 
+			
+		</div> 
+	</div> 
+
+</body> 
+
+</html>
