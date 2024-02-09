@@ -16,20 +16,21 @@ from  histogramSimo import histogramSimo
 
 # CONFRONTO orizzontale - veritcal Mc_pherson
 
-common_path='/home/xcf/testCMOS_genn2024/'
+common_path='/home/xcf/testCMOS_genn2024/long_run/'
 
 
-files_histo=['asi_cap/10ms/spectrum_all_eps1.5_pixCut10.0sigma5_CLUcut_10.0sigma_parallel.npz','testGui/results/spectrum_all_eps1.5_pixCut10sigma_CLUcut_10sigma.npz']
+files_histo=['spectrum_all_raw_pixCut10sigma.npz','spectrum_all_ZeroSupp_pixCut10sigma_CLUcut_10sigma.npz','spectrum_all_eps1.5_pixCut10sigma_CLUcut_10sigma.npz']
 
 
 
-leg_names=['asiCAP','gui']
-scale_factor=[1, 1]
+leg_names=['raw','soglia','clustering']
+scale_factor=[1, 1,1]
 
 fig, ax = plt.subplots()
 
 popt=[]
-for i in range(0,len(files_histo)):
+#for i in range(0,len(files_histo)):
+for i in range(0,1):
 
 
     p=histogramSimo()

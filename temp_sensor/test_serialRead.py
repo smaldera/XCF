@@ -41,7 +41,7 @@ while 1:
        if timeStamp-t0>60:
            
            print("===>>>>> Tmedia=",Tsum/n_sum, " Hmedia=",Hsum/n_sum)
-           mystring=str(timeStamp)+'  '+str(Tsum/n_sum)+'   '+str(Tsum/n_sum)+'\n'
+           mystring=str(timeStamp)+'  '+str(Tsum/n_sum)+'   '+str(Hsum/n_sum)+'\n'
            with open(outFileName,'a+') as f:
                f.write(mystring)
            Tsum=0.
