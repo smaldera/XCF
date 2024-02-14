@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 def create_plots():
 
-    filename='/home/maldera/Desktop/eXTP/softwareXCF/XCF/temp_sensor/test_sensorData.txt'
+    filename='/home/xcf/XCF/software/XCF/temp_sensor/test_sensorData.txt'
     f=open(filename)
     
     time=[]
