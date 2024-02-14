@@ -22,10 +22,10 @@ from  histogramSimo import histogramSimo
 
 cut='None'
 
-x_inf = 360
-x_sup = 1180
-y_inf = 1000
-y_sup = 3000
+x_inf = 800
+x_sup = 1400
+y_inf = 1500
+y_sup = 2000
 
 
 import argparse
@@ -50,7 +50,7 @@ NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
 YBINS=4144
 
-REBINXY=1.
+REBINXY=40.
 
 SAVE_HISTOGRAMS=True
 spectrum_file_name='test_spectrum.npz'
@@ -93,8 +93,13 @@ if cut=='xy':
     myCut_pos=np.where( (x_all>x_inf)&(x_all<x_sup)&(y_all>y_inf)&(y_all<y_sup) )
     myCut=np.where( w_all>100 )
 if cut=='None':
-    myCut=np.where(( w_all>10))
-    myCut_pos=myCut
+    #myCut=np.where(( w_all>10))
+    #myCut=np.where(( ( w_all*calP1+calP0)<0.065)|( ( w_all*calP1+calP0)>0.08)   )
+    myCut=np.where(  ((w_all*calP1+calP0)>0.03)& (size==2) )
+ #   myCut=np.where( (x_all>x_inf)&(x_all<x_sup)&(y_all>y_inf)&(y_all<y_sup)& (size>1)  ) 
+
+
+myCut_pos=myCut
 #myCut=np.where( (w_all>2390)&(w_all<2393)  )
 # myCut=np.where( (x_all>800)&(x_all<1200)&(y_all>1900)&(y_all<2500)  )
 # myCut=np.where( (x_all>1950)&(x_all<2420))
@@ -113,7 +118,7 @@ ax1=plt.subplot(221)
 # mappa posizioni:
 counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut][0:1000000],y_all[myCut][0:1000000],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
 counts2dClu=   counts2dClu.T
-im=ax1.imshow(np.log10(counts2dClu), interpolation='nearest', origin='upper',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+im=ax1.imshow(np.log10(counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
 if cut=='x':
     ax1.axvline(x=x_inf,color='red',linestyle='--')
     ax1.axvline(x=x_sup,color='red',linestyle='--')
@@ -135,6 +140,11 @@ ax2=plt.subplot(222)
 #plt.figure(2)
 countsClu, binsE = np.histogram( w_all[myCut_pos][0:1000000]  , bins = 2*NBINS, range = (-NBINS,NBINS) )
 binsE=binsE*calP1+calP0
+print()
+print("AAAAAAAAAAAAAAAAAAAAAAAA")
+print("y = ", countsClu)
+print("x = ", binsE)
+print()
 ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="energy w. clustering")
 ax2.set_xlabel('E[keV]')
 ax2.set_xlim([0,10])
