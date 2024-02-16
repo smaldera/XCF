@@ -100,8 +100,9 @@ def retrive_vectors(nomefile):
     w=data['w']
     x_pix=data['x_pix']
     y_pix=data['y_pix']
-
-    return w,x_pix,y_pix
+    sizes=data['sizes']
+    print ("utils w =",w)
+    return w,x_pix,y_pix,sizes
 
 
 # DEPRECATED!!!!!
