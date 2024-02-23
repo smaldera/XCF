@@ -43,8 +43,10 @@ ff=open(args.inFile,'r')
 
 
 # retta calibrazione cmos
-calP1=0.0015013787118821926
-calP0=-0.03544731540487446
+#calP1=0.0015013787118821926
+#calP0=-0.03544731540487446
+calP1= 0.00321327
+calP0=-0.0032013
 
 NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
@@ -93,13 +95,12 @@ if cut=='xy':
     myCut_pos=np.where( (x_all>x_inf)&(x_all<x_sup)&(y_all>y_inf)&(y_all<y_sup) )
     myCut=np.where( w_all>100 )
 if cut=='None':
-    #myCut=np.where(( w_all>10))
+    myCut=np.where(( w_all>100) )
     #myCut=np.where(( ( w_all*calP1+calP0)<0.065)|( ( w_all*calP1+calP0)>0.08)   )
-    myCut=np.where(  ((w_all*calP1+calP0)>0.03)& (size==2) )
- #   myCut=np.where( (x_all>x_inf)&(x_all<x_sup)&(y_all>y_inf)&(y_all<y_sup)& (size>1)  ) 
-
-
-myCut_pos=myCut
+    #myCut=np.where(  ((w_all*calP1+calP0)>0.03)& (size==2) )
+    #myCut=np.where( (x_all>x_inf)&(x_all<x_sup)&(y_all>y_inf)&(y_all<y_sup)& (size>1)  ) 
+    myCut_pos=myCut
+    
 #myCut=np.where( (w_all>2390)&(w_all<2393)  )
 # myCut=np.where( (x_all>800)&(x_all<1200)&(y_all>1900)&(y_all<2500)  )
 # myCut=np.where( (x_all>1950)&(x_all<2420))
