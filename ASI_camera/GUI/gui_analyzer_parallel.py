@@ -332,12 +332,19 @@ class aotr2:
 
         progress_bar = window_progress['progress']
         i=0
+
+
+        if (id==0):
+            plt.ion()
+            figInter , axInter = plt.subplots()
         while True:
             data= data_queue.get()
             if data is None:
                 progress_bar2.close()
                 window_progress.Close()
                 data_queue2.put(self)
+                if (id==0):
+                    plt.ioff()
                 break
             rms_pedCut = np.mean(self.rms_ped) + self.PIX_CUT_SIGMA * np.std(self.rms_ped)
             # MASCHERA PIXEL RUMOROSI
@@ -406,9 +413,16 @@ class aotr2:
                 h_cluSizes_i, binsSizes_i = np.histogram(clu_sizes, bins=100, range=(0, 100))
                 self.h_cluSizeAll = self.h_cluSizeAll + h_cluSizes_i
             progress_bar2.update(1)
+            if id==0 and i%10==0:
+                countsA = self.countsAll2dRaw.T
+                figInter.canvas.flush_events()
+                plt.imshow(countsA, interpolation='nearest', origin='lower',
+                           extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
+                if i ==0:
+                    plt.colorbar()
+                plt.title('hit pixels (rebinned)')
+                figInter.canvas.draw()
 
             progress_bar.UpdateBar(i)
             i+=1
-
-
-
+            

@@ -9,8 +9,6 @@ from cmos_pedestal2 import bg_map
 from utils_v2 import read_image
 from utils_v2 import plot_image
 from utils_v2 import isto_all
-from gui_analyzer import aotr
-#from Cam_Test2 import capture_as_fit
 from Batch_Sampler import capture
 from gui_analyzer_parallel import aotr2
 from fakecamera import FakeCam
@@ -85,22 +83,6 @@ if __name__ == "__main__":
         config['Settings']['fit_folder'] = str(fit_folder)
         write_config(config)
 
-
-
-    def keep_files(directory, files_to_keep):
-        # Get a list of all files in the directory
-        all_files = os.listdir(directory)
-
-        # Iterate through all files and delete those not in files_to_keep
-        for filename in all_files:
-            file_path = os.path.join(directory, filename)
-            if filename not in files_to_keep:
-                try:
-                    os.remove(file_path)
-                    print(f"Removed: {filename}")
-                except Exception as e:
-                    print(f"Error removing {filename}: {e}")
-
     def Pedestal(path_to_bkg): #Accede allo script pedestal.py
         formatter = argparse.ArgumentDefaultsHelpFormatter
         parser = argparse.ArgumentParser(formatter_class=formatter)
@@ -111,14 +93,11 @@ if __name__ == "__main__":
         bg_map(bg_shots_path, bg_shots_path + '/mean_ped.fits', bg_shots_path + '/std_ped.fits', args.path)
 
     def Rm_Fits_BKG(path_to_fits): #Cancella i file .FIT nella cartella e la cartella
-        #shutil.rmtree(path_to_fits)
-        files_to_keep = ["std_ped.fits", "mean_ped.fits"]
-        keep_files(path_to_fits, files_to_keep)
+        os.remove(path_to_fits + '/*.FIT')
 
     def Rm_Fits_Analy(path_to_fits):  # Cancella i file .FIT nella cartella e la cartella
-        # shutil.rmtree(path_to_fits)
-        files_to_keep = ["spectrum_all_raw_pixCut10.0sigma5_parallel.npz", "spectrum_all_ZeroSupp_pixCut10.0sigma5_CLUcut_10.0sigma_parallel.npz","spectrum_all_eps1.5_pixCut10.0sigma5_CLUcut_10.0sigma_parallel.npz","cluSizes_spectrum_pixCut10.0sigma5_parallel.npz","imageCUL_pixCut10.0sigma5_CLUcut_10.0sigma_parallel.fits","imageRaw_pixCut10.0sigma5_parallel.fits","events_list_pixCut10.0sigma5_CLUcut_10.0sigma.npz"]
-        keep_files(path_to_fits, files_to_keep)
+        os.remove(path_to_fits + '/*.FIT')
+
 
     def Analyze(path_to_fit, path_to_bkg, cores, rebins, sigma, cluster, clu, event, raw, eps): #Accede allo script analyze_v2Parallel.py
 
@@ -143,34 +122,6 @@ if __name__ == "__main__":
         except subprocess.CalledProcessError as e:
             print(f"Error running the script: {e}")
 
-    # def AnalyzeGui(path_to_fit, path_to_bkg, cores, rebins, sigma, cluster, clu, event, raw, eps): #Accede allo script analyze_v2Parallel.py
-    #     try:
-    #         guiAnalyze(path_to_fit,path_to_bkg)
-    #     except subprocess.CalledProcessError as e:
-    #         print(f"Error running the script: {e}")
-    #
-    # def CameraTest():
-    #
-    #     script_path = 'Cam_Test.py'
-    #
-    #     try:
-    #         # Run the script with parameters using subprocess
-    #         command = f'python3 "{script_path}" '
-    #         subprocess.run(command, check=True, shell=True)
-    #     except subprocess.CalledProcessError as e:
-    #         print(f"Error running the script: {e}")
-
-    # def CameraTest2(path):
-    #     camera_id = 0
-    #     try:
-    #         camera = asi.Camera(camera_id)
-    #         try:
-    #             capture_as_fit(camera, path, "prova")
-    #             sg.popup("Snap taken and saved in " + path)
-    #         except:
-    #             sg.popup("Cannot capture fit")
-    #     except :
-    #         sg.popup("There is no camera connected")
     def DataChunk(path, name, sample_size, WB_R,WB_B,EXPO,GAIN):
         
         try:
@@ -178,24 +129,6 @@ if __name__ == "__main__":
             sg.popup("Snaps taken and saved in " + path)
         except Exception as e:
             sg.popup(f"Cannot capture fit: {e}")
-    
-
-    def CaptureAndAnalyze(path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps):
-        camera_id = 0
-        OBJ = aotr(path, sample_size, WB_R, WB_B, EXPO, GAIN, bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent,
-                   Raw, Eps)
-        try:
-            #camera = asi.Camera(camera_id)
-            camera = FakeCam()
-
-            try:
-                OBJ.CaptureAnalyze(camera)
-                #CaptureAnalyze(camera, path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
-                sg.popup("Analize is complete and files are saved in " + path)
-            except Exception as e:
-                sg.popup(f" there are trobles: {e}")
-        except :
-            sg.popup("There is no camera connected")
 
     def CaptureAndAnalyze2(path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num,leng):
 
@@ -471,12 +404,6 @@ if __name__ == "__main__":
 
     # ----- Commands -----
     while True:
-
-
-
-
-
-
         event, values = window.read()
         if event == "Exit" or event == sg.WIN_CLOSED:
             break
@@ -584,7 +511,6 @@ if __name__ == "__main__":
                     bkg_folder_a
                     try:
                         Analyze(fit_folder, bkg_folder_a, nCore, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
-                        #AnalyzeGui(fit_folder, bkg_folder_a, nCore, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
                         if values['_SIGNAL_FIT_'] == True:
                             Rm_Fits_Analy(fit_folder)
                             sg.popup('fits have been removed')
@@ -598,13 +524,6 @@ if __name__ == "__main__":
         #     Analyze(fit_folder, bkg_folder_a, nCore, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
 
         #-------------------------------------CAMERA-----------------------------------
-
-        # if event == "_CAMERA_TEST_":
-        #     try:
-        #         CameraTest()
-        #     except NameError:
-        #         sg.popup('cannot connect')
-
 
         if event == "_FITS_FOLDER_":
             fitin=values["_FITS_FOLDER_"]
@@ -670,15 +589,15 @@ if __name__ == "__main__":
 
 
 
-            
+
        # if values['_CLUSTERING2_'] == False:
        #      NoClustering2 = False
        #      update_config()
-       
+
        # if values['_EVENTS2_'] == False:
        #     NoEvent2= False
        #     update_config()
-             
+
        # if values['_RAW2_'] == True:
        #     Raw2 = True
        #     update_config()
