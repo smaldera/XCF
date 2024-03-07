@@ -11,7 +11,7 @@ from utils_v2 import plot_image
 from utils_v2 import isto_all
 from Batch_Sampler import capture
 from gui_analyzer_parallel import aotr2
-from fakecamera import FakeCam
+#from fakecamera import FakeCam
 import multiprocessing
 
 if __name__ == "__main__":
