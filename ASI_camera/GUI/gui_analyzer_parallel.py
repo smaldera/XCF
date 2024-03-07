@@ -261,7 +261,7 @@ class aotr2:
                 self.y_allClu = np.append( self.y_allClu, analizer_list[i].y_allClu)
                 self.clusizes_all = np.append( self.clusizes_all, analizer_list[i].clusizes_all)
                 
-        graficatore.terminate()
+
         plt.ioff()
         ###########
         # plot immagine
@@ -337,10 +337,9 @@ class aotr2:
 
         if id == 0 :
             plt.ion()
-            fig5, h5 = plt.subplots()
-            fig, h1 = plt.subplots()
+           
             fig3, ax3 = plt.subplots()
-            fig2, ax2 = plt.subplots()
+
 
         while True:
             data= data_queue.get()
@@ -418,76 +417,17 @@ class aotr2:
                 h_cluSizes_i, binsSizes_i = np.histogram(clu_sizes, bins=100, range=(0, 100))
                 self.h_cluSizeAll = self.h_cluSizeAll + h_cluSizes_i
             progress_bar2.update(1)
-            if id==0 and (i%10)==0:
-                fig2.canvas.flush_events()
-                All2dClu = self.countsAll2dClu.T
-                plt.imshow(All2dClu, interpolation='nearest', origin='lower',
-                           extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
-                if i==0:
-                    plt.colorbar()
-                plt.title('hit pixels (rebinned)')
-                fig2.canvas.draw()
-
+            if id==0 and (i%5)==0:
+             
                 # plot immagine Raw
 
                 All2dRaw = self.countsAll2dRaw.T
                 fig3.canvas.flush_events()
-                plt.imshow(All2dRaw, interpolation='nearest', origin='lower',
+                ax3.imshow(All2dRaw, interpolation='nearest', origin='lower',
                            extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
-                if i == 0:
-                    plt.colorbar()
+                
                 plt.title('pixels>zero_suppression threshold')
                 fig3.canvas.draw()
-
-
-                h1.hist(self.bins[:-1], bins=self.bins, weights=self.countsAll, histtype='step', label="raw")
-                h1.hist(self.bins[:-1], bins=self.bins, weights=self.countsAllZeroSupp, histtype='step',
-                        label="pixel thresold")
-                h1.hist(self.bins[:-1], bins=self.bins, weights=self.countsAllClu, histtype='step', label='CLUSTERING')
-                if i == 0:
-                    plt.legend()
-                plt.title('spectra')
-                h1.draw()
-                # plot spettro sizes
-
-                h5.hist(self.binsSize[:-1], bins=self.binsSize, weights=self.h_cluSizeAll, histtype='step',
-                        label='Cluster sizes')
-                if i==1:
-                    plt.legend()
-                plt.title('CLU size')
-                h5.draw()
-
-                # save histos
-                now = time.time()
-                if (now - running) > (j * 600):
-                    j += 1
-                    np.savez(self.file_path + 'spectrum_all_raw' + self.pixMask_suffix, counts=self.countsAll,
-                             bins=self.bins)
-                    np.savez(self.file_path + 'spectrum_all_ZeroSupp' + self.pixMask_suffix + self.cluCut_suffix,
-                             counts=self.countsAllZeroSupp, bins=self.bins)
-                    np.savez(self.file_path + 'spectrum_all_eps' + str(
-                        self.myeps) + self.pixMask_suffix + self.cluCut_suffix,
-                             counts=self.countsAllClu,
-                             bins=self.bins)
-                    np.savez(self.file_path + 'cluSizes_spectrum' + self.pixMask_suffix, counts=self.h_cluSizeAll,
-                             bins=self.binsSize)
-
-                    # save figures
-                    al.write_fitsImage(self.countsAll2dClu,
-                                       self.file_path + 'imageCUL' + self.pixMask_suffix + self.cluCut_suffix + '.fits',
-                                       overwrite="False")
-                    # al.write_fitsImage(image_SW, shots_path+'imageSUM'+pixMask_suffix +'.fits'  , overwrite = "False")
-                    al.write_fitsImage(self.countsAll2dRaw, self.file_path + 'imageRaw' + self.pixMask_suffix + '.fits',
-                                       overwrite="False")
-
-                    # salva vettori con event_list:
-                    print('SAVE_EVENTLIST=', self.SAVE_EVENTLIST)
-                    if self.SAVE_EVENTLIST:
-                        outfileVectors = self.file_path + 'events_list' + self.pixMask_suffix + self.cluCut_suffix + '_v2.npz'
-                        print('writing events in:', outfileVectors)
-                        # al.save_vectors(outfileVectors, w_all, x_allClu, y_allClu,clusizes_all)
-                        np.savez(outfileVectors, w=self.w_all, x_pix=self.x_allClu, y_pix=self.y_allClu,
-                                 sizes=self.clusizes_all)
 
             progress_bar.UpdateBar(i)
             i+=1
