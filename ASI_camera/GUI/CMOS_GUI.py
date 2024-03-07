@@ -13,6 +13,8 @@ from Batch_Sampler import capture
 from gui_analyzer_parallel import aotr2
 #from fakecamera import FakeCam
 import multiprocessing
+import glob
+
 
 if __name__ == "__main__":
     multiprocessing.set_start_method('spawn')  # or 'forkserver'
@@ -93,10 +95,20 @@ if __name__ == "__main__":
         bg_map(bg_shots_path, bg_shots_path + '/mean_ped.fits', bg_shots_path + '/std_ped.fits', args.path)
 
     def Rm_Fits_BKG(path_to_fits): #Cancella i file .FIT nella cartella e la cartella
-        os.remove(path_to_fits + '/*.FIT')
+        file_list = glob.glob(os.path.join(path_to_fits, '*.FIT'))
+        for file_path in file_list:
+            try:
+                os.remove(file_path)
+            except OSError as e:
+                print(f"Errore durante la rimozione di {file_path}: {e}")
 
     def Rm_Fits_Analy(path_to_fits):  # Cancella i file .FIT nella cartella e la cartella
-        os.remove(path_to_fits + '/*.FIT')
+        file_list = glob.glob(os.path.join(path_to_fits, '*.FIT'))
+        for file_path in file_list:
+            try:
+                os.remove(file_path)
+            except OSError as e:
+                print(f"Errore durante la rimozione di {file_path}: {e}")
 
 
     def Analyze(path_to_fit, path_to_bkg, cores, rebins, sigma, cluster, clu, event, raw, eps): #Accede allo script analyze_v2Parallel.py
@@ -512,8 +524,10 @@ if __name__ == "__main__":
                     try:
                         Analyze(fit_folder, bkg_folder_a, nCore, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
                         if values['_SIGNAL_FIT_'] == True:
-                            Rm_Fits_Analy(fit_folder)
-                            sg.popup('fits have been removed')
+                            try:
+                                Rm_Fits_Analy(fit_folder)
+                            except Exception as e:
+                                sg.popup(f"Cannot Remove : {e}")
                     except Exception as e:
                         sg.popup(f"Cannot launch Analyze : {e}")
                 except NameError:
