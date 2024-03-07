@@ -132,8 +132,6 @@ class aotr2:
         # faccio partire i processi
         for processo in processi:
             processo.start()
-        graficatore = multiprocessing.Process(target= self.Plotter)
-        graficatore.start()
 
 
         # Creare una finestra per la barra di avanzamento della cattura delle foto
@@ -335,11 +333,14 @@ class aotr2:
         progress_bar = window_progress['progress']
         i=0
         running = time.time()
-        if id == 0 :
-            j=1
-            plt.ion()
+        j = 1
 
-            fig5, h5,fig, h1 ,fig3, ax3 ,fig2, ax2 = plt.subplots()
+        if id == 0 :
+            plt.ion()
+            fig5, h5 = plt.subplots()
+            fig, h1 = plt.subplots()
+            fig3, ax3 = plt.subplots()
+            fig2, ax2 = plt.subplots()
 
         while True:
             data= data_queue.get()
@@ -418,7 +419,6 @@ class aotr2:
                 self.h_cluSizeAll = self.h_cluSizeAll + h_cluSizes_i
             progress_bar2.update(1)
             if id==0 and (i%10)==0:
-
                 fig2.canvas.flush_events()
                 All2dClu = self.countsAll2dClu.T
                 plt.imshow(All2dClu, interpolation='nearest', origin='lower',
@@ -439,7 +439,7 @@ class aotr2:
                 plt.title('pixels>zero_suppression threshold')
                 fig3.canvas.draw()
 
-                
+
                 h1.hist(self.bins[:-1], bins=self.bins, weights=self.countsAll, histtype='step', label="raw")
                 h1.hist(self.bins[:-1], bins=self.bins, weights=self.countsAllZeroSupp, histtype='step',
                         label="pixel thresold")
