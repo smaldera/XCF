@@ -83,6 +83,8 @@ if __name__ == "__main__":
         config['Settings']['bkg_folder'] = str(bkg_folder)
         config['Settings']['bkg_folder_a'] = str(bkg_folder_a)
         config['Settings']['fit_folder'] = str(fit_folder)
+        config['Settings']['bunch'] = str(bunch)
+
         write_config(config)
 
     def Pedestal(path_to_bkg): #Accede allo script pedestal.py
@@ -142,13 +144,13 @@ if __name__ == "__main__":
         except Exception as e:
             sg.popup(f"Cannot capture fit: {e}")
 
-    def CaptureAndAnalyze2(path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num,leng):
+    def CaptureAndAnalyze2(path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num,leng,bunch):
 
 
         print('make event list in  CaptureAndAnalyze2=',NoEvent)     
         
         OBJ = aotr2(path, sample_size, WB_R, WB_B, EXPO, GAIN, bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent,
-                   Raw, Eps,num ,leng)
+                   Raw, Eps,num ,leng,bunch)
         try:
             OBJ.CaptureAnalyze()
             #CaptureAnalyze(camera, path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
@@ -199,6 +201,7 @@ if __name__ == "__main__":
     bkg_folder = config['Settings']['bkg_folder']
     bkg_folder_a = config['Settings']['bkg_folder_a']
     fit_folder = config['Settings']['fit_folder']
+    bunch = int(config['Settings']['bunch'])
     
     
     
@@ -259,9 +262,9 @@ if __name__ == "__main__":
             sg.In(Eps,    key='_EPS_', enable_events=True,    tooltip="Allows DBSCAN eps parameter",  size=(5, 1)),
         ],
         [#Checkbox per le opzioni aggiuntive
-            sg.Checkbox('Clustering',  key='_CLUSTERING_', tooltip="Clustering On/Off"      , default=True),
-            sg.Checkbox('Event List',  key='_EVENTS_',     tooltip="Makes the Event List"   , default=True),
-            sg.Checkbox('Raw Spectrum',key='_RAW_',        tooltip="Plots the Raw Spectrum" , default=False),
+            sg.Checkbox('Clustering',  key='_CLUSTERING_',enable_events=True, tooltip="Clustering On/Off"      , default=NoClustering),
+            sg.Checkbox('Event List',  key='_EVENTS_',  enable_events=True,   tooltip="Makes the Event List"   , default=NoEvent),
+            sg.Checkbox('Raw Spectrum',key='_RAW_',enable_events=True,        tooltip="Plots the Raw Spectrum" , default=Raw),
         ],
         [#Start dello script
             sg.Button('Start Analysis',     key='_AN_START_',    tooltip="Data anlyser"),
@@ -378,9 +381,17 @@ if __name__ == "__main__":
             sg.In(Eps2,    key='_EPS2_', enable_events=True,    tooltip="Allows DBSCAN eps parameter",  size=(5, 1)),
         ],
         [#Checkbox per le opzioni aggiuntive
-            sg.Checkbox('Clustering',  key='_CLUSTERING2_', tooltip="Clustering On/Off"      , default=True),
-            sg.Checkbox('Event List',  key='_EVENTS2_',     tooltip="Makes the Event List"   , default=True),
-            sg.Checkbox('Raw Spectrum',key='_RAW2_',        tooltip="Plots the Raw Spectrum" , default=False),
+            sg.Checkbox('Clustering',  key='_CLUSTERING2_',enable_events=True, tooltip="Clustering On/Off"      , default=NoClustering2),
+            sg.Checkbox('Event List',  key='_EVENTS2_',  enable_events=True,   tooltip="Makes the Event List"   , default=NoEvent2),
+            sg.Checkbox('Raw Spectrum',key='_RAW2_',   enable_events=True,     tooltip="Plots the Raw Spectrum" , default=Raw2),
+        ],
+        [
+            sg.Text('Save progress: '),
+            sg.In(bunch,    key='_BUNCH_', enable_events=True,    tooltip="the script saves automatically every five minutes"
+                                                                          "\n but can saves also after a certain amount of snaps \n"
+                                                                          "which ever comes first",  size=(5, 1)),
+
+
         ],
 
         [
@@ -601,8 +612,15 @@ if __name__ == "__main__":
             Eps2 = values["_EPS2_"]
             update_config()
 
-
-
+        if event == "_CLUSTERING2_":
+            NoClustering2 = values["_CLUSTERING2_"]
+            update_config()
+        if event == "_EVENTS2_":
+            NoEvent2 = values["_EVENTS2_"]
+            update_config()
+        if event == "_RAW2_":
+            Raw2 = values["_RAW2_"]
+            update_config()
 
        # if values['_CLUSTERING2_'] == False:
        #      NoClustering2 = False
@@ -616,10 +634,10 @@ if __name__ == "__main__":
        #     Raw2 = True
        #     update_config()
 
-        NoEvent2= values['_EVENTS2_']  
-        Raw2 =  values['_RAW2_']   
-        NoClustering2 =values['_CLUSTERING2_']
-        update_config()
+        # NoEvent2= values['_EVENTS2_']
+        # Raw2 =  values['_RAW2_']
+        # NoClustering2 =values['_CLUSTERING2_']
+        # update_config()
         
         if event == "_BKG_FOLDER_2_":
             bkg_folder_b = values["_BKG_FOLDER_2_"]
@@ -630,6 +648,9 @@ if __name__ == "__main__":
         if event == "_LEN_":
             length = values["_LEN_"]
             update_config()
+        if event == "_BUNCH_":
+            bunch = values ["_BUNCH_"]
+            update_config()
 
         if event == "_CAPTURE_AND_ANALYZE_":
             try:
@@ -639,7 +660,7 @@ if __name__ == "__main__":
 
         if event == "_CAPTURE_AND_ANALYZE_PARALLEL_":
             try:
-                CaptureAndAnalyze2(StoreDataIn, int(SampleSize),int(WBR),int(WBB),int(exposure),int(gain),bkg_folder_b, xyRebin2, sigma2, cluster2, NoClustering2, NoEvent2, Raw2, Eps2, int(num) , int(length))
+                CaptureAndAnalyze2(StoreDataIn, int(SampleSize),int(WBR),int(WBB),int(exposure),int(gain),bkg_folder_b, xyRebin2, sigma2, cluster2, NoClustering2, NoEvent2, Raw2, Eps2, int(num) , int(length),int(bunch))
             except Exception as e:
                 sg.popup(f"Cannot launch CaptureAndAnalyze: {e}")
 

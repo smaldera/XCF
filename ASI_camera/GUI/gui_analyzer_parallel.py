@@ -19,7 +19,7 @@ from datetime import datetime
 class aotr2:
     """
     """
-    def __init__(self, file_path, sample_size, WB_R, WB_B, EXPO, GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num ,leng):
+    def __init__(self, file_path, sample_size, WB_R, WB_B, EXPO, GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num ,leng,bunch):
         self.NBINS = 16384  # n.canali ADC (2^14)
         self.XBINS = 2822
         self.YBINS = 4144
@@ -36,6 +36,7 @@ class aotr2:
         self.mean_ped = al.read_image(self.pedfile)
         self.rms_ped = al.read_image(self.pedSigmafile)
         self.num = num
+        self.bunch = bunch
 
         # variabili passate alla camera e relative
         self.WB_R = WB_R
@@ -120,6 +121,7 @@ class aotr2:
 
         data_queue = multiprocessing.Queue()
         data_queue2 = multiprocessing.Queue()
+        data_queue3 = multiprocessing.Queue()
 
         #creo gli analizzatori
 
@@ -127,7 +129,7 @@ class aotr2:
         processi = []
 
         for i in range(numero_analizzatori):
-            processo = multiprocessing.Process(target=self.Analizza, args= ( data_queue, data_queue2, i))
+            processo = multiprocessing.Process(target=self.Analizza, args= ( data_queue, data_queue2, i, data_queue3))
             processi.append(processo)
         # faccio partire i processi
         for processo in processi:
@@ -182,6 +184,8 @@ class aotr2:
 
             temp=[]
             mytime=[]
+            k=1
+            running = time.time()
             for i in tqdm(range (self.sample_size), desc=bar_prefix, colour='green'):
 
                 if(i%100==0): 
@@ -217,6 +221,66 @@ class aotr2:
                         camera.stop_video_capture()
                         camera.start_video_capture()                        
                 progress_bar_capture.UpdateBar(i)
+                analizza_lista = []
+                ####salvare ogni tot
+                now = time.time()
+                if ((i) > ((self.bunch/numero_analizzatori)*k)) or ((now - running)>300) :
+                    if numero_analizzatori==data_queue3.qsize():#se un processo  è tanto più lento può creare disagi
+                        camera.stop_video_capture()
+                        k+=1
+                        running = time.time()
+                        for pr in numero_analizzatori:
+                            ottengo = data_queue3.get()
+                            analizza_lista.append(ottengo)
+                        for asd in range (0,self.num):
+                            if asd == 0:
+                                countsAll2dRaw = analizer_list[i][0]
+                                countsAll2dClu = analizer_list[i][1]
+                                countsAll = analizer_list[i][2]
+                                countsAllZeroSupp = analizer_list[i][3]
+                                countsAllClu = analizer_list[i][4]
+                                h_cluSizeAll = analizer_list[i][5]
+                                w_all = analizer_list[i][6]
+                                x_allClu = analizer_list[i][7]
+                                y_allClu = analizer_list[i][8]
+                                clusizes_all = analizer_list[i][9]
+
+                            if asd > 0:
+                                countsAll2dRaw = countsAll2dRaw + analizer_list[asd][0]
+                                countsAll2dClu = countsAll2dClu + analizer_list[asd][1]
+                                countsAll = countsAll + analizer_list[asd][2]
+                                countsAllZeroSupp = countsAllZeroSupp + analizer_list[asd][3]
+                                countsAllClu = countsAllClu + analizer_list[asd][4]
+                                h_cluSizeAll = h_cluSizeAll + analizer_list[asd][5]
+                                w_all = np.append(w_all, analizer_list[asd][6])
+                                x_allClu = np.append(x_allClu, analizer_list[asd][7])
+                                y_allClu = np.append(y_allClu, analizer_list[asd][8])
+                                clusizes_all = np.append(clusizes_all, analizer_list[asd][9])
+                        #####Salvo i dati parziali
+                        np.savez(self.file_path + 'spectrum_all_raw' + self.pixMask_suffix, counts=countsAll,
+                                 bins=self.bins)
+                        np.savez(self.file_path + 'spectrum_all_ZeroSupp' + self.pixMask_suffix + self.cluCut_suffix,
+                                 counts=countsAllZeroSupp, bins=self.bins)
+                        np.savez(self.file_path + 'spectrum_all_eps' + str(
+                            self.myeps) + self.pixMask_suffix + self.cluCut_suffix, counts=countsAllClu,
+                                 bins=self.bins)
+                        np.savez(self.file_path + 'cluSizes_spectrum' + self.pixMask_suffix, counts=h_cluSizeAll,
+                                 bins=self.binsSize)
+
+                        # save figures
+                        al.write_fitsImage(countsAll2dClu,
+                                           self.file_path + 'imageCUL' + self.pixMask_suffix + self.cluCut_suffix + '.fits',
+                                           overwrite="False")
+                        al.write_fitsImage(countsAll2dRaw,
+                                           self.file_path + 'imageRaw' + self.pixMask_suffix + '.fits',
+                                           overwrite="False")
+                        # salva vettori con event_list:
+                        if self.SAVE_EVENTLIST:
+                            outfileVectors = self.file_path + 'events_list' + self.pixMask_suffix + self.cluCut_suffix + '_v2.npz'
+                            np.savez(outfileVectors, w=w_all, x_pix=x_allClu, y_pix=y_allClu,
+                                     sizes=clusizes_all)
+                        camera.start_video_capture()
+
             window_capture.Close()
             for processo in processi:
                 data_queue.put(None)
@@ -237,6 +301,8 @@ class aotr2:
             processo.join()
 
         for i in range(0, self.num):
+
+
             if i == 0:
                 self.countsAll2dRaw = analizer_list[i].countsAll2dRaw
                 self.countsAll2dClu = analizer_list[i].countsAll2dClu
@@ -260,7 +326,8 @@ class aotr2:
                 self.x_allClu = np.append( self.x_allClu, analizer_list[i].x_allClu)
                 self.y_allClu = np.append( self.y_allClu, analizer_list[i].y_allClu)
                 self.clusizes_all = np.append( self.clusizes_all, analizer_list[i].clusizes_all)
-                
+
+
 
         plt.ioff()
         ###########
@@ -320,7 +387,7 @@ class aotr2:
 
         plt.show()
 
-    def Analizza(self, data_queue, data_queue2,id):
+    def Analizza(self, data_queue, data_queue2,id, data_queue3):
         self.reset_allVariables()
         progress_bar2 = tqdm(total=(self.sample_size/self.num), desc="Analizzatore_" + str(id), colour='green', position=self.num+id)
 
@@ -332,12 +399,8 @@ class aotr2:
 
         progress_bar = window_progress['progress']
         i=0
-        running = time.time()
-        j = 1
-
         if id == 0 :
             plt.ion()
-           
             fig3, ax3 = plt.subplots()
 
 
@@ -418,9 +481,7 @@ class aotr2:
                 self.h_cluSizeAll = self.h_cluSizeAll + h_cluSizes_i
             progress_bar2.update(1)
             if id==0 and (i%5)==0:
-             
                 # plot immagine Raw
-
                 All2dRaw = self.countsAll2dRaw.T
                 fig3.canvas.flush_events()
                 ax3.imshow(All2dRaw, interpolation='nearest', origin='lower',
@@ -428,6 +489,10 @@ class aotr2:
                 
                 plt.title('pixels>zero_suppression threshold')
                 fig3.canvas.draw()
+
+            if i%(self.bunch/self.num)==0:
+                lista = [self.countsAll2dRaw,self.countsAll2dClu ,self.countsAll ,self.countsAllZeroSupp,self.countsAllClu ,self.h_cluSizeAll  , self.w_all ,self.x_allClu, self.y_allClu ,self.clusizes_all]
+                data_queue3.put(lista)
 
             progress_bar.UpdateBar(i)
             i+=1
