@@ -186,6 +186,7 @@ class aotr2:
             mytime=[]
             k=1
             running = time.time()
+            #print ("diemnsione della queue "  + str(data_queue3.qsize()))
             for i in tqdm(range (self.sample_size), desc=bar_prefix, colour='green'):
 
                 if(i%100==0): 
@@ -224,41 +225,44 @@ class aotr2:
                 analizza_lista = []
                 ####salvare ogni tot
                 now = time.time()
-                if (i) > ((self.bunch)*k) :
-                    print ("prima condizione")
-                    if numero_analizzatori==data_queue3.qsize():#se un processo  è tanto più lento può creare disagi
-                        print('Sto salvando i dati')
-                        camera.stop_video_capture()
+                if ((i) >= ((self.bunch)*k)) :
+                   # print ("lunghezza queue " + str(data_queue3.qsize()))
+                    if (numero_analizzatori==data_queue3.qsize()):#se un processo  è tanto più lento può creare disagi
+                       # print('Sto salvando i dati')
+                     #   camera.stop_video_capture()
                         k+=1
                         running = time.time()
-                        for pr in numero_analizzatori:
+                        asd = 0
+                        for asd in range (0,self.num):
                             ottengo = data_queue3.get()
                             analizza_lista.append(ottengo)
+                        asd = 0
                         for asd in range (0,self.num):
                             if asd == 0:
-                                countsAll2dRaw = analizer_list[asd][0]
-                                countsAll2dClu = analizer_list[asd][1]
-                                countsAll = analizer_list[asd][2]
-                                countsAllZeroSupp = analizer_list[asd][3]
-                                countsAllClu = analizer_list[asd][4]
-                                h_cluSizeAll = analizer_list[asd][5]
-                                w_all = analizer_list[asd][6]
-                                x_allClu = analizer_list[asd][7]
-                                y_allClu = analizer_list[asd][8]
-                                clusizes_all = analizer_list[asd][9]
+                                countsAll2dRaw = analizza_lista[asd][0]
+                                countsAll2dClu = analizza_lista[asd][1]
+                                countsAll = analizza_lista[asd][2]
+                                countsAllZeroSupp = analizza_lista[asd][3]
+                                countsAllClu = analizza_lista[asd][4]
+                                h_cluSizeAll = analizza_lista[asd][5]
+                                w_all = analizza_lista[asd][6]
+                                x_allClu = analizza_lista[asd][7]
+                                y_allClu = analizza_lista[asd][8]
+                                clusizes_all = analizza_lista[asd][9]
 
                             if asd > 0:
-                                countsAll2dRaw = countsAll2dRaw + analizer_list[asd][0]
-                                countsAll2dClu = countsAll2dClu + analizer_list[asd][1]
-                                countsAll = countsAll + analizer_list[asd][2]
-                                countsAllZeroSupp = countsAllZeroSupp + analizer_list[asd][3]
-                                countsAllClu = countsAllClu + analizer_list[asd][4]
-                                h_cluSizeAll = h_cluSizeAll + analizer_list[asd][5]
-                                w_all = np.append(w_all, analizer_list[asd][6])
-                                x_allClu = np.append(x_allClu, analizer_list[asd][7])
-                                y_allClu = np.append(y_allClu, analizer_list[asd][8])
-                                clusizes_all = np.append(clusizes_all, analizer_list[asd][9])
+                                countsAll2dRaw = countsAll2dRaw + analizza_lista[asd][0]
+                                countsAll2dClu = countsAll2dClu + analizza_lista[asd][1]
+                                countsAll = countsAll + analizza_lista[asd][2]
+                                countsAllZeroSupp = countsAllZeroSupp + analizza_lista[asd][3]
+                                countsAllClu = countsAllClu + analizza_lista[asd][4]
+                                h_cluSizeAll = h_cluSizeAll + analizza_lista[asd][5]
+                                w_all = np.append(w_all, analizza_lista[asd][6])
+                                x_allClu = np.append(x_allClu, analizza_lista[asd][7])
+                                y_allClu = np.append(y_allClu, analizza_lista[asd][8])
+                                clusizes_all = np.append(clusizes_all, analizza_lista[asd][9])
                         #####Salvo i dati parziali
+                      #  print("scrivo i files!!")
                         np.savez(self.file_path + 'spectrum_all_raw' + self.pixMask_suffix, counts=countsAll,
                                  bins=self.bins)
                         np.savez(self.file_path + 'spectrum_all_ZeroSupp' + self.pixMask_suffix + self.cluCut_suffix,
@@ -281,24 +285,27 @@ class aotr2:
                             outfileVectors = self.file_path + 'events_list' + self.pixMask_suffix + self.cluCut_suffix + '_v2.npz'
                             np.savez(outfileVectors, w=w_all, x_pix=x_allClu, y_pix=y_allClu,
                                      sizes=clusizes_all)
-                        camera.start_video_capture()
+                      #  camera.start_video_capture()
 
             window_capture.Close()
-            for processo in processi:
-                data_queue.put(None)
 
+            asd = 0 
+            for asd in range(0,self.num):
+                data_queue.put(None)
+                
         finally:
             # Arresta l'esposizione e rilascia la telecamera
             camera.stop_exposure()
+
             camera.close()
         analizer_list = []
         #progress_bar_capture.close()
-
         #aspettiamo che tutti i processi siano finiti
         for processo in processi:
-            ret = data_queue2.get()  # will block
+            res = data_queue3.get()  # serve solo per svuotare le queue
+            ret = data_queue2.get()
             analizer_list.append(ret)
-
+        
         for processo in processi:
             processo.join()
 
@@ -392,15 +399,15 @@ class aotr2:
     def Analizza(self, data_queue, data_queue2,id, data_queue3):
         self.reset_allVariables()
         progress_bar2 = tqdm(total=(self.sample_size/self.num), desc="Analizzatore_" + str(id), colour='green', position=self.num+id)
+        if id==0:
 
-        layout = [
-            [sg.Text('Progresso:', size=(10, 1)),
-             sg.ProgressBar((self.sample_size/self.num), orientation='h', size=(20, 20), key='progress')],
-        ]
-        window_progress = sg.Window('Data cruncher number: ' + str(id), layout, finalize=True)
-
-        progress_bar = window_progress['progress']
-        i=0
+            layout = [
+		    [sg.Text('Progresso:', size=(10, 1)),
+		     sg.ProgressBar((self.sample_size/self.num), orientation='h', size=(20, 20), key='progress')],
+		]
+            window_progress = sg.Window('Data cruncher number: ' + str(id), layout, finalize=True)
+            progress_bar = window_progress['progress']
+        i=1
         if id == 0 :
             plt.ion()
             fig3, ax3 = plt.subplots()
@@ -410,10 +417,13 @@ class aotr2:
             data= data_queue.get()
             if data is None:
                 progress_bar2.close()
-                window_progress.Close()
+
+
                 data_queue2.put(self)
                 if (id==0):
+                    window_progress.Close()
                     plt.ioff()
+
                 break
             rms_pedCut = np.mean(self.rms_ped) + self.PIX_CUT_SIGMA * np.std(self.rms_ped)
             # MASCHERA PIXEL RUMOROSI
@@ -482,7 +492,7 @@ class aotr2:
                 h_cluSizes_i, binsSizes_i = np.histogram(clu_sizes, bins=100, range=(0, 100))
                 self.h_cluSizeAll = self.h_cluSizeAll + h_cluSizes_i
             progress_bar2.update(1)
-            if id==0 and (i%5)==0:
+            if (id==0 and (i%5)==0) or ((id==0) and (i==1)):
                 # plot immagine Raw
                 All2dRaw = self.countsAll2dRaw.T
                 fig3.canvas.flush_events()
@@ -492,11 +502,11 @@ class aotr2:
                 plt.title('pixels>zero_suppression threshold')
                 fig3.canvas.draw()
 
-            if i%(self.bunch/self.num)==0:
+            if (i%(int(self.bunch/self.num)))==0:
                 lista = [self.countsAll2dRaw,self.countsAll2dClu ,self.countsAll ,self.countsAllZeroSupp,self.countsAllClu ,self.h_cluSizeAll  , self.w_all ,self.x_allClu, self.y_allClu ,self.clusizes_all]
                 data_queue3.put(lista)
-
-            progress_bar.UpdateBar(i)
+            if id==0:
+            	progress_bar.UpdateBar(i)
             i+=1
 
 
