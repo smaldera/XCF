@@ -224,7 +224,8 @@ class aotr2:
                 analizza_lista = []
                 ####salvare ogni tot
                 now = time.time()
-                if (((i) > ((self.bunch)*k)) or ((now - running)>300)) and i<(self.sample_size-10):
+                if (i) > ((self.bunch)*k) :
+                    print ("prima condizione")
                     if numero_analizzatori==data_queue3.qsize():#se un processo  è tanto più lento può creare disagi
                         print('Sto salvando i dati')
                         camera.stop_video_capture()
