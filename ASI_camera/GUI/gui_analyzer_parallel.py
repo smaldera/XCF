@@ -224,7 +224,7 @@ class aotr2:
                 analizza_lista = []
                 ####salvare ogni tot
                 now = time.time()
-                if ((i) > ((self.bunch/numero_analizzatori)*k)) or ((now - running)>300) :
+                if ((i) > ((self.bunch)*k)) or ((now - running)>300) :
                     if numero_analizzatori==data_queue3.qsize():#se un processo  è tanto più lento può creare disagi
                         camera.stop_video_capture()
                         k+=1
@@ -234,16 +234,16 @@ class aotr2:
                             analizza_lista.append(ottengo)
                         for asd in range (0,self.num):
                             if asd == 0:
-                                countsAll2dRaw = analizer_list[i][0]
-                                countsAll2dClu = analizer_list[i][1]
-                                countsAll = analizer_list[i][2]
-                                countsAllZeroSupp = analizer_list[i][3]
-                                countsAllClu = analizer_list[i][4]
-                                h_cluSizeAll = analizer_list[i][5]
-                                w_all = analizer_list[i][6]
-                                x_allClu = analizer_list[i][7]
-                                y_allClu = analizer_list[i][8]
-                                clusizes_all = analizer_list[i][9]
+                                countsAll2dRaw = analizer_list[asd][0]
+                                countsAll2dClu = analizer_list[asd][1]
+                                countsAll = analizer_list[asd][2]
+                                countsAllZeroSupp = analizer_list[asd][3]
+                                countsAllClu = analizer_list[asd][4]
+                                h_cluSizeAll = analizer_list[asd][5]
+                                w_all = analizer_list[asd][6]
+                                x_allClu = analizer_list[asd][7]
+                                y_allClu = analizer_list[asd][8]
+                                clusizes_all = analizer_list[asd][9]
 
                             if asd > 0:
                                 countsAll2dRaw = countsAll2dRaw + analizer_list[asd][0]
