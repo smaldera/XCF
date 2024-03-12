@@ -188,7 +188,7 @@ class aotr2:
             running = time.time()
             #print ("diemnsione della queue "  + str(data_queue3.qsize()))
             for i in tqdm(range (self.sample_size), desc=bar_prefix, colour='green'):
-
+                 
                 if(i%100==0): 
                     t=camera.get_control_value(asi.ASI_TEMPERATURE)[0]/10.
                     temp.append(t)
@@ -225,6 +225,7 @@ class aotr2:
                 analizza_lista = []
                 ####salvare ogni tot
                 now = time.time()
+
                 if ((i) >= ((self.bunch)*k)) :
                    # print ("lunghezza queue " + str(data_queue3.qsize()))
                     if (numero_analizzatori==data_queue3.qsize()):#se un processo  è tanto più lento può creare disagi
@@ -286,9 +287,10 @@ class aotr2:
                             np.savez(outfileVectors, w=w_all, x_pix=x_allClu, y_pix=y_allClu,
                                      sizes=clusizes_all)
                       #  camera.start_video_capture()
+                
 
             window_capture.Close()
-
+            print("sono uscito dal loop")
             asd = 0 
             for asd in range(0,self.num):
                 data_queue.put(None)
@@ -301,11 +303,15 @@ class aotr2:
         analizer_list = []
         #progress_bar_capture.close()
         #aspettiamo che tutti i processi siano finiti
+        time.sleep(2)
+        
+        
+        for j in range(0,data_queue3.qsize()):
+        	res = data_queue3.get()  # serve solo per svuotare le queue
         for processo in processi:
-            res = data_queue3.get()  # serve solo per svuotare le queue
             ret = data_queue2.get()
             analizer_list.append(ret)
-        
+       
         for processo in processi:
             processo.join()
 
@@ -410,15 +416,14 @@ class aotr2:
         i=1
         if id == 0 :
             plt.ion()
-            fig3, ax3 = plt.subplots()
+            fig3, ax3 = plt.subplots( nrows = 1, ncols = 2)
 
 
         while True:
             data= data_queue.get()
+
             if data is None:
                 progress_bar2.close()
-
-
                 data_queue2.put(self)
                 if (id==0):
                     window_progress.Close()
@@ -492,14 +497,19 @@ class aotr2:
                 h_cluSizes_i, binsSizes_i = np.histogram(clu_sizes, bins=100, range=(0, 100))
                 self.h_cluSizeAll = self.h_cluSizeAll + h_cluSizes_i
             progress_bar2.update(1)
-            if (id==0 and (i%5)==0) or ((id==0) and (i==1)):
+            if (id==0 and (i%10)==0) :
                 # plot immagine Raw
                 All2dRaw = self.countsAll2dRaw.T
                 fig3.canvas.flush_events()
-                ax3.imshow(All2dRaw, interpolation='nearest', origin='lower',
+
+                ax3[0].imshow(All2dRaw, interpolation='nearest', origin='lower',
                            extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
-                
-                plt.title('pixels>zero_suppression threshold')
+                ax3[0].set_title("Image Raw")
+                #ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAll, histtype='step', label="raw")
+                ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllZeroSupp, histtype='step', label="pixel thresold", color = "green")
+                #ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllClu, histtype='step', label='CLUSTERING')
+                ax3[1].set_xlim([0,10000])
+                ax3[1].set_title("Spettro")
                 fig3.canvas.draw()
 
             if (i%(int(self.bunch/self.num)))==0:
