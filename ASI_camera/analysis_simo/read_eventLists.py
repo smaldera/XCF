@@ -22,7 +22,7 @@ from  histogramSimo import histogramSimo
 
 cut='None'
 
-x_inf = 1000
+x_inf = 0
 x_sup = 2000
 y_inf = 1000
 y_sup = 2000
@@ -72,14 +72,14 @@ size_all=np.array([])
 
 for f in ff:
     print(f)
-    #w, x,y,size=al.retrive_vectors(f[:-1])
-    w, x,y=al.retrive_vectors(f[:-1])
+    w, x,y,size=al.retrive_vectors(f[:-1])
+    #w, x,y=al.retrive_vectors(f[:-1])
    
    # print(size)
     w_all=np.append(w_all,w)
     x_all=np.append(x_all,x)
     y_all=np.append(y_all,y)
-#    size_all=np.append(size_all,size)
+    size_all=np.append(size_all,size)
 
 
 #mask_n=[1]*1e6
@@ -97,10 +97,10 @@ if cut=='xy':
     myCut_pos=np.where( (x_all>x_inf)&(x_all<x_sup)&(y_all>y_inf)&(y_all<y_sup) )
     myCut=np.where( w_all>0 )
 if cut=='None':
-    myCut=np.where(( w_all>100) )
-    #myCut=np.where(( ( w_all*calP1+calP0)<0.065)|( ( w_all*calP1+calP0)>0.08)   )
+    #myCut=np.where(( w_all>100))
+    myCut=np.where(( ( w_all*calP1+calP0)<10.5 )&( ( w_all*calP1+calP0)>9.5)   )
     #myCut=np.where(  ((w_all*calP1+calP0)>0.03)& (size==2) )
-    #myCut=np.where( (x_all>x_inf)&(x_all<x_sup)&(y_all>y_inf)&(y_all<y_sup)& (size>1)  ) 
+    #myCut=np.where( (x_all>x_inf)&(x_all<x_sup)&(y_all>y_inf)&(y_all<y_sup)& (w_all>100)  ) 
     myCut_pos=myCut
     
 #myCut=np.where( (w_all>2390)&(w_all<2393)  )
@@ -150,7 +150,7 @@ print("x = ", binsE)
 print()
 ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="energy w. clustering")
 ax2.set_xlabel('E[keV]')
-ax2.set_xlim([0,10])
+ax2.set_xlim([0,15])
 ax2.set_yscale('log')
 ax2.legend()
 

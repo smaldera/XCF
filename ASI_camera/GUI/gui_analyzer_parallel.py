@@ -14,7 +14,8 @@ import PySimpleGUI as sg
 from datetime import datetime
 
 
-
+calP1= 0.00321327
+calP0=-0.0032013
 #inserire variabili globali
 class aotr2:
     """
@@ -502,13 +503,14 @@ class aotr2:
                 All2dRaw = self.countsAll2dRaw.T
                 fig3.canvas.flush_events()
 
-                ax3[0].imshow(All2dRaw, interpolation='nearest', origin='lower',
+                ax3[0].imshow(np.log10(All2dRaw), interpolation='nearest', origin='lower',
                            extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
                 ax3[0].set_title("Image Raw")
                 #ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAll, histtype='step', label="raw")
+                self.bins=calP0+calP1*self.bins
                 ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllZeroSupp, histtype='step', label="pixel thresold", color = "green")
                 #ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllClu, histtype='step', label='CLUSTERING')
-                ax3[1].set_xlim([0,10000])
+                ax3[1].set_xlim([0,12])
                 ax3[1].set_title("Spettro")
                 fig3.canvas.draw()
 

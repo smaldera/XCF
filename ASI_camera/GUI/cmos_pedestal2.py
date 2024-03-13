@@ -28,6 +28,7 @@ def plot_pixel_dist(file_list, pixel):
 def bg_map(bg_shots_path, outMeanPed_file, outStdPed_file, ny=4144, nx=2822, draw=1, hist_pixel=None):
     # lista file immagini:
     f = glob.glob(bg_shots_path + "/*.FIT")
+    len_fil = len(f)
 
     print("pedestals from :", bg_shots_path)
 
@@ -45,7 +46,7 @@ def bg_map(bg_shots_path, outMeanPed_file, outStdPed_file, ny=4144, nx=2822, dra
     custom_style = "{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]"
 
     layout = [
-        [sg.Text('Progresso:', size=(10, 1)), sg.ProgressBar(100, orientation='h', size=(20, 20), key='progress')],
+        [sg.Text('Progresso:', size=(10, 1)), sg.ProgressBar(len_fil, orientation='h', size=(20, 20), key='progress')],
         
     ]
 
