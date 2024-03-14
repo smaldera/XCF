@@ -511,6 +511,7 @@ class aotr2:
                 ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllZeroSupp, histtype='step', label="pixel thresold", color = "green")
                 #ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllClu, histtype='step', label='CLUSTERING')
                 ax3[1].set_xlim([0,12])
+                ax3[1].set_yscale('log')               
                 ax3[1].set_title("Spettro")
                 fig3.canvas.draw()
 
