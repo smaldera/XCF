@@ -97,8 +97,8 @@ if cut=='xy':
     myCut_pos=np.where( (x_all>x_inf)&(x_all<x_sup)&(y_all>y_inf)&(y_all<y_sup) )
     myCut=np.where( w_all>0 )
 if cut=='None':
-    #myCut=np.where(( w_all>100))
-    myCut=np.where(( ( w_all*calP1+calP0)<10.5 )&( ( w_all*calP1+calP0)>9.5)   )
+    myCut=np.where(( w_all>100))
+   # myCut=np.where(( ( w_all*calP1+calP0)<10.5 )&( ( w_all*calP1+calP0)>9.5)   )
     #myCut=np.where(  ((w_all*calP1+calP0)>0.03)& (size==2) )
     #myCut=np.where( (x_all>x_inf)&(x_all<x_sup)&(y_all>y_inf)&(y_all<y_sup)& (w_all>100)  ) 
     myCut_pos=myCut
