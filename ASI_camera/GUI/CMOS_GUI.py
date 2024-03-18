@@ -5,7 +5,8 @@ import subprocess
 import argparse
 import zwoasi as asi
 import configparser
-from cmos_pedestal2 import bg_map
+from cmos_pedestal import bg_map
+from cmos_pedestal2 import bg_map_rt
 from utils_v2 import read_image
 from utils_v2 import plot_image
 from utils_v2 import isto_all
@@ -96,6 +97,13 @@ if __name__ == "__main__":
         bg_shots_path = args.inFile
         bg_map(bg_shots_path, bg_shots_path + '/mean_ped.fits', bg_shots_path + '/std_ped.fits', args.path)
 
+    def Pedestal2(path_to_bkg,sample_size,GAIN,WB_B,WB_R,EXPO): #Accede allo script pedestal.py
+        try:
+            bg_map_rt(path_to_bkg + '/mean_ped.fits', path_to_bkg + '/std_ped.fits', sample_size,GAIN,WB_B,WB_R,EXPO)
+        except Exception as e:
+            sg.popup(f" there are trobles: {e}")
+
+
     def Rm_Fits_BKG(path_to_fits): #Cancella i file .FIT nella cartella e la cartella
         file_list = glob.glob(os.path.join(path_to_fits, '*.FIT'))
         for file_path in file_list:
@@ -146,9 +154,6 @@ if __name__ == "__main__":
 
     def CaptureAndAnalyze2(path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num,leng,bunch):
 
-
-        print('make event list in  CaptureAndAnalyze2=',NoEvent)     
-        
         OBJ = aotr2(path, sample_size, WB_R, WB_B, EXPO, GAIN, bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent,
                    Raw, Eps,num ,leng,bunch)
         try:
@@ -170,7 +175,7 @@ if __name__ == "__main__":
             2+2
             #to be implemented
 
-
+    #recupero configurazioni utilizzate in precedenza
     config = read_config()
 
     nCore = int(config['Settings']['nCore'])
@@ -202,15 +207,6 @@ if __name__ == "__main__":
     bkg_folder_a = config['Settings']['bkg_folder_a']
     fit_folder = config['Settings']['fit_folder']
     bunch = int(config['Settings']['bunch'])
-    
-    
-    
-    
-    
-
-    TBackground = [ #Prima Tab per il calcolo del BackGround
-
-    ]
 
     TAnalyze = [ #Seconda tab per l'analisi del segnale
         [
@@ -274,10 +270,9 @@ if __name__ == "__main__":
     ]
 
 
-    TCamera = [ #Terza tab per visualizzare la lista eventi
+    TCamera = [ #Prima tab per cattura e analizza
 
         [
-            #sg.Text('Camera infos', font=('Helvetica', 15), text_color='Green')
 
         ],
         [
@@ -286,26 +281,9 @@ if __name__ == "__main__":
             sg.Button('Update', key='_CAMERA_UPDATE_', tooltip="Check if a ZWO ASI camera is connected")
 
         ],
-        [
-            # sg.Text("CLICK ON TEST TO TAKE A SNAP. TIFF FILE"),
-            # sg.Button('CAMERA TEST1',     key='_CAMERA_TEST_',    tooltip="CAMERA TRYS TO TAKE A FOTO")
-        ],[ sg.Text("")
+        [ #sg.Text("")
             ],
-        # [
-        #     sg.Text('Test', font=('Helvetica', 20), text_color='Green')
-        # ],[
-        #     ],
-        # [
-        #     sg.Text("This will take a snap and save it as .fit  in the folder of execution")
-        # ],
-        # [
-        #     sg.Text("Destination folder    ", tooltip="Location to save files"),
-        #     sg.In(size=(15, 1), enable_events=True, key="_FITS_FOLDER_"),
-        #     sg.FolderBrowse(),
-        #     sg.Button('Test',     key='_CAMERA_TEST2_',    tooltip="camera will take a snap and save it as fits")
-        # ],
-        # [    sg.Text(" "),
-        # ],
+
         [
             sg.Text('Camera settings', font=('Helvetica', 15), text_color='Green')
 
@@ -318,7 +296,7 @@ if __name__ == "__main__":
             sg.FolderBrowse(),
 
         ],
-        [   sg.Text("Exposure (mu-s?)  ", tooltip="how long ?"),
+        [   sg.Text("Exposure (mu-s)  ", tooltip="how long ?"),
             sg.In(exposure,size=(5, 1), enable_events=True, key="_EXPOSURE_"),
             sg.Text("   Exposure  gain        ", tooltip=""),
             sg.In(gain,size=(5, 1), enable_events=True, key="_GAIN_"),
@@ -335,46 +313,41 @@ if __name__ == "__main__":
         ],
 
         [
-            sg.Button('Batch collecting', key='_COLLECT_DATA_', tooltip="This will ONLY collect data")
+            sg.Button('Capture Data', key='_COLLECT_DATA_', tooltip="This will ONLY collect data"),
+            sg.Button('Capture and make BKG', key='_NOISE2_', tooltip="This will collect data and make BKG", )
 
         ],[
         sg.Text(" "),
         ],
         [
             sg.Text('Analysis Settings', font=('Helvetica', 15), text_color='Green'),
-
-
         ],
         [
-
-
         ],
         [
-            sg.Text(    "Note: previus section needs to be filled to set camera values",
+            sg.Text(    "Note: previous section needs to be filled to set camera values",
                 tooltip="capture and analyze data.     "),
         ],
         [
-
-            sg.Text("BKG folder ", tooltip="Folder conteining std_ped.fits and mean_ped.fits"),
+            sg.Text("BKG folder ", tooltip="Folder containing std_ped.fits and mean_ped.fits"),
             sg.In(bkg_folder_b,size=(15, 1), enable_events=True, key="_BKG_FOLDER_2_"),
             sg.FolderBrowse(),
-
         ],
         [
             sg.Text('N. analyzer'),
             sg.In(num, key='_NUM_', enable_events=True, tooltip="number of parallel process to analyze data", size=(5, 1)),
             sg.Text('Max queue        '),
-            sg.In(length, key='_LEN_', enable_events=True, tooltip=" lenght for the analyzer queue. the queue is stored in the RAM. lenght of 100 is approximately 2.3GB ", size=(5, 1)),
+            sg.In(length, key='_LEN_', enable_events=True, tooltip="max lenght for the analyzer queue. the queue is stored in the RAM. 100 items is approximately 2.3GB ", size=(5, 1)),
 
         ],
-
 
         [#InputBox per i parametri dello script
             sg.Text('XY Rebin    '),
             sg.In(xyRebin2,    key='_REBIN2_', enable_events=True,  tooltip="Rebin XY",                     size=(5, 1)),
             sg.Text('Sigma Cut        '),
             sg.In(sigma2,    key='_SIGMA2_', enable_events=True,  tooltip="Cuts based on n*RMS",          size=(5, 1)),
-            ],[
+            ],
+        [
             sg.Text('Cluster Cut '),
             sg.In(cluster2,    key='_CLUSTER2_', enable_events=True,tooltip="Cuts based on mean + n*RMS",   size=(5, 1)),
             sg.Text('EPS parameter'),
@@ -390,40 +363,24 @@ if __name__ == "__main__":
             sg.In(bunch,    key='_BUNCH_', enable_events=True,    tooltip="the script saves automatically every five minutes"
                                                                           "\n but can saves also after a certain amount of snaps \n"
                                                                           "which ever comes first",  size=(5, 1)),
-
-
         ],
-
         [
             #sg.Button('Collect and Analyze Real Time', key='_CAPTURE_AND_ANALYZE_', tooltip="Start data acquiring and analysis"),
-            sg.Button('Collect and Analyze in Parallel', key='_CAPTURE_AND_ANALYZE_PARALLEL_',
+            sg.Button('Collect and Analyze', key='_CAPTURE_AND_ANALYZE_PARALLEL_',
                       tooltip="Start data acquiring and analysis")
         ],
-        [
-
-        ],
-
-
-
-
-        [
-
-        ],
-
         ]
 
 
 
 
-
-
     # ----- Full layout -----
-    Tab3 = sg.Tab("Analyze", TAnalyze)
-    Tab1 = sg.Tab("Camera", TCamera)
+    Tab3 = sg.Tab("bkg and analysis", TAnalyze)
+    Tab1 = sg.Tab(" Camera control", TCamera)
 
     TabGrp = sg.TabGroup([[Tab1,Tab3]], tab_location='centertop',
                          selected_title_color='Green', selected_background_color='Gray', border_width=3)
-    window = sg.Window("CMOS analyzer 0.9", [[TabGrp]])
+    window = sg.Window("CMOS controller and data analizer", [[TabGrp]])
 
     # ----- Commands -----
     while True:
@@ -465,7 +422,7 @@ if __name__ == "__main__":
                         except Exception as e:
                             sg.popup(f"Cannot remove fits : {e}")
                 except Exception as e:
-                    sg.popup('An ERROR OCCURRED: cannot lauch pedesta: {e}')
+                    sg.popup('An ERROR OCCURRED: cannot launch pedesta: {e}')
 
             else:
                 sg.popup_annoying('Dir not found')
@@ -481,8 +438,7 @@ if __name__ == "__main__":
         if event == "_FIT_FOLDER_": #Folder with .FIT files
             if os.path.exists(values["_FIT_FOLDER_"]):
                 fit_folder = values["_FIT_FOLDER_"]
-            # else:
-            #     sg.popup('Dir not found')
+
 
         if event == "_CORE_":
             if (values['_CORE_'] in ('0123456789')):   #Rebin number
@@ -545,20 +501,12 @@ if __name__ == "__main__":
                     sg.popup('location of bkg is not defined.')
             except NameError:
                 sg.popup('location of data is not defined.')
-        #if event == "_AN_START_":
-        #     Analyze(fit_folder, bkg_folder_a, nCore, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
 
         #-------------------------------------CAMERA-----------------------------------
 
         if event == "_FITS_FOLDER_":
             fitin=values["_FITS_FOLDER_"]
             update_config()
-
-        if event == "_CAMERA_TEST2_":
-            try:
-                CameraTest2(fitin)
-            except Exception as e:
-                sg.popup(f"cannot connect: {e}")
 
         if event == "_CAMERA_UPDATE_":
             try:
@@ -585,7 +533,6 @@ if __name__ == "__main__":
         if event == "_SAMPLE_SIZE_":
             SampleSize=values["_SAMPLE_SIZE_"]
             update_config()
-
         if event == "_FILE_NAME_":
                 file_name = values["_FILE_NAME_"]
                 update_config()
@@ -601,7 +548,6 @@ if __name__ == "__main__":
         if event == "_REBIN2_":
             xyRebin2 = values["_REBIN2_"]
             update_config()
-
         if event == "_SIGMA2_":
             sigma2 = values["_SIGMA2_"]
             update_config()
@@ -611,7 +557,6 @@ if __name__ == "__main__":
         if event == "_EPS2_":
             Eps2 = values["_EPS2_"]
             update_config()
-
         if event == "_CLUSTERING2_":
             NoClustering2 = values["_CLUSTERING2_"]
             update_config()
@@ -621,24 +566,6 @@ if __name__ == "__main__":
         if event == "_RAW2_":
             Raw2 = values["_RAW2_"]
             update_config()
-
-       # if values['_CLUSTERING2_'] == False:
-       #      NoClustering2 = False
-       #      update_config()
-
-       # if values['_EVENTS2_'] == False:
-       #     NoEvent2= False
-       #     update_config()
-
-       # if values['_RAW2_'] == True:
-       #     Raw2 = True
-       #     update_config()
-
-        # NoEvent2= values['_EVENTS2_']
-        # Raw2 =  values['_RAW2_']
-        # NoClustering2 =values['_CLUSTERING2_']
-        # update_config()
-        
         if event == "_BKG_FOLDER_2_":
             bkg_folder_b = values["_BKG_FOLDER_2_"]
             update_config()
@@ -652,11 +579,15 @@ if __name__ == "__main__":
             bunch = values ["_BUNCH_"]
             update_config()
 
-        if event == "_CAPTURE_AND_ANALYZE_":
-            try:
-                CaptureAndAnalyze(StoreDataIn, int(SampleSize),int(WBR),int(WBB),int(exposure),int(gain),bkg_folder_b, xyRebin2, sigma2, cluster2, NoClustering2, NoEvent2, Raw2, Eps2)
-            except Exception as e:
-                sg.popup(f"Cannot launch CaptureAndAnalyze: {e}")
+        if event == "_NOISE2_":
+            if os.path.exists(values["_DATA_FOLDER_"]):
+                try:
+                    Pedestal2(StoreDataIn, int(SampleSize), int(gain), int(WBB), int(WBR), int(exposure))
+                    sg.popup('BKG ready to use')
+                except Exception as e:
+                    sg.popup('An ERROR OCCURRED: cannot launch pedesta: {e}')
+            else:
+                sg.popup('Dir not found')
 
         if event == "_CAPTURE_AND_ANALYZE_PARALLEL_":
             try:
