@@ -94,7 +94,17 @@ def save_vectors2(out_file, supp_weightsAll,x_pix,y_pix,n_img):
     
 def save_histo(outHisto_name,countsAll,bins):
     np.savez(outHisto_name,counts=countsAll,bins=bins)
-     
+
+
+    
+def retrive_vectors2(nomefile):
+    data=np.load(nomefile)
+    w=data['w']
+    x_pix=data['x_pix']
+    y_pix=data['y_pix']
+    size=data['sizes']
+    return w,x_pix,y_pix,size
+    
 def retrive_vectors(nomefile):
     data=np.load(nomefile)
     w=data['w']
