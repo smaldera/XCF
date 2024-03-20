@@ -142,10 +142,11 @@ int  main(int argc, char *argv[])
 	Image_type=2; // raw 16?
 	//	int myGain=120;
 	
-	while(ASI_SUCCESS != ASISetROIFormat(CamNum, width, height, bin, (ASI_IMG_TYPE)ASI_IMG_RAW16));//IMG_RAW16 ?????
+	//while(ASI_SUCCESS != ASISetROIFormat(CamNum, width, height, bin, (ASI_IMG_TYPE)ASI_IMG_RAW16));//IMG_RAW16 ?????
+	while(ASI_SUCCESS != ASISetROIFormat(CamNum, width, height, bin, (ASI_IMG_TYPE)ASI_IMG_RAW8));//IMG_RAW16 ?????
 
 	ASIGetROIFormat(CamNum, &width, &height, &bin, (ASI_IMG_TYPE*)&Image_type);
-	printf("\nset image format %d %d %d %d success, start privew, press ESC to stop \n", width, height, bin, Image_type);
+	//printf("\nset image format %d %d %d %d success, start privew, press ESC to stop \n", width, height, bin, Image_type);
 
 	
 	
@@ -161,8 +162,14 @@ int  main(int argc, char *argv[])
 	//ASISetControlValue(CamNum, ASI_EXPOSURE, exp_ms*1000, ASI_FALSE);
 	ASISetControlValue(CamNum, ASI_EXPOSURE, exp_us, ASI_FALSE);
 	ASISetControlValue(CamNum, ASI_BANDWIDTHOVERLOAD, 95, ASI_FALSE);
-	
+	ASISetControlValue(CamNum, ASI_HIGH_SPEED_MODE, 1, ASI_FALSE);
 
+	long lbw = 0;
+	//	ASIGetControlValue(CamNum, ASI_BANDWIDTH, &lbw, &bAuto);
+	//printf("bandwd:%02f\n", lXSbw);
+
+	cout<<"bandwidth= "<< ASICameraInfo.BandWidth<<endl;
+	
 	cout<<" SIMO: ... starting exposures"<<endl;
 
 	ASI_EXPOSURE_STATUS status;
@@ -172,15 +179,18 @@ int  main(int argc, char *argv[])
 	  cout<<" taking shot n. "<<n<<endl;
 	  ASIStartExposure(CamNum, ASI_FALSE);
 	 
-	  usleep(1000);//1ms
+	  //usleep(10000);//1ms
 	  status = ASI_EXP_WORKING;
 	  while(status == ASI_EXP_WORKING){
 			ASIGetExpStatus(CamNum, &status);		
 	  }
+
 	  if(status == ASI_EXP_SUCCESS){
-			ASIGetDataAfterExp(CamNum, imgBuf, imgSize);
+		       ASIGetDataAfterExp(CamNum, imgBuf, imgSize);
 	  }		
 
+	 
+	  
 	  unsigned short *pImg16bit = (unsigned short *)imgBuf;
 
 	 
