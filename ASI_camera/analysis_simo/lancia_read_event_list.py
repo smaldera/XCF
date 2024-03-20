@@ -19,7 +19,7 @@ cmd='ls  '+path+filename+'  > '+path+'/file_list.txt'
 print("sto per eseguire:",cmd)
 os.system(cmd)
 
-cmd='python read_eventLists.py -in '+path+"/event_list.txt  -dir "+path
+cmd='python read_eventLists.py -in '+path+"/file_list.txt  -dir "+path
 
 print("sto per eseguire:",cmd)
 os.system(cmd)
