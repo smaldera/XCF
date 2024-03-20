@@ -12,6 +12,7 @@ from astropy.io import fits
 import multiprocessing
 import PySimpleGUI as sg
 from datetime import datetime
+from multiprocessing import Manager, Lock
 
 
 calP1= 0.00321327
@@ -102,6 +103,17 @@ class aotr2:
         self.y_allClu = np.empty(0)
         self.w_all = np.empty(0)
         self.clusizes_all = np.empty(0)
+    def recover_data(self, data_buffer):
+        self.countsAll2dRaw = data_buffer[0]
+        self.countsAll2dClu = data_buffer[1]
+        self.countsAll = data_buffer[2]
+        self.countsAllZeroSupp = data_buffer[3]
+        self.countsAllClu = data_buffer[4]
+        self.h_cluSizeAll = data_buffer[5]
+        self.w_all = data_buffer[6]
+        self.x_allClu = data_buffer[7]
+        self.y_allClu = data_buffer[8]
+        self.clusizes_all = data_buffer[9]
         
     def CaptureAnalyze(self):
         try:
@@ -117,20 +129,29 @@ class aotr2:
             raise
         except:
             pass
-
-
-
+        #lock blocca l'accesso contemporaneo ai dati condivisi dai processi
+        lock = Lock()
+        #creo e praparo gli oggetti per scambiare dati tra i processi
+        manager = Manager()
+        data_buffer = manager.list(range(10))
+        data_buffer[0] = self.countsAll2dRaw
+        data_buffer[1] =self.countsAll2dClu
+        data_buffer[2] =self.countsAll
+        data_buffer[3] =self.countsAllZeroSupp
+        data_buffer[4] =self.countsAllClu
+        data_buffer[5] =self.h_cluSizeAll
+        data_buffer[6] =self.w_all
+        data_buffer[7] =self.x_allClu
+        data_buffer[8] =self.y_allClu
+        data_buffer[9] =self.clusizes_all
         data_queue = multiprocessing.Queue()
-        data_queue2 = multiprocessing.Queue()
-        data_queue3 = multiprocessing.Queue()
 
         #creo gli analizzatori
-
         numero_analizzatori = self.num
         processi = []
 
         for i in range(numero_analizzatori):
-            processo = multiprocessing.Process(target=self.Analizza, args= ( data_queue, data_queue2, i, data_queue3))
+            processo = multiprocessing.Process(target=self.Analizza, args= ( data_queue, i,data_buffer, lock))
             processi.append(processo)
         # faccio partire i processi
         for processo in processi:
@@ -145,19 +166,7 @@ class aotr2:
 
         progress_bar_capture = window_capture['progress_capture']
 
-
-
-        # for i in tqdm(range(self.sample_size), colour='green'):
-        #     # Ottieni i dati dell'immagine
-        #     data = np.empty((2822, 4144), dtype=np.uint16)
-        #     data = camera.capture()
-        #     data_queue.put(data)
-        #     progress_bar_capture.UpdateBar(i)
-        #
-        #
-        # for processo in processi:
-        #     data_queue.put(None)
-        
+        #gestiamo la camera
         try:
             #Use minimum USB bandwidth permitted
             #camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, camera.get_controls()['BandWidth']['MaxValue'])
@@ -179,16 +188,15 @@ class aotr2:
             timeout = (camera.get_control_value(asi.ASI_EXPOSURE)[0] / 1000) * 2 + 10500
             camera.default_timeout = timeout
 
- 
-            
-            bar_prefix = 'acquiring data'
-
             temp=[]
             mytime=[]
+            #contatore per salvare
             k=1
-            running = time.time()
-            #print ("diemnsione della queue "  + str(data_queue3.qsize()))
-            for i in tqdm(range (self.sample_size), desc=bar_prefix, colour='green'):
+            #attivo modalità interattiva pyplot
+            plt.ion()
+            #creo il grafico
+            fig3, ax3 = plt.subplots(nrows=1, ncols=2)
+            for i in tqdm(range (self.sample_size), desc='acquiring data', colour='green'):
                  
                 if(i%100==0): 
                     t=camera.get_control_value(asi.ASI_TEMPERATURE)[0]/10.
@@ -224,132 +232,80 @@ class aotr2:
                         camera.start_video_capture()                        
                 progress_bar_capture.UpdateBar(i)
                 analizza_lista = []
+
+                if i%10 == 0:
+                    self.recover_data(data_buffer)
+                    All2dRaw = self.countsAll2dRaw.T
+                    fig3.canvas.flush_events()
+                    ax3[0].imshow(np.log10(All2dRaw), interpolation='nearest', origin='lower',
+                                  extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
+                    ax3[0].set_title("Image Raw")
+                    # ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAll, histtype='step', label="raw")
+                    self.bins = calP0 + calP1 * self.bins
+                    ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllZeroSupp, histtype='step', label="pixel thresold", color = "green")
+                    #ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllClu, histtype='step', label='CLUSTERING')
+                    # ax3[1].set_xlim([0,12])
+                    ax3[1].set_title("Spettro")
+                    fig3.canvas.draw()
+
                 ####salvare ogni tot
-                now = time.time()
-
                 if ((i) >= ((self.bunch)*k)) :
-                   # print ("lunghezza queue " + str(data_queue3.qsize()))
-                    if (numero_analizzatori==data_queue3.qsize()):#se un processo  è tanto più lento può creare disagi
-                       # print('Sto salvando i dati')
-                     #   camera.stop_video_capture()
-                        k+=1
-                        running = time.time()
-                        asd = 0
-                        for asd in range (0,self.num):
-                            ottengo = data_queue3.get()
-                            analizza_lista.append(ottengo)
-                        asd = 0
-                        for asd in range (0,self.num):
-                            if asd == 0:
-                                countsAll2dRaw = analizza_lista[asd][0]
-                                countsAll2dClu = analizza_lista[asd][1]
-                                countsAll = analizza_lista[asd][2]
-                                countsAllZeroSupp = analizza_lista[asd][3]
-                                countsAllClu = analizza_lista[asd][4]
-                                h_cluSizeAll = analizza_lista[asd][5]
-                                w_all = analizza_lista[asd][6]
-                                x_allClu = analizza_lista[asd][7]
-                                y_allClu = analizza_lista[asd][8]
-                                clusizes_all = analizza_lista[asd][9]
+                    #aumento il contatore
+                    k+=1
+                    self.recover_data(data_buffer)
 
-                            if asd > 0:
-                                countsAll2dRaw = countsAll2dRaw + analizza_lista[asd][0]
-                                countsAll2dClu = countsAll2dClu + analizza_lista[asd][1]
-                                countsAll = countsAll + analizza_lista[asd][2]
-                                countsAllZeroSupp = countsAllZeroSupp + analizza_lista[asd][3]
-                                countsAllClu = countsAllClu + analizza_lista[asd][4]
-                                h_cluSizeAll = h_cluSizeAll + analizza_lista[asd][5]
-                                w_all = np.append(w_all, analizza_lista[asd][6])
-                                x_allClu = np.append(x_allClu, analizza_lista[asd][7])
-                                y_allClu = np.append(y_allClu, analizza_lista[asd][8])
-                                clusizes_all = np.append(clusizes_all, analizza_lista[asd][9])
-                        #####Salvo i dati parziali
-                      #  print("scrivo i files!!")
-                        np.savez(self.file_path + 'spectrum_all_raw' + self.pixMask_suffix, counts=countsAll,
-                                 bins=self.bins)
-                        np.savez(self.file_path + 'spectrum_all_ZeroSupp' + self.pixMask_suffix + self.cluCut_suffix,
-                                 counts=countsAllZeroSupp, bins=self.bins)
-                        np.savez(self.file_path + 'spectrum_all_eps' + str(
-                            self.myeps) + self.pixMask_suffix + self.cluCut_suffix, counts=countsAllClu,
-                                 bins=self.bins)
-                        np.savez(self.file_path + 'cluSizes_spectrum' + self.pixMask_suffix, counts=h_cluSizeAll,
-                                 bins=self.binsSize)
+                    np.savez(self.file_path + 'spectrum_all_raw' + self.pixMask_suffix, counts=self.countsAll,
+                             bins=self.bins)
+                    np.savez(self.file_path + 'spectrum_all_ZeroSupp' + self.pixMask_suffix + self.cluCut_suffix,
+                             counts=self.countsAllZeroSupp, bins=self.bins)
+                    np.savez(self.file_path + 'spectrum_all_eps' + str(
+                        self.myeps) + self.pixMask_suffix + self.cluCut_suffix, counts=self.countsAllClu,
+                             bins=self.bins)
+                    np.savez(self.file_path + 'cluSizes_spectrum' + self.pixMask_suffix, counts=self.h_cluSizeAll,
+                             bins=self.binsSize)
 
-                        # save figures
-                        al.write_fitsImage(countsAll2dClu,
-                                           self.file_path + 'imageCUL' + self.pixMask_suffix + self.cluCut_suffix + '.fits',
-                                           overwrite="False")
-                        al.write_fitsImage(countsAll2dRaw,
-                                           self.file_path + 'imageRaw' + self.pixMask_suffix + '.fits',
-                                           overwrite="False")
-                        # salva vettori con event_list:
-                        if self.SAVE_EVENTLIST:
-                            outfileVectors = self.file_path + 'events_list' + self.pixMask_suffix + self.cluCut_suffix + '_v2.npz'
-                            np.savez(outfileVectors, w=w_all, x_pix=x_allClu, y_pix=y_allClu,
-                                     sizes=clusizes_all)
-                      #  camera.start_video_capture()
-                
+                    # save figures
+                    al.write_fitsImage(self.countsAll2dClu,
+                                       self.file_path + 'imageCUL' + self.pixMask_suffix + self.cluCut_suffix + '.fits',
+                                       overwrite="False")
+                    al.write_fitsImage(self.countsAll2dRaw,
+                                       self.file_path + 'imageRaw' + self.pixMask_suffix + '.fits',
+                                       overwrite="False")
+                    # salva vettori con event_list:
+                    if self.SAVE_EVENTLIST:
+                        outfileVectors = self.file_path + 'events_list' + self.pixMask_suffix + self.cluCut_suffix + '_v2.npz'
+                        np.savez(outfileVectors, w=self.w_all, x_pix=self.x_allClu, y_pix=self.y_allClu,
+                                 sizes=self.clusizes_all)
 
+
+            #chiudo finestra cattura
             window_capture.Close()
-            print("sono uscito dal loop")
-            asd = 0 
+            #inserisco il comando di chiusura nei processi figli
+            asd = 0
             for asd in range(0,self.num):
                 data_queue.put(None)
                 
         finally:
             # Arresta l'esposizione e rilascia la telecamera
             camera.stop_exposure()
-
             camera.close()
+
         analizer_list = []
-        #progress_bar_capture.close()
+
         #aspettiamo che tutti i processi siano finiti
-        time.sleep(2)
-        
-        
-        for j in range(0,data_queue3.qsize()):
-        	res = data_queue3.get()  # serve solo per svuotare le queue
-        for processo in processi:
-            ret = data_queue2.get()
-            analizer_list.append(ret)
-       
         for processo in processi:
             processo.join()
-
-        for i in range(0, self.num):
-
-
-            if i == 0:
-                self.countsAll2dRaw = analizer_list[i].countsAll2dRaw
-                self.countsAll2dClu = analizer_list[i].countsAll2dClu
-                self.countsAll = analizer_list[i].countsAll
-                self.countsAllZeroSupp = analizer_list[i].countsAllZeroSupp
-                self.countsAllClu = analizer_list[i].countsAllClu
-                self.h_cluSizeAll = analizer_list[i].h_cluSizeAll
-                self.w_all = analizer_list[i].w_all
-                self.x_allClu = analizer_list[i].x_allClu
-                self.y_allClu = analizer_list[i].y_allClu
-                self.clusizes_all= analizer_list[i].clusizes_all
-
-            if i > 0:
-                self.countsAll2dRaw =  self.countsAll2dRaw + analizer_list[i].countsAll2dRaw
-                self.countsAll2dClu =  self.countsAll2dClu + analizer_list[i].countsAll2dClu
-                self.countsAll =  self.countsAll + analizer_list[i].countsAll
-                self.countsAllZeroSupp =  self.countsAllZeroSupp + analizer_list[i].countsAllZeroSupp
-                self.countsAllClu =  self.countsAllClu + analizer_list[i].countsAllClu
-                self.h_cluSizeAll =  self.h_cluSizeAll + analizer_list[i].h_cluSizeAll
-                self.w_all = np.append( self.w_all, analizer_list[i].w_all)
-                self.x_allClu = np.append( self.x_allClu, analizer_list[i].x_allClu)
-                self.y_allClu = np.append( self.y_allClu, analizer_list[i].y_allClu)
-                self.clusizes_all = np.append( self.clusizes_all, analizer_list[i].clusizes_all)
-
-
-
+        #chiudo plot temporaneo
+        plt.close(fig3)
+        #disattivo modalità interattiva pyplot
         plt.ioff()
+
+        #recupeo i dati salvati su data buffer
+        self.recover_data(data_buffer)
+
         ###########
         # plot immagine
-        fig2, ax2 = plt.subplots()
-
+        fig6, ax6 = plt.subplots()
 
         self.countsAll2dClu = self.countsAll2dClu.T
         plt.imshow(self.countsAll2dClu, interpolation='nearest', origin='lower',
@@ -403,33 +359,23 @@ class aotr2:
 
         plt.show()
 
-    def Analizza(self, data_queue, data_queue2,id, data_queue3):
+    def Analizza(self, data_queue,id,data_buffer,lock):
         self.reset_allVariables()
         progress_bar2 = tqdm(total=(self.sample_size/self.num), desc="Analizzatore_" + str(id), colour='green', position=self.num+id)
         if id==0:
-
             layout = [
-		    [sg.Text('Progresso:', size=(10, 1)),
-		     sg.ProgressBar((self.sample_size/self.num), orientation='h', size=(20, 20), key='progress')],
-		]
+		    [sg.Text('Progresso:', size=(10, 1)),sg.ProgressBar((self.sample_size/self.num), orientation='h', size=(20, 20), key='progress')],]
             window_progress = sg.Window('Data cruncher number: ' + str(id), layout, finalize=True)
             progress_bar = window_progress['progress']
         i=1
-        if id == 0 :
-            plt.ion()
-            fig3, ax3 = plt.subplots( nrows = 1, ncols = 2)
-
 
         while True:
+            #prende data passata
             data= data_queue.get()
-
             if data is None:
                 progress_bar2.close()
-                data_queue2.put(self)
                 if (id==0):
                     window_progress.Close()
-                    plt.ioff()
-
                 break
             rms_pedCut = np.mean(self.rms_ped) + self.PIX_CUT_SIGMA * np.std(self.rms_ped)
             # MASCHERA PIXEL RUMOROSI
@@ -498,28 +444,26 @@ class aotr2:
                 h_cluSizes_i, binsSizes_i = np.histogram(clu_sizes, bins=100, range=(0, 100))
                 self.h_cluSizeAll = self.h_cluSizeAll + h_cluSizes_i
             progress_bar2.update(1)
-            if (id==0 and (i%10)==0) :
-                # plot immagine Raw
-                All2dRaw = self.countsAll2dRaw.T
-                fig3.canvas.flush_events()
 
-                ax3[0].imshow(np.log10(All2dRaw), interpolation='nearest', origin='lower',
-                           extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
-                ax3[0].set_title("Image Raw")
-                #ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAll, histtype='step', label="raw")
-                self.bins=calP0+calP1*self.bins
-                ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllZeroSupp, histtype='step', label="pixel thresold", color = "green")
-                #ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllClu, histtype='step', label='CLUSTERING')
-                ax3[1].set_xlim([0,12])
-                ax3[1].set_yscale('log')               
-                ax3[1].set_title("Spettro")
-                fig3.canvas.draw()
-
-            if (i%(int(self.bunch/self.num)))==0:
-                lista = [self.countsAll2dRaw,self.countsAll2dClu ,self.countsAll ,self.countsAllZeroSupp,self.countsAllClu ,self.h_cluSizeAll  , self.w_all ,self.x_allClu, self.y_allClu ,self.clusizes_all]
-                data_queue3.put(lista)
             if id==0:
             	progress_bar.UpdateBar(i)
             i+=1
-
+            #with lock serve per far accedere gli analizzatori uno alal volta ai dati
+            with lock:
+                data_buffer[0] += counts2dRaw
+                data_buffer[2] += counts_i
+                data_buffer[3] += countsZeroSupp_i
+                if self.APPLY_CLUSTERING:
+                    data_buffer[1] += counts2dClu
+                    data_buffer[4] += countsClu_i
+                    data_buffer[5] += h_cluSizes_i
+                    if self.SAVE_EVENTLIST:
+                        #self.x_allClu = np.append(self.x_allClu, cluBary_trasposta[0])
+                        #self.y_allClu = np.append(self.y_allClu, cluBary_trasposta[1])
+                        #self.w_all = np.append(self.w_all, self.w_clusterAll)
+                        #self.clusizes_all = np.append(self.clusizes_all, clu_sizes)
+                        data_buffer[6] = np.append(self.w_all, self.w_clusterAll)
+                        data_buffer[7] = np.append(self.x_allClu, cluBary_trasposta[0])
+                        data_buffer[8] = np.append(self.y_allClu, cluBary_trasposta[1])
+                        data_buffer[9] = np.append(self.clusizes_all, clu_sizes)
 
