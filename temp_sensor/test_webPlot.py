@@ -3,6 +3,7 @@ import mpld3
 import numpy as np
 import datetime as dt
 
+
 filename='test_sensorData.txt'
 f=open(filename)
 
@@ -22,6 +23,10 @@ for line in f:
 fig = plt.figure(figsize = (10,6))
 plt.plot(time,temp,'or-')
 #plt.show()
+
+
+
+
 html_str = mpld3.fig_to_html(fig)
 Html_file= open("index.html","w")
 Html_file.write(html_str)
