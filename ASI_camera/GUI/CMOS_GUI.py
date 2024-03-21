@@ -102,6 +102,7 @@ if __name__ == "__main__":
             bg_map_rt(path_to_bkg + '/mean_ped.fits', path_to_bkg + '/std_ped.fits', sample_size,GAIN,WB_B,WB_R,EXPO)
         except Exception as e:
             sg.popup(f" there are trobles: {e}")
+            print(" there are troubles:" , e)
 
 
     def Rm_Fits_BKG(path_to_fits): #Cancella i file .FIT nella cartella e la cartella
@@ -111,6 +112,7 @@ if __name__ == "__main__":
                 os.remove(file_path)
             except OSError as e:
                 print(f"Errore durante la rimozione di {file_path}: {e}")
+                print(" there are troubles:" , e)
 
     def Rm_Fits_Analy(path_to_fits):  # Cancella i file .FIT nella cartella e la cartella
         file_list = glob.glob(os.path.join(path_to_fits, '*.FIT'))
@@ -119,6 +121,7 @@ if __name__ == "__main__":
                 os.remove(file_path)
             except OSError as e:
                 print(f"Errore durante la rimozione di {file_path}: {e}")
+                print(" there are troubles:" , e)
 
 
     def Analyze(path_to_fit, path_to_bkg, cores, rebins, sigma, cluster, clu, event, raw, eps): #Accede allo script analyze_v2Parallel.py
@@ -151,6 +154,7 @@ if __name__ == "__main__":
             sg.popup("Snaps taken and saved in " + path)
         except Exception as e:
             sg.popup(f"Cannot capture fit: {e}")
+            print(" there are troubles:" , e)
 
     def CaptureAndAnalyze2(path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num,leng,bunch):
 
@@ -162,6 +166,7 @@ if __name__ == "__main__":
             sg.popup("Analize is complete and files are saved in " + path)
         except Exception as e:
             sg.popup(f" there are trobles: {e}")
+            print("\n \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n there are troubles:" , e)
 
 
     def update_info():
@@ -495,8 +500,10 @@ if __name__ == "__main__":
                                 Rm_Fits_Analy(fit_folder)
                             except Exception as e:
                                 sg.popup(f"Cannot Remove : {e}")
+                                print(" there are troubles:" , e)
                     except Exception as e:
                         sg.popup(f"Cannot launch Analyze : {e}")
+                        print(" there are troubles:" , e)
                 except NameError:
                     sg.popup('location of bkg is not defined.')
             except NameError:
@@ -541,6 +548,7 @@ if __name__ == "__main__":
                 DataChunk(StoreDataIn, file_name, int(SampleSize),int(WBR),int(WBB),int(exposure),int(gain))
             except Exception as e:
                 sg.popup(f"Cannot launch DataChunck : {e}")
+                print(" there are troubles:" , e)
 
 
 
@@ -586,6 +594,7 @@ if __name__ == "__main__":
                     sg.popup('BKG ready to use')
                 except Exception as e:
                     sg.popup('An ERROR OCCURRED: cannot launch pedesta: {e}')
+                    print(" there are troubles:" , e)
             else:
                 sg.popup('Dir not found')
 
@@ -594,6 +603,7 @@ if __name__ == "__main__":
                 CaptureAndAnalyze2(StoreDataIn, int(SampleSize),int(WBR),int(WBB),int(exposure),int(gain),bkg_folder_b, xyRebin2, sigma2, cluster2, NoClustering2, NoEvent2, Raw2, Eps2, int(num) , int(length),int(bunch))
             except Exception as e:
                 sg.popup(f"Cannot launch CaptureAndAnalyze: {e}")
+                print(" there are troubles:" , e)
 
         update_config()
     window.close()

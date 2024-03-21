@@ -120,7 +120,8 @@ class aotr2:
             camera_id = 0
             camera = asi.Camera(camera_id)
         except Exception as e:
-            sg.popup(f" there are trobles: {e}")
+            sg.popup(f" there are troubles inside gui analizer: {e}")
+            print(" there are troubles inside gui analizer:" , e)
         try:
             # Force any single exposure to be halted
             camera.stop_video_capture()
@@ -227,9 +228,10 @@ class aotr2:
                         data = camera.capture_video_frame()
                         data_queue.put(data)
                         break
-                    except Exception :
+                    except Exception as e:
                         camera.stop_video_capture()
-                        camera.start_video_capture()                        
+                        camera.start_video_capture()
+                        print(" there are troubles:" , e)                        
                 progress_bar_capture.UpdateBar(i)
                 analizza_lista = []
 
@@ -243,16 +245,20 @@ class aotr2:
                     # ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAll, histtype='step', label="raw")
                     self.bins = calP0 + calP1 * self.bins
                     ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllZeroSupp, histtype='step', label="pixel thresold", color = "green")
-                    #ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllClu, histtype='step', label='CLUSTERING')
-                    # ax3[1].set_xlim([0,12])
+                    ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllClu, histtype='step', label='CLUSTERING', color = "red")
+                    ax3[1].set_xlim([0,12])
+                    ax3[1].set_yscale('log')
                     ax3[1].set_title("Spettro")
                     fig3.canvas.draw()
 
                 ####salvare ogni tot
                 if ((i) >= ((self.bunch)*k)) :
+                    n_event_analized = i - data_queue.qsize()
                     #aumento il contatore
                     k+=1
                     self.recover_data(data_buffer)
+                    file = open(self.file_path+ 'numero_eventi', 'w')
+                    file.write(str(n_event_analized))
 
                     np.savez(self.file_path + 'spectrum_all_raw' + self.pixMask_suffix, counts=self.countsAll,
                              bins=self.bins)
@@ -302,9 +308,15 @@ class aotr2:
 
         #recupeo i dati salvati su data buffer
         self.recover_data(data_buffer)
+        
+        file = open(self.file_path+ 'numero_eventi', 'w')
+        file.write(str(self.sample_size))        
+        
+        
 
         ###########
         # plot immagine
+
         fig6, ax6 = plt.subplots()
 
         self.countsAll2dClu = self.countsAll2dClu.T
