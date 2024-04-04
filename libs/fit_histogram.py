@@ -47,7 +47,10 @@ def fit_Gaushistogram(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1]
     print("Bounds=",(parsBoundsLow, parsBoundsUp ))
     
     popt, pcov = curve_fit(gaussian_model, x_data, y_data,p0=initial_pars,absolute_sigma=True, sigma=sigma, bounds=(parsBoundsLow, parsBoundsUp ), maxfev=5000)
-    chisq = (((y_data - gaussian_model(x_data,popt[0],popt[1],popt[2]))/sigma)**2).sum()
+
+    y_fit= gaussian_model(x_data,popt[0],popt[1],popt[2])
+
+    chisq = (  ((y_data - y_fit)**2)/y_fit).sum()
     ndof= len(y_data) - len(popt)
     redChi2=chisq/ndof
     

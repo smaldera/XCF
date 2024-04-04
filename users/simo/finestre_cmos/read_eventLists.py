@@ -77,7 +77,7 @@ for f in ff:
 
 # CUT di SELEZIONE EVENTI!!!
 
-myCut=np.where( (w_all>100)&(y_all>1000)&(y_all<3500)&(x_all>250)&(size_all==2))
+myCut=np.where( (w_all>100)&(y_all>1000)&(y_all<3500)&(x_all>250))
 
 
 
