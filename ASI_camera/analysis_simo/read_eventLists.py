@@ -141,8 +141,14 @@ ax1.legend()
 ax2=plt.subplot(222)
 # spettro energia
 #plt.figure(2)
-countsClu, binsE = np.histogram( w_all[myCut_pos][0:1000000]  , bins = 2*NBINS, range = (-NBINS,NBINS) )
+countsClu, binsE = np.histogram( w_all[myCut_pos]  , bins = 2*NBINS, range = (-NBINS,NBINS) )
 binsE=binsE*calP1+calP0
+
+mySelection=np.where( ((w_all*calP1+calP0)>5.7)& ((w_all*calP1+calP0)<6.7)    )
+print("n eventi!!! =",len(w_all[mySelection]))
+
+
+
 print()
 print("AAAAAAAAAAAAAAAAAAAAAAAA")
 print("y = ", countsClu)
