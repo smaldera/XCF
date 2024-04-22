@@ -27,8 +27,8 @@ def  plotAllSpectra(InputFileName):
     show_legend=0
     #calP0=-0.0013498026638486778  #calP0Err= 3.3894706711692284e-05
     #calP1=0.0032116875215051385   #calP1Err= 3.284553141476064e-08
-    P0_ = 0
-    P1_ = 0
+    P0_ = None
+    P1_ = None
 
     compute_rate=0 
     time=1
@@ -75,7 +75,7 @@ def  plotAllSpectra(InputFileName):
             P0_=float(splitted[1])
         if splitted[0]=="P1":
             P1_=float(splitted[1])
-            #print('!!!!!!!!!!!',calP1)
+            print('taking P1 !!!!!!!!!!!',P1_)
 
                     
         if splitted[0]=="ACQ_TIME":
@@ -100,6 +100,9 @@ def  plotAllSpectra(InputFileName):
                 print("NORM_PEAK wrong limits... exit!")
                 exit()
             print ('up=',up, "low = ",low)
+            print("NORMALIZZO!!!!!")
+            p.normalize(low,up)
+            
             
 
                 
@@ -112,10 +115,11 @@ def  plotAllSpectra(InputFileName):
             if fileFormat=='npz':
                 calP1=0.0032132721459619882
                 calP0=-0.003201340833319255
-            if P0_ != 0:
+            if P0_ != None:
                 calP0 = P0_
-            if P1_ != 0:
+            if P1_ != None:
                 calP1 = P1_
+            print("calP1=",calP1,"  calP0=",calP0)    
             p.bins=p.bins*calP1+calP0
 
             if compute_rate==1:
@@ -124,8 +128,8 @@ def  plotAllSpectra(InputFileName):
                  time=1
                  plt.ylabel('events/s')
             if normalize==1:
-                 print("NORMALIZZO!!!!!")
-                 p.normalize(low,up)
+                 #print("NORMALIZZO!!!!!")
+                 #p.normalize(low,up)
                  normalize=0
                  low=0.
                  up=0.
@@ -136,8 +140,10 @@ def  plotAllSpectra(InputFileName):
                 p.plot(ax,None)
             plt.xlabel('energy [keV]')
             
-            plt.ylabel('events/s') # non so perche', ,ma nell'if non funziona!
-            
+            plt.ylabel('norm. counts') # non so perche', ,ma nell'if non funziona!
+            plt.xlim(0.5,6)
+            plt.ylim(7e-3,1.1)
+            plt.yscale('log')
             plt.legend()
 
 
@@ -145,18 +151,18 @@ def  plotAllSpectra(InputFileName):
         if splitted[0]=="FIT":    
             fit_parameter=splitted[1].split(' ')
             
-            min = float(fit_parameter[0])
-            max = float(fit_parameter[1])
+            min_x = float(fit_parameter[0])
+            max_x = float(fit_parameter[1])
             amplitude = float(fit_parameter[2])
             peak = float(fit_parameter[3])
             sigma = float(fit_parameter[4])
-            par, cov, chi2 = fitSimo.fit_Gaushistogram(p.counts, p.bins, xmin=min,xmax=max, initial_pars=[amplitude,peak,sigma], parsBoundsLow=-np.inf, parsBoundsUp=np.inf )
-            x=np.linspace(par[1]-par[2],par[1]+par[2],1000)
+            par, cov, chi2 = fitSimo.fit_Gaushistogram(p.counts, p.bins, xmin=min_x,xmax=max_x, initial_pars=[amplitude,peak,sigma], parsBoundsLow=-np.inf, parsBoundsUp=np.inf )
+            x=np.linspace(min_x,max_x,1000)
             if show_legend==1:
                 label='peak = '+"%.3f"%par[1]+' keV'+'\n'+'sigma = '+"%.3f"%par[2]+' keV'
             else:
                 label=None
-            plt.plot(x,fitSimo.gaussian_model(x,par[0],par[1],par[2]),label=label)
+            ax.plot(x,fitSimo.gaussian_model(x,par[0],par[1],par[2]),label=label)
             print(' ')
             print('FIT PARAMETERS')
             print('Gaussian norm = ', "%.5f"%par[0],' +- ',"%.5f"%np.sqrt(cov[0][0]),' keV')

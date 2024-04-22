@@ -62,21 +62,55 @@ if __name__ == "__main__":
     plt.legend()  
     plt.title('SDD')
 
+##########################################333
+# Rapporti
 
-    plt.figure(2)
-    x=fitSimo.get_centers(pPRC.bins)
-    y=(pPRC.counts/pAir.counts)
-
-    y2=(pGPD.counts/pAir.counts)
-
-    yRatio=pGPD.counts/pPRC.counts
+   
     
-    plt.plot(x,y,'ro',label='RPC/Air')
-    plt.plot(x,y2,'bo',label='GPD/Air')
-    plt.plot(x,yRatio,'ko',label='GPD/PRC')
+    fig2, ax = plt.subplots()
+    x=fitSimo.get_centers(pPRC.bins)
+    prc=pPRC.counts
+    air=pAir.counts
+    gpd=pGPD.counts
+
+    s_prc=np.sqrt(prc)
+    s_air=np.sqrt(air)
+    s_gpd=np.sqrt(gpd)
+        
+    y=prc/air
+    yerr=np.sqrt( (s_prc**2)*((1/air)**2)+(s_air**2)*(prc/(air**2))**2)
+   
+    
+    y2=(pGPD.counts/pAir.counts)
+    y2err=np.sqrt( (s_gpd**2)*((1/air)**2)+(s_air**2)*(gpd/(air**2))**2)
+    
+    yRatio=pGPD.counts/pPRC.counts
+    yRatio_err=np.sqrt( (s_gpd**2)*((1/prc)**2)+(s_prc**2)*(gpd/(prc**2))**2)
+    
+    
+    ax.errorbar(x,y,yerr=yerr, fmt='ro',label='RPC/Air')
+    ax.errorbar(x,y2,yerr=y2err,fmt='bo',label='GPD/Air')
+    plt.grid()
+    plt.legend() 
 
 
 
+    fig3, ax3 = plt.subplots()
+    ax3.errorbar(x,yRatio,yerr=yRatio_err,fmt='ko',label='GPD/PRC')
+    plt.grid()
+
+    # get sdd data:
+    nomefile='/home/maldera/Desktop/eXTP/data/test_finestre/t_Ratio_Windows_sdd.npz'
+    data=np.load(nomefile)
+
+    hRatioSdd=histogramSimo()
+    hRatioSdd.bins=data['arr_0']
+    hRatioSdd.counts=data['arr_1']
+    
+    hRatioSdd.plot(ax,"ratio SDD")
+    
+    
+    
     
     plt.legend() 
     
