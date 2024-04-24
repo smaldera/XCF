@@ -76,9 +76,9 @@ def fit_Gaushistogram_iterative(counts,bins,xmin=-100000,xmax=100000, initial_pa
     xmax=mean+nSigma*sigma
     for jj in range (0,5):
            
-        xmin=min(mean-nSigma*sigma,initial_pars[1]-1 )
-        xmax=max(mean+nSigma*sigma,initial_pars[1]+1)
-       # print("xmin=",xmin, "xmax=",xmax)
+      #  xmin=min(mean-nSigma*sigma,initial_pars[1]-1 )
+      #  xmax=max(mean+nSigma*sigma,initial_pars[1]+1)
+      # print("xmin=",xmin, "xmax=",xmax)
         
         popt, pcov,  redChi2 =    fit_Gaushistogram(counts,bins,xmin,xmax, initial_pars=[k,mean,sigma],parsBoundsLow= myparsBoundsLow, parsBoundsUp= myparsBoundsUp )
         k=popt[0]

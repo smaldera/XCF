@@ -49,10 +49,15 @@ if __name__ == "__main__":
     #pPRC.bins=pPRC.bins*calP1+calP0
    
     
-    
     plt.hist(pPRC.bins[:-1],bins=pPRC.bins ,weights=pPRC.counts, histtype='step', label='Be PRC')
-    plt.hist(pAir.bins[:-1],bins=pAir.bins ,weights=pAir.counts, histtype='step', label='Air')
-    plt.hist(pGPD.bins[:-1],bins=pGPD.bins ,weights=pGPD.counts, histtype='step', label='Be GPD')
+  #  plt.hist(pAir.bins[:-1],bins=pAir.bins ,weights=pAir.counts, histtype='step', label='Air')
+   # plt.hist(pGPD.bins[:-1],bins=pGPD.bins ,weights=pGPD.counts, histtype='step', label='Be GPD')
+
+
+    pPRC2=histogramSimo()
+    pPRC2.read_from_file(common_path+filePRC, 'npz' )
+    pPRC2.rebin(4)
+    plt.hist(pPRC2.bins[:-1],bins=pPRC2.bins ,weights=pPRC2.counts, histtype='step', label='Be GPD rebinned')
 
     
 
@@ -62,6 +67,9 @@ if __name__ == "__main__":
     plt.legend()  
     plt.title('SDD')
 
+ 
+    plt.show()
+    exit() #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ##########################################333
 # Rapporti
 

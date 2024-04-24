@@ -104,7 +104,7 @@ class histogramSimo():
                            n_sum=0
                            if (len(self.counts)-i)<n:
                                 # print ("i=",i," len-i=",len(self.counts)-i," stop here"  )
-                                # break
+                                 break
 
          self.counts=np.array(rebinned_counts)
          self.bins=np.array(rebinned_bins)
