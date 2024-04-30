@@ -15,6 +15,23 @@ from  histogramSimo import histogramSimo
 # 
 
 
+def fit_peak(hspectrum,  min_x1, max_x1,   amplitude,    peak,   sigma,n_sigma=1):
+         
+    
+    #par, cov, chi2 = fitSimo.fit_Gaushistogram(hSpec.counts, hSpec.bins, xmin=min_x1,xmax=max_x1, initial_pars=[amplitude,peak,sigma], parsBoundsLow=-np.inf, parsBoundsUp=np.inf )
+    par, cov, xmin,xmax, chi2 = fitSimo.fit_Gaushistogram_iterative(hSpec.counts, hSpec.bins, xmin=min_x1,xmax=max_x1, initial_pars=[amplitude,peak,sigma],  nSigma=n_sigma )
+    print(' ')
+    print('FIT PARAMETERS')
+    print('Gaussian norm = ', "%.5f"%par[0],' +- ',"%.5f"%np.sqrt(cov[0][0]),' keV')
+    print('Gaussian peak = ', "%.5f"%par[1],' +- ',"%.5f"%np.sqrt(cov[1][1]),' keV')
+    print('Gaussian sigma = ', "%.5f"%par[2],' +- ',"%.5f"%np.sqrt(cov[2][2]),' keV')
+    print(' ')
+
+    return   par, cov, xmin,xmax, chi2
+    
+    
+
+
 
 import argparse
 formatter = argparse.ArgumentDefaultsHelpFormatter
@@ -73,7 +90,7 @@ myCut0=np.where( (w_all>100)&(y_all>y_inf0)&(y_all<y_sup0)&(x_all>x_inf0)&(x_all
 
 
 n_events=len(w_all[myCut0])
-events_bins=3.
+events_bins=1.
 print("n_eventsAll=",n_events)
 
 deltaX=(x_sup0-x_inf0)/events_bins
@@ -119,26 +136,27 @@ for i in range(0, int(events_bins)):
          # fit ka
          min_x1=2.26
          max_x1=2.34
-         amplitude=100.
-         peak=2.29
-         sigma=0.5
-         par1, cov1, chi21 = fitSimo.fit_Gaushistogram(hSpec.counts, hSpec.bins, xmin=min_x1,xmax=max_x1, initial_pars=[amplitude,peak,sigma], parsBoundsLow=-np.inf, parsBoundsUp=np.inf )
-        # par1, cov1, chi21 = fitSimo.fit_Gaushistogram(hSpec.counts, hSpec.bins, initial_pars=[amplitude,peak,sigma], parsBoundsLow=-np.inf, parsBoundsUp=np.inf )   
-                
+         #amplitude=100.          peak=2.29          sigma=0.5
+         par1, cov1, min_x1,max_x1, chi21 = fit_peak(hSpec,min_x1 ,max_x1,  1e5,   2.29,  0.1,n_sigma=0.7)
+         
+         # fit kBeta
+         min_x2=2.37
+         max_x2=2.43
+         #amplitude=100.          peak=2.29          sigma=0.5
+         par2, cov2, min_x2,max_x2, chi22 = fit_peak(hSpec,min_x2 ,max_x2,  1e5,   2.40,  0.1,n_sigma=0.4)
+         
 
-         print(' ')
-         print('FIT PARAMETERS')
-         print('Gaussian norm = ', "%.5f"%par1[0],' +- ',"%.5f"%np.sqrt(cov1[0][0]),' keV')
-         print('Gaussian peak = ', "%.5f"%par1[1],' +- ',"%.5f"%np.sqrt(cov1[1][1]),' keV')
-         print('Gaussian sigma = ', "%.5f"%par1[2],' +- ',"%.5f"%np.sqrt(cov1[2][2]),' keV')
-         print(' ')
-      
-
+         
+         
 
          
          ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="energy w. clustering")
          x=np.linspace(min_x1,max_x1,1000) 
-         plt.plot(x,fitSimo.gaussian_model(x,par1[0],par1[1],par1[2]),label='fit')
+         plt.plot(x,fitSimo.gaussian_model(x,par1[0],par1[1],par1[2]),label='fit kalpha')
+
+         x2=np.linspace(min_x2,max_x2,1000) 
+         plt.plot(x2,fitSimo.gaussian_model(x2,par2[0],par2[1],par2[2]),label='fit Kbeta')
+
          ax2.set_xlabel('E[keV]')
          ax2.set_xlim([0,10])
          ax2.set_yscale('log')
@@ -154,6 +172,7 @@ for i in range(0, int(events_bins)):
 # spettro total:
 countsClu_all, binsE = np.histogram( w_all[myCut]  , bins = 2*NBINS, range = (-16384,16384) )
 binsE=binsE*calP1+calP0
+
 np.savez(DIR + 'spectrum_all.npz', counts = countsClu,  bins = binsE)
 
 
