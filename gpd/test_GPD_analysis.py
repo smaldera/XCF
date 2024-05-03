@@ -208,7 +208,7 @@ class GPD_analysis(ixpeDqmTask):
         mom_ratio_cut = '%s > %.4f' % (expr, min_mom_ratio)
         cut_final=cut_logical_and(cut2,mom_ratio_cut)
 
-        print ("cut_final = ",cut_final)
+        print ("\ncut_final = ",cut_final,'\n')
        
         x = self.run_list.values('TRK_BARX', cut_final)
         y = self.run_list.values('TRK_BARY', cut_final)
