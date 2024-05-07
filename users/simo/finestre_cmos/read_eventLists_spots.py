@@ -7,7 +7,7 @@ sys.path.insert(0, '../../../libs')
 import utils_v2 as al
 import fit_histogram as fitSimo
 from  histogramSimo import histogramSimo
-
+from scipy.optimize import curve_fit
 
 ####
 # small scripts to plot CMOS data from the event list whit cuts
@@ -15,10 +15,9 @@ from  histogramSimo import histogramSimo
 # 
 
 
-def fit_peak(hspectrum,  min_x1, max_x1,   amplitude,    peak,   sigma,n_sigma=1):
+def fit_peak(hSpec,  min_x1, max_x1,   amplitude,    peak,   sigma,n_sigma=1):
          
-    
-    #par, cov, chi2 = fitSimo.fit_Gaushistogram(hSpec.counts, hSpec.bins, xmin=min_x1,xmax=max_x1, initial_pars=[amplitude,peak,sigma], parsBoundsLow=-np.inf, parsBoundsUp=np.inf )
+
     par, cov, xmin,xmax, chi2 = fitSimo.fit_Gaushistogram_iterative(hSpec.counts, hSpec.bins, xmin=min_x1,xmax=max_x1, initial_pars=[amplitude,peak,sigma],  nSigma=n_sigma )
     print(' ')
     print('FIT PARAMETERS')
@@ -31,8 +30,151 @@ def fit_peak(hspectrum,  min_x1, max_x1,   amplitude,    peak,   sigma,n_sigma=1
     
     
 
+def draw_and_recalibrate( w_i,x_i, y_i,DIR,suffix):
+    
+         fig=plt.figure(figsize=(10,10))
+         ax1=plt.subplot(311)
+         NBINS=int(16384) 
+         #plot 
+         # mappa posizioni:
+         counts2dClu,  xedges, yedges= np.histogram2d(x_i,y_i,bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
+         counts2dClu=   counts2dClu.T
+         im=ax1.imshow(np.log10(counts2dClu), interpolation='nearest', origin='upper',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+         ax1.set_xlabel('X')
+         ax1.set_ylabel('Y')
+         plt.colorbar(im,ax=ax1)
+
+         ax2=plt.subplot(312)
+         calP1= 0.0032132721459619882
+         calP0=-0.003201340833319255
+         # spettro energia
+         #plt.figure(2)
+         #countsClu, binsE = np.histogram( w_i*calP1+calP0  , bins = NBINS, range = (0,16384*calP1+calP0) )
+         countsClu, binsE = np.histogram( w_i, bins = NBINS, range = (0,NBINS) )
+         binsE=binsE*calP1+calP0
+
+         hSpec=histogramSimo()
+         hSpec.counts=countsClu
+         hSpec.bins=binsE
+
+         """
+         # fit Lalpha
+         min_x1=2.26
+         max_x1=2.34
+         #amplitude=100.          peak=2.29          sigma=0.5
+         par1, cov1, min_x1,max_x1, chi21 = fit_peak(hSpec,min_x1 ,max_x1,  1e5,   2.29,  0.1,n_sigma=0.7)
+
+         
+         # fit LBeta
+         min_x2=2.37
+         max_x2=2.43
+         #amplitude=100.          peak=2.29          sigma=0.5
+         par2, cov2, min_x2,max_x2, chi22 = fit_peak(hSpec,min_x2 ,max_x2,  1e5,   2.40,  0.1,n_sigma=0.4)
+         
+         # fit Si
+         min_x3=1.7
+         max_x3=1.78
+         #amplitude=100.          peak=2.29          sigma=0.5
+         par3, cov3, min_x3,max_x3, chi23 = fit_peak(hSpec,min_x3 ,max_x3,  1e5,   1.74,  0.1,n_sigma=0.7)
+         
+         # fit escape La
+         min_x4=0.52
+         max_x4=0.58
+         #amplitude=100.          peak=2.29          sigma=0.5
+         par4, cov4, min_x4,max_x4, chi24 = fit_peak(hSpec,min_x4 ,max_x4,  1e5,   0.55,  0.1,n_sigma=0.7)
+
+         # fit escape Lb
+         min_x5=0.62
+         max_x5=0.68
+         #amplitude=100.          peak=2.29          sigma=0.5
+         par5, cov5, min_x5,max_x5, chi25 = fit_peak(hSpec,min_x5 ,max_x5,  1e5,   0.65,  0.1,n_sigma=0.4)
+
+         
+         
+
+         
+         ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="energy w. clustering")
+         x=np.linspace(min_x1,max_x1,1000) 
+         plt.plot(x,fitSimo.gaussian_model(x,par1[0],par1[1],par1[2]),label='fit kalpha')
+
+         x2=np.linspace(min_x2,max_x2,1000) 
+         plt.plot(x2,fitSimo.gaussian_model(x2,par2[0],par2[1],par2[2]),label='fit Kbeta')
+
+         x3=np.linspace(min_x3,max_x3,1000) 
+         plt.plot(x3,fitSimo.gaussian_model(x3,par3[0],par3[1],par3[2]),label='fit Si')
+
+         x4=np.linspace(min_x4,max_x4,1000) 
+         plt.plot(x4,fitSimo.gaussian_model(x4,par4[0],par4[1],par4[2]),label='fit La escape')
+
+         x5=np.linspace(min_x5,max_x5,1000) 
+         plt.plot(x5,fitSimo.gaussian_model(x5,par5[0],par5[1],par5[2]),label='fit Lb escape')
+        
+                 
+    
 
 
+         meanLa=par1[1]
+         meanLb=par2[1]
+         ELa=2.2932
+         ELb=2.3948
+         ESi=1.74
+         ELa_escape=ELa-ESi
+         ELb_escape=ELb-ESi
+
+         #ricalibrazione energia
+        
+         true= np.array([ELa_escape, ELb_escape,ESi,ELa,ELb])
+         fitted_mean=np.array([par4[1],par5[1],par3[1],par1[1],par2[1]])
+         fitted_meanErr=np.array([cov4[1][1]**0.5,cov5[1][1]**0.5,cov3[1][1]**0.5,cov1[1][1]**0.5,cov2[2][1]**0.5])
+         poptCal, pcovCal = curve_fit(fitSimo.linear_model, true, fitted_mean,p0=[0,1], absolute_sigma=True, sigma=fitted_meanErr, bounds=(-np.inf, np.inf )   )
+         chisq = (((fitted_mean - fitSimo.linear_model(true,poptCal[0],poptCal[1]))/fitted_meanErr)**2).sum()
+         ndof= len(true) - len(poptCal)
+         redChi2=chisq/ndof
+         print('chi2=',chisq," ndof=",ndof, " chi2/ndof=",redChi2)
+
+         
+         calP1corr= poptCal[1] 
+         calP0corr= poptCal[0] 
+
+         print("calP1corr=",calP1corr, "  calP0corr=", calP0corr)
+
+         countsCluCorr, binsE = np.histogram(( w_i*calP1+calP0)*calP1corr+calP0corr  , bins = NBINS, range = (0,(16384-1)*calP1+calP0) )
+         ax2.hist(binsE[:-1], bins = binsE, weights = countsCluCorr, histtype = 'step',label="energy w. clustering corrCalib")
+         ax2.legend()
+         ax2.set_xlabel('E[keV]')
+         ax2.set_xlim([0,10])
+         ax2.set_yscale('log')
+
+         # plot energyCalib
+         ax3=plt.subplot(313)
+
+         ax3.plot(fitted_mean,true,'bo')
+         x=np.linspace(0.1,5,100)
+         ax3.plot(x,x*  calP1corr+   calP0corr,'-r')
+         """
+         
+         if SAVE_HISTOGRAMS==True:
+            # DIR = args.saveDir
+             spectrum_file_name =DIR + '/spectrumCorrPos_'+suffix+'.npz'
+             print('... saving energy spectrun  in:', spectrum_file_name  )
+             #np.savez(spectrum_file_name, counts = countsCluCorr,  bins = binsE)
+             spectrum_file_name =DIR + '/spectrumPos_'+suffix+'.npz'
+             np.savez(spectrum_file_name, counts = countsClu,  bins = binsE)
+           
+             fig.savefig(DIR+'/img_'+suffix+'.png')
+             """
+             with open(DIR+'/corrCalib_'+suffix+'.txt', 'w') as f:
+                 f.write("calP1corr="+str(calP1corr)+" calP0corr="+str(calP0corr)+'\n')
+                 f.write("normLa="+str(par1[0])+" meanLa="+str(par1[1])+" sigmaLa="+ str(par1[2])+'\n')
+                 f.write("normLb="+str(par2[0])+" meanLb="+str(par2[1])+" sigmaLb="+str(par2[2])+'\n' )
+                 f.write("normSi="+str(par3[0])+" meanSi="+str(par3[1])+" sigmaSi="+str(par3[2])+'\n' )
+                 f.write("normLa_esc="+str(par4[0])+" meanLa_esc="+str(par4[1])+" sigmaLa_esc="+str(par4[2])+'\n' )
+                 f.write("normLb_esc="+str(par5[0])+" meanLb_esc="+str(par5[1])+" sigmaLb_esc="+str(par5[2])+'\n')
+                 
+             f.close()    
+             """
+########################################################################
+             
 import argparse
 formatter = argparse.ArgumentDefaultsHelpFormatter
 parser = argparse.ArgumentParser(formatter_class=formatter)
@@ -90,7 +232,7 @@ myCut0=np.where( (w_all>100)&(y_all>y_inf0)&(y_all<y_sup0)&(x_all>x_inf0)&(x_all
 
 
 n_events=len(w_all[myCut0])
-events_bins=1.
+events_bins=3
 print("n_eventsAll=",n_events)
 
 deltaX=(x_sup0-x_inf0)/events_bins
@@ -110,70 +252,17 @@ for i in range(0, int(events_bins)):
          y_i=y_all[myCut]
          size_i=size_all[myCut]
 
-
-         fig=plt.figure(figsize=(10,10))
-         ax1=plt.subplot(211)
-
-         #plot 
-         # mappa posizioni:
-         counts2dClu,  xedges, yedges= np.histogram2d(x_i,y_i,bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
-         counts2dClu=   counts2dClu.T
-         im=ax1.imshow(np.log10(counts2dClu), interpolation='nearest', origin='upper',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
-         ax1.set_xlabel('X')
-         ax1.set_ylabel('Y')
-         plt.colorbar(im,ax=ax1)
-
-         ax2=plt.subplot(212)
-         # spettro energia
-         #plt.figure(2)
-         countsClu, binsE = np.histogram( w_i  , bins = 2*NBINS, range = (-16384,16384) )
-         binsE=binsE*calP1+calP0
-
-         hSpec=histogramSimo()
-         hSpec.counts=countsClu
-         hSpec.bins=binsE
-
-         # fit ka
-         min_x1=2.26
-         max_x1=2.34
-         #amplitude=100.          peak=2.29          sigma=0.5
-         par1, cov1, min_x1,max_x1, chi21 = fit_peak(hSpec,min_x1 ,max_x1,  1e5,   2.29,  0.1,n_sigma=0.7)
+         suffix=str(i)+'_'+str(j)
+         draw_and_recalibrate( w_i,x_i, y_i,args.saveDir,suffix)
          
-         # fit kBeta
-         min_x2=2.37
-         max_x2=2.43
-         #amplitude=100.          peak=2.29          sigma=0.5
-         par2, cov2, min_x2,max_x2, chi22 = fit_peak(hSpec,min_x2 ,max_x2,  1e5,   2.40,  0.1,n_sigma=0.4)
-         
-
-         
-         
-
-         
-         ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="energy w. clustering")
-         x=np.linspace(min_x1,max_x1,1000) 
-         plt.plot(x,fitSimo.gaussian_model(x,par1[0],par1[1],par1[2]),label='fit kalpha')
-
-         x2=np.linspace(min_x2,max_x2,1000) 
-         plt.plot(x2,fitSimo.gaussian_model(x2,par2[0],par2[1],par2[2]),label='fit Kbeta')
-
-         ax2.set_xlabel('E[keV]')
-         ax2.set_xlim([0,10])
-         ax2.set_yscale('log')
-         ax2.legend()
-
-         if SAVE_HISTOGRAMS==True:
-             DIR = args.saveDir
-             print('... saving energy spectrun  in:', spectrum_file_name  )
-             np.savez(DIR + 'spectrumPos_'+str(i)+'_'+str(j)+'.npz', counts = countsClu,  bins = binsE)
-             fig.savefig(DIR+'img_'+str(i)+'_'+str(j)+'.png')
 
 
 # spettro total:
-countsClu_all, binsE = np.histogram( w_all[myCut]  , bins = 2*NBINS, range = (-16384,16384) )
-binsE=binsE*calP1+calP0
-
-np.savez(DIR + 'spectrum_all.npz', counts = countsClu,  bins = binsE)
+w_i=w_all[myCut0]
+x_i=x_all[myCut0]
+y_i=y_all[myCut0]
+size_i=size_all[myCut0]
+draw_and_recalibrate( w_i,x_i, y_i,args.saveDir,'all')
 
 
 plt.show()
