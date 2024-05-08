@@ -33,7 +33,7 @@ def fit_peak(hSpec,  min_x1, max_x1,   amplitude,    peak,   sigma,n_sigma=1):
 def draw_and_recalibrate( w_i,x_i, y_i,DIR,suffix):
     
          fig=plt.figure(figsize=(10,10))
-         ax1=plt.subplot(311)
+         ax1=plt.subplot(111)
          NBINS=int(16384) 
          #plot 
          # mappa posizioni:
@@ -44,7 +44,10 @@ def draw_and_recalibrate( w_i,x_i, y_i,DIR,suffix):
          ax1.set_ylabel('Y')
          plt.colorbar(im,ax=ax1)
 
-         ax2=plt.subplot(312)
+         #ax2=plt.subplot(312)
+         fig2=plt.figure(figsize=(10,10))
+         ax2=plt.subplot(111)
+         
          calP1= 0.0032132721459619882
          calP0=-0.003201340833319255
          # spettro energia
@@ -57,7 +60,7 @@ def draw_and_recalibrate( w_i,x_i, y_i,DIR,suffix):
          hSpec.counts=countsClu
          hSpec.bins=binsE
 
-         """
+       
          # fit Lalpha
          min_x1=2.26
          max_x1=2.34
@@ -139,20 +142,20 @@ def draw_and_recalibrate( w_i,x_i, y_i,DIR,suffix):
          print("calP1corr=",calP1corr, "  calP0corr=", calP0corr)
 
          countsCluCorr, binsE = np.histogram(( w_i*calP1+calP0)*calP1corr+calP0corr  , bins = NBINS, range = (0,(16384-1)*calP1+calP0) )
-         ax2.hist(binsE[:-1], bins = binsE, weights = countsCluCorr, histtype = 'step',label="energy w. clustering corrCalib")
+        # ax2.hist(binsE[:-1], bins = binsE, weights = countsCluCorr, histtype = 'step',label="energy w. clustering corrCalib")
          ax2.legend()
          ax2.set_xlabel('E[keV]')
          ax2.set_xlim([0,10])
          ax2.set_yscale('log')
 
          # plot energyCalib
-         ax3=plt.subplot(313)
+         fig3=plt.figure(figsize=(10,10))
+         ax3=plt.subplot(111)
 
          ax3.plot(fitted_mean,true,'bo')
          x=np.linspace(0.1,5,100)
          ax3.plot(x,x*  calP1corr+   calP0corr,'-r')
-         """
-         
+                  
          if SAVE_HISTOGRAMS==True:
             # DIR = args.saveDir
              spectrum_file_name =DIR + '/spectrumCorrPos_'+suffix+'.npz'
@@ -162,17 +165,17 @@ def draw_and_recalibrate( w_i,x_i, y_i,DIR,suffix):
              np.savez(spectrum_file_name, counts = countsClu,  bins = binsE)
            
              fig.savefig(DIR+'/img_'+suffix+'.png')
-             """
+             
              with open(DIR+'/corrCalib_'+suffix+'.txt', 'w') as f:
                  f.write("calP1corr="+str(calP1corr)+" calP0corr="+str(calP0corr)+'\n')
-                 f.write("normLa="+str(par1[0])+" meanLa="+str(par1[1])+" sigmaLa="+ str(par1[2])+'\n')
-                 f.write("normLb="+str(par2[0])+" meanLb="+str(par2[1])+" sigmaLb="+str(par2[2])+'\n' )
-                 f.write("normSi="+str(par3[0])+" meanSi="+str(par3[1])+" sigmaSi="+str(par3[2])+'\n' )
-                 f.write("normLa_esc="+str(par4[0])+" meanLa_esc="+str(par4[1])+" sigmaLa_esc="+str(par4[2])+'\n' )
-                 f.write("normLb_esc="+str(par5[0])+" meanLb_esc="+str(par5[1])+" sigmaLb_esc="+str(par5[2])+'\n')
+                 f.write("normLa="+str(par1[0])+" normLaErr="+str(cov1[0][0]**0.5)+ " meanLa="+str(par1[1])+" sigmaLa="+ str(par1[2])+'\n')
+                 f.write("normLb="+str(par2[0])+" normLbErr="+str(cov2[0][0]**0.5)+" meanLb="+str(par2[1])+" sigmaLb="+str(par2[2])+'\n' )
+                 f.write("normSi="+str(par3[0])+" normSiErr="+str(cov3[0][0]**0.5)+" meanSi="+str(par3[1])+" sigmaSi="+str(par3[2])+'\n' )
+                 f.write("normLa_esc="+str(par4[0])+" normLa_EscErr="+str(cov4[0][0]**0.5)+" meanLa_esc="+str(par4[1])+" sigmaLa_esc="+str(par4[2])+'\n' )
+                 f.write("normLb_esc="+str(par5[0])+" normLb_escErr="+str(cov5[0][0]**0.5)+" meanLb_esc="+str(par5[1])+" sigmaLb_esc="+str(par5[2])+'\n')
                  
              f.close()    
-             """
+             
 ########################################################################
              
 import argparse
@@ -232,12 +235,13 @@ myCut0=np.where( (w_all>100)&(y_all>y_inf0)&(y_all<y_sup0)&(x_all>x_inf0)&(x_all
 
 
 n_events=len(w_all[myCut0])
-events_bins=3
+events_bins=1
 print("n_eventsAll=",n_events)
 
 deltaX=(x_sup0-x_inf0)/events_bins
 deltaY=(y_sup0-y_inf0)/events_bins
 
+"""
 for i in range(0, int(events_bins)):
    x_inf=x_inf0+i*deltaX 
    x_sup=x_inf0+(i+1)*deltaX 
@@ -254,7 +258,7 @@ for i in range(0, int(events_bins)):
 
          suffix=str(i)+'_'+str(j)
          draw_and_recalibrate( w_i,x_i, y_i,args.saveDir,suffix)
-         
+"""         
 
 
 # spettro total:
