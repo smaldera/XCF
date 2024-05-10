@@ -47,7 +47,10 @@ def fit_Gaushistogram(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1]
     print("Bounds=",(parsBoundsLow, parsBoundsUp ))
     
     popt, pcov = curve_fit(gaussian_model, x_data, y_data,p0=initial_pars,absolute_sigma=True, sigma=sigma, bounds=(parsBoundsLow, parsBoundsUp ), maxfev=5000)
-    chisq = (((y_data - gaussian_model(x_data,popt[0],popt[1],popt[2]))/sigma)**2).sum()
+
+    y_fit= gaussian_model(x_data,popt[0],popt[1],popt[2])
+
+    chisq = (  ((y_data - y_fit)**2)/y_fit).sum()
     ndof= len(y_data) - len(popt)
     redChi2=chisq/ndof
     
@@ -59,24 +62,31 @@ def fit_Gaushistogram(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1]
 
 
 def fit_Gaushistogram_iterative(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1], nSigma=1.5 ):
-    myparsBoundsLow=[0,xmin-50,0]
-    myparsBoundsUp=[np.inf,xmax+50,np.inf]
+
+    xmin0=xmin
+    xmax0=xmax
+    myparsBoundsLow=[0,xmin0,0]
+    myparsBoundsUp=[np.inf,xmax0,np.inf]
     #myparsBoundsLow=[0,-np.inf,0]
     #myparsBoundsUp=[np.inf,np.inf,np.inf]
 
     
-    popt, pcov, redChi2 =fit_Gaushistogram(counts,bins,xmin,xmax, initial_pars,parsBoundsLow= myparsBoundsLow, parsBoundsUp= myparsBoundsUp  )
+    popt, pcov, redChi2 =fit_Gaushistogram(counts,bins,xmin0,xmax0, initial_pars,parsBoundsLow= myparsBoundsLow, parsBoundsUp= myparsBoundsUp  )
     k=popt[0]
     mean=popt[1]
     sigma=popt[2]
-    xmin=mean-nSigma*sigma
-    xmax=mean+nSigma*sigma
+    xmin=max(mean-nSigma*sigma,xmin0)
+    xmax=min(mean+nSigma*sigma,xmax0)
     for jj in range (0,5):
            
-        xmin=min(mean-nSigma*sigma,initial_pars[1]-1 )
-        xmax=max(mean+nSigma*sigma,initial_pars[1]+1)
-       # print("xmin=",xmin, "xmax=",xmax)
+       # xmin=mean-nSigma*sigma
+       # xmax=mean+nSigma*sigma
+
+        xmin=max(mean-nSigma*sigma,xmin0)
+        xmax=min(mean+nSigma*sigma,xmax0)
         
+        print("xmin=",xmin, "xmax=",xmax)
+       
         popt, pcov,  redChi2 =    fit_Gaushistogram(counts,bins,xmin,xmax, initial_pars=[k,mean,sigma],parsBoundsLow= myparsBoundsLow, parsBoundsUp= myparsBoundsUp )
         k=popt[0]
         mean=popt[1]
