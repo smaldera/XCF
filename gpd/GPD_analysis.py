@@ -27,7 +27,8 @@ import matplotlib
 #matplotlib.use('Agg')  # questo fa funzionare matplotlib senza interfaccia grafica (es su un server... )
 
 import numpy
-
+import ast
+from matplotlib.patches import Polygon
 from gpdswpy.binning import ixpeHistogram1d,ixpeHistogram2d
 from gpdswpy.logging_ import logger
 from gpdswpy.dqm import ixpeDqmTask, ixpeDqmArgumentParser
@@ -36,6 +37,7 @@ from gpdswpy.filtering import full_selection_cut_string, energy_cut, cut_logical
 from gpdswpy.modeling import ixpeFe55
 from gpdswpy.matplotlib_ import plt
 from gpdswpy.tasks.pha_trend import pha_trend
+from gpdswpy.stokes import *
 from scipy.interpolate import InterpolatedUnivariateSpline
 
 
@@ -67,6 +69,12 @@ parser.add_argument('--cut', type=str, help='cut to be applied',
                     default=None)
 parser.add_argument('--cut-type', type=str, help='type of cut to be applied',
                     default=None,choices=['custom','rectangular'])
+parser.add_argument('--cut-file', type=str, help='file containing the cut to be applied', default=None)
+parser.add_argument('--suffix', type=str, help='suffix to save the data', default=None)
+parser.add_argument('--polcoord', type=str, help='array coord for polygon cut', default=None)
+parser.add_argument('--cut-sigma', type=float, default=3, help='sigma cut')
+parser.add_argument('--mod-bins', type=int, default=360, help='modulation bins')
+
 
 parser.add_pha_options()
 #parser.set_defaults(pha_expr='TRK_PI')
@@ -78,8 +86,8 @@ parser.add_cut_options()
 
 
 ### PARAMETRI....
-cut_sigma=3
-cut_base='( (abs(TRK_BARX) < 7.000) && (abs(TRK_BARY) < 7.000)) && ( (NUM_CLU > 0) && (LIVETIME > 15)  )'
+cut_sigma=parser.parse_args().cut_sigma
+cut_base='( (abs(TRK_BARX) < 7.000) && (abs(TRK_BARY) < 7.000)) && ( (NUM_CLU > 0) && (LIVETIME > 15) )'# && (TRK_PI<30000) && (TRK_PI>22000)  )'
 #cut_base='( TRK_BARX >-1) && ( TRK_BARX <-0.2) &&  ( TRK_BARY >0.4) && ( TRK_BARY <0.8)   && ( (NUM_CLU > 0) && (LIVETIME > 15)  )'
 
 
@@ -223,13 +231,28 @@ class GPD_analysis(ixpeDqmTask):
             if energy_cut==True:
                 ecut = cut_logical_and(cut,peak_cut(gauss_model))
                 print ("Energuy cut = ", ecut)
+                if kwargs.get('output_folder')!=None:
+                    if suf is not None:
+                        plt.savefig(kwargs.get('output_folder')+f'PHA_spectrum1_{suf}.png')
+                    else:
+                        plt.savefig(kwargs.get('output_folder')+f'PHA_spectrum1.png')
                 return ecut, gauss_model
+        else:
+            ecut_ = f'( (TRK_PI < {kwargs.get("max_pha")}) && (TRK_PI > {kwargs.get("min_pha")}) )'
+            ecut = cut_logical_and(cut,ecut_)
+            gauss_model = None
+            if kwargs.get('output_folder')!=None:
+                if suf is not None:
+                    plt.savefig(kwargs.get('output_folder')+f'PHA_spectrum1_{suf}.png')
+                else:
+                    plt.savefig(kwargs.get('output_folder')+f'PHA_spectrum1.png')
+            return ecut, gauss_model
+            
         
-        self.save_figure('pha_spectrum', overwrite=kwargs.get('overwrite'))
+        #self.save_figure('pha_spectrum', overwrite=kwargs.get('overwrite'))
         
-        if kwargs.get('output_folder')!=None:
-            plt.savefig(kwargs.get('output_folder')+f'PHA_spectrum1{suf}.png')
-
+        
+                
     def projections(self, coord, expression, figure_name, merge_cut, extra_cut, cut_edges, suf, **kwargs):
         print(f'#####\nProjection for {expression} {coord}')
         if merge_cut == True:
@@ -248,7 +271,10 @@ class GPD_analysis(ixpeDqmTask):
             for x in cut_edges:
                 plt.axvline(x=x,linestyle='--')
         if kwargs.get('output_folder')!=None:
-            plt.savefig(kwargs.get('output_folder')+f'{expression}{coord}_proj{suf}.png')
+            if suf is not None:
+                plt.savefig(kwargs.get('output_folder')+f'{expression}{coord}_proj_{suf}.png')
+            else:
+                plt.savefig(kwargs.get('output_folder')+f'{expression}{coord}_proj.png')
         return 
             
     def multiple_projections(self, coord, expression, figure_name, merge_cut, extra_cut, coord_slice, expression_slice, suf, **kwargs):
@@ -281,7 +307,7 @@ class GPD_analysis(ixpeDqmTask):
         x_max=8
         y_min=-8
         y_max=8
-        nside=320
+        nside=200
         x_edges = numpy.linspace(x_min, x_max, nside +1)
         y_edges = numpy.linspace(y_min, y_max, nside +1)
         hist_map = ixpeHistogram2d(x_edges, y_edges,  xtitle='x [mm]', ytitle='y [mm]')
@@ -293,10 +319,16 @@ class GPD_analysis(ixpeDqmTask):
             for y in cut_edges[1]:
                 plt.axhline(y=y,linestyle='--')
         if shape=='circle':
-            circle = plt.Circle((cut_edges[0], cut_edges[1]), cut_edges[2], color='cyan', linestyle='--',fill=False)
+            circle = plt.Circle((cut_edges[0], cut_edges[1]), cut_edges[2], color='cyan', linewidth=2, linestyle='--',fill=False)
             plt.gca().add_patch(circle)
+        if shape=='polygon':
+            polygon_ = Polygon(xy=list(zip(cut_edges[0], cut_edges[1])), closed=True, color='cyan', linewidth=2, linestyle='--', fill=False)
+            plt.gca().add_patch(polygon_)
         if kwargs.get('output_folder')!=None:
-            plt.savefig(kwargs.get('output_folder')+f'bary_map{suf}.png')
+            if suf is not None:
+                plt.savefig(kwargs.get('output_folder')+f'bary_map_{suf}.png')
+            else:
+                plt.savefig(kwargs.get('output_folder')+f'bary_map.png')
             
 
     def modulation(self, phi, modulation_title, merge_cut, extra_cut, suf, **kwargs):
@@ -308,7 +340,7 @@ class GPD_analysis(ixpeDqmTask):
         phi_values= self.run_list.values(f'numpy.degrees(TRK_PHI{phi})', cut)
         
         edge=180
-        nbins=360
+        nbins = kwargs.get('mod_bins')
         ang_binning = numpy.linspace(-edge, edge, nbins + 1)
         
         hist_phi = ixpeHistogram1d(ang_binning, xtitle=r'$\Phi$'+str(phi)+' deg')
@@ -323,7 +355,10 @@ class GPD_analysis(ixpeDqmTask):
         modulation_err = fit_model.parameter_error('Modulation')
         chi2 = fit_model.reduced_chisquare()
         if kwargs.get('output_folder')!=None:
-            plt.savefig(kwargs.get('output_folder')+f'modulation_phi{phi}{suf}.png')
+            if suf is not None:
+                plt.savefig(kwargs.get('output_folder')+f'modulation_phi{phi}_{suf}.png')
+            else:
+                plt.savefig(kwargs.get('output_folder')+f'modulation_phi{phi}.png')
         return phase, phase_err, modulation, modulation_err, chi2, cut
 
     def cut_string(self,cut,symbol):
@@ -417,6 +452,31 @@ class GPD_analysis(ixpeDqmTask):
                         r = float(rr.split('**')[0])
 
         return x, y, r
+
+    def get_phi_array(self, phi, merge_cut, extra_cut, **kwargs):
+        if merge_cut == True:
+            cut = self.merge_cut(new_cut=extra_cut,**kwargs)
+        else:
+            cut = extra_cut
+        print(f'\nSTOKES EVENTS CUT = {cut}\n')
+        phi_values= self.run_list.values(f'TRK_PHI{phi}', cut)
+        return phi_values
+    
+    def STOKES(self, phi, **kwargs):
+        I_ = I(phi)
+        Q_ = Q(phi)
+        dQ_ = dQ(phi)
+        U_ = U(phi)
+        dU_ = dU(phi)
+        return I_, Q_, dQ_, U_, dQ_
+
+    def STOKES_NORM(self, phi, **kwargs):
+        I, Q, dQ, U, dQ = self.STOKES(phi,**kwargs)
+        QN = q_norm(Q,I)
+        dQN = dq_norm(QN,I)
+        UN = u_norm(U,I)
+        dUN = du_norm(UN,I)
+        return I, QN, dQN, UN, dUN
             
     def do_run(self, **kwargs):
         """
@@ -427,74 +487,145 @@ class GPD_analysis(ixpeDqmTask):
             print(f'\nExternal cut = {external_cut}\n')
             coord_ = self.cut_string_rect(external_cut,expression='TRK_BAR')
             print(coord_)
-            cut_suf = f'_cut_rect'
+            cut_suf = kwargs.get('suffix')
             self.map(expression='TRK_BAR', merge_cut=False,  extra_cut=cut_base, map_title='barycenter map', shape='rectangular', cut_edges=coord_, suf=cut_suf, **kwargs)
             self.projections(coord='X', expression='TRK_BAR', figure_name='x bar proj', merge_cut=False, extra_cut=cut_base, cut_edges=coord_[0], suf=cut_suf, **kwargs)
             self.projections(coord='Y', expression='TRK_BAR', figure_name='y bar proj', merge_cut=False, extra_cut=cut_base, cut_edges=coord_[1], suf=cut_suf, **kwargs)
+            cut_base_new = cut_logical_and(cut_base,external_cut)
+            n_physical=self.run_list.num_events(cut_base_new)
             
         if kwargs.get('cut_type')=='circle':
             external_cut = self.get_cut(**kwargs)
             print(f'\nExternal cut = {external_cut}\n')
             x,y,r = self.cut_string_circ(external_cut,expression='TRK_BAR')
             coord_ = [x,y,r]
-            cut_suf = f'_cut_circ'
+            cut_suf = kwargs.get('suffix')
             print(coord_)
             self.map(expression='TRK_BAR', merge_cut=False,  extra_cut=cut_base, map_title='barycenter map', shape='circle', cut_edges=coord_, suf=cut_suf, **kwargs)
             self.projections(coord='X', expression='TRK_BAR', figure_name='x bar proj', merge_cut=False, extra_cut=cut_base, cut_edges=[coord_[0]-coord_[2],coord_[0]+coord_[2]], suf=cut_suf, **kwargs)
             self.projections(coord='Y', expression='TRK_BAR', figure_name='y bar proj', merge_cut=False, extra_cut=cut_base, cut_edges=[coord_[1]-coord_[2],coord_[1]+coord_[2]], suf=cut_suf, **kwargs)
+            cut_base_new = cut_logical_and(cut_base,external_cut)
+            n_physical=self.run_list.num_events(cut_base_new)
+
+        if kwargs.get('cut_type')=='polygon':
+            external_cut = self.get_cut(**kwargs)
+            print(f'\nExternal cut = {external_cut}\n')
+            pol_coord = kwargs.get('polcoord')
+            x_pol = ast.literal_eval(pol_coord)[0]
+            y_pol = ast.literal_eval(pol_coord)[1]
+            cut_suf = kwargs.get('suffix')
+            print(x_pol, y_pol)
+            self.map(expression='TRK_BAR', merge_cut=False,  extra_cut=cut_base, map_title='barycenter map', shape='polygon', cut_edges=[x_pol,y_pol], suf=cut_suf, **kwargs)
+            self.projections(coord='X', expression='TRK_BAR', figure_name='x bar proj', merge_cut=False, extra_cut=cut_base, cut_edges=x_pol, suf=cut_suf, **kwargs)
+            self.projections(coord='Y', expression='TRK_BAR', figure_name='y bar proj', merge_cut=False, extra_cut=cut_base, cut_edges=y_pol, suf=cut_suf, **kwargs)
+            cut_base_new = cut_logical_and(cut_base,external_cut)
+            n_physical=self.run_list.num_events(cut_base_new)
             
         if kwargs.get('cut_type')==None:
-            cut_suf = ''
+            cut_suf = kwargs.get('suffix')
             self.map(expression='TRK_BAR', merge_cut=False,  extra_cut=cut_base, map_title='barycenter map', shape=None, cut_edges=None, suf=cut_suf, **kwargs)
             self.projections(coord='X', expression='TRK_BAR', figure_name='x bar proj', merge_cut=False, extra_cut=cut_base, cut_edges=None, suf=cut_suf, **kwargs)
             self.projections(coord='Y', expression='TRK_BAR', figure_name='y bar proj', merge_cut=False, extra_cut=cut_base, cut_edges=None, suf=cut_suf, **kwargs)
+            n_physical=self.run_list.num_events(cut_base)
         
         ecut, gauss_model = self.pha_spectrum_plot(figure_name='pha_spectrum', energy_cut=True, merge_cut = True, extra_cut = cut_base, suf=cut_suf, **kwargs) 
-
+        
         track_size_cut='(TRK_SIZE > 0)'
         cut2= cut_logical_and(ecut,track_size_cut)
 
+        if gauss_model is not None:
 
-        n_physical=self.run_list.num_events(cut_base)
-        n_ecut=self.run_list.num_events(cut2)
+            n_physical=self.run_list.num_events(cut_base)
+            n_ecut=self.run_list.num_events(cut2)
         
-        ecut_efficiency = n_ecut/n_physical
-        quantile = min(0.8/ecut_efficiency, 1.)
-        expr = 'TRK_M2L/TRK_M2T'
-        
-        self.add_plot('moments ratio', gauss_model, figure_name='moments ratio')
-        min_mom_ratio = find_quantile(self.run_list, quantile, expr, cut2)
-        if kwargs.get('output_folder')!=None:
-            plt.savefig(kwargs.get('output_folder')+'dist_ratioLW.png')
-        mom_ratio_cut = '%s > %.4f' % (expr, min_mom_ratio)
-        cut_final=cut_logical_and(cut2,mom_ratio_cut)
+            ecut_efficiency = n_ecut/n_physical
+            quantile = min(0.8/ecut_efficiency, 1.)
+            expr = 'TRK_M2L/TRK_M2T'
+            print('\nQUANTILE CUT\n')
+            print(f'efficiency = {ecut_efficiency}, n cut = {n_ecut}, n physical = {n_physical}\n')
+            print(f'quantile = {quantile}, expression = {expr}\n')
 
-        print ("\ncut_final = ",cut_final,'\n')
+            self.add_plot('moments ratio', gauss_model, figure_name='moments ratio')
+            min_mom_ratio = find_quantile(self.run_list, quantile, expr, cut2)
+            if kwargs.get('output_folder')!=None:
+                plt.savefig(kwargs.get('output_folder')+'dist_ratioLW.png')
+            mom_ratio_cut = '%s > %.4f' % (expr, min_mom_ratio)
+            cut_final=cut_logical_and(cut2,mom_ratio_cut)
+
+            print ("\ncut_final = ",cut_final,'\n')
+
+        else:
+            cut_final = cut2
         
         ###################################
-        self.map(expression='TRK_BAR', merge_cut=True,  extra_cut=cut_final, map_title='barycenter map cut', shape=None, cut_edges=None, suf='_cut'+cut_suf, **kwargs)
-        self.projections(coord='X', expression='TRK_BAR', figure_name='x bar proj cut', merge_cut=True, extra_cut=cut_final, cut_edges=None, suf='_cut'+cut_suf, **kwargs)
-        self.projections(coord='Y', expression='TRK_BAR', figure_name='y bar proj cut', merge_cut=True, extra_cut=cut_final, cut_edges=None, suf='_cut'+cut_suf, **kwargs)
+        self.map(expression='TRK_BAR', merge_cut=True,  extra_cut=cut_final, map_title='barycenter map cut', shape=None, cut_edges=None, suf='cut_'+cut_suf, **kwargs)
+        self.projections(coord='X', expression='TRK_BAR', figure_name='x bar proj cut', merge_cut=True, extra_cut=cut_final, cut_edges=None, suf='cut_'+cut_suf, **kwargs)
+        self.projections(coord='Y', expression='TRK_BAR', figure_name='y bar proj cut', merge_cut=True, extra_cut=cut_final, cut_edges=None, suf='cut_'+cut_suf, **kwargs)
         
         
         ###################################
         # istogramma ph1
         phase_1, phase_err_1, modulation_1, modulation_err_1, chi2_1, cut_1 = self.modulation(phi=1, modulation_title='modulation phi 1', merge_cut=True, extra_cut=cut_final, suf=cut_suf, **kwargs)
+        phi_1_arr = self.get_phi_array(phi=1, merge_cut=True, extra_cut=cut_final, **kwargs)
+        I_1, QN_1, dQN_1, UN_1, dUN_1 = self.STOKES_NORM(phi_1_arr, **kwargs)
+        I_1, Q_1, dQ_1, U_1, dU_1 = self.STOKES(phi_1_arr, **kwargs)
+        mu_1, mu_err_1, phase_st_1, phase_st_err_1 = polarization(I_1,Q_1,U_1,**kwargs)
+        phase_st_1 = numpy.degrees(phase_st_1)
+        phase_st_err_1 = numpy.degrees(phase_st_err_1)
+        
         # istogramma ph2
         phase_2, phase_err_2, modulation_2, modulation_err_2, chi2_2, cut_2 = self.modulation(phi=2, modulation_title='modulation phi 2', merge_cut=True, extra_cut=cut_final, suf=cut_suf, **kwargs)
-
-        self.pha_spectrum_plot(figure_name='pha_spectrum_cut', energy_cut=False, merge_cut = True, extra_cut = cut_final, suf=cut_suf, **kwargs)
+        phi_2_arr = self.get_phi_array(phi=2, merge_cut=True, extra_cut=cut_final, **kwargs)
+        I_2, QN_2, dQN_2, UN_2, dUN_2 = self.STOKES_NORM(phi_2_arr, **kwargs)
+        I_2, Q_2, dQ_2, U_2, dU_2 = self.STOKES(phi_2_arr, **kwargs)
+        mu_2, mu_err_2, phase_st_2, phase_st_err_2 = polarization(I_2,Q_2,U_2,**kwargs)
+        phase_st_2 = numpy.degrees(phase_st_2)
+        phase_st_err_2 = numpy.degrees(phase_st_err_2)
         
-        peak = gauss_model.parameter_value('Peak')
-        peak_err = gauss_model.parameter_error('Peak')
-        resolution = gauss_model.resolution()
-        resolution_err = gauss_model.resolution_error()
+        print(self.run_list.num_events(cut_final), len(phi_1_arr), len(phi_2_arr))
+
+        #self.pha_spectrum_plot(figure_name='pha_spectrum_cut', energy_cut=False, merge_cut = True, extra_cut = cut_final, suf='cut_'+cut_suf, **kwargs)
+
+        if gauss_model is not None:
+            peak = gauss_model.parameter_value('Peak')
+            peak_err = gauss_model.parameter_error('Peak')
+            resolution = gauss_model.resolution()
+            resolution_err = gauss_model.resolution_error()
 
         N_EVENTS_cut = self.run_list.num_events(cut_final)
+        print('\n\n**************************************************************************************************\n')
+        print(f'N events after all the cuts = {N_EVENTS_cut}')
+        if gauss_model is not None:
+            print('SPECTRUM FIT')
+            print(f'peak = {round(peak,2)} +- {round(peak_err,2)}')
+            print(f'resolution = {round(resolution,3)} +- {round(resolution_err,3)}')
+        print(f'modulation_1 = {round(modulation_1*100.,2)} +- {round(modulation_err_1*100.,2)}')
+        print(f'modulation_2 = {round(modulation_2*100.,2)} +- {round(modulation_err_2*100.,2)}')
+        print(f'modulation_1 STOKES = {round(mu_1*100.,2)} +- {round(mu_err_1*100.,2)}')
+        print(f'QN_1 = {round(QN_1*100.,2)} +- {round(dQN_1*100.,2)}')
+        print(f'UN_1 = {round(UN_1*100.,2)} +- {round(dUN_1*100.,2)}')
+        print(f'modulation_2 STOKES = {round(mu_2*100.,2)} +- {round(mu_err_1*100.,2)}')
+        print(f'QN_2 = {round(QN_2*100.,2)} +- {round(dQN_2*100.,2)}')
+        print(f'UN_2 = {round(UN_2*100.,2)} +- {round(dUN_2*100.,2)}')
+        print('\n**************************************************************************************************\n\n')
         RUN_ID_ =  self.run_list.measurements_id()
         RUN_ID = RUN_ID_.split(' - ')[0]
         
-        results = [peak, peak_err, resolution, resolution_err, phase_1, phase_err_1, modulation_1, modulation_err_1, chi2_1, phase_2, phase_err_2, modulation_2, modulation_err_2, chi2_2, cut_final,  kwargs.get('cut_type'), N_EVENTS_cut, RUN_ID]
+        #results = [peak, peak_err, resolution, resolution_err, phase_1, phase_err_1, modulation_1, modulation_err_1, chi2_1, phase_2, phase_err_2, modulation_2, modulation_err_2, chi2_2, cut_final,  kwargs.get('cut_type'), N_EVENTS_cut, RUN_ID, mu_1, mu_err_1, phase_st_1, phase_st_err_1, mu_2, mu_err_2, phase_st_2, phase_st_err_2]
+
+        if gauss_model is None:
+            peak = 0
+            peak_err = 0
+            resolution = 0
+            resolution_err = 0
+        
+        results = {'RUN_ID': RUN_ID, 'N_EVENTS': N_EVENTS_cut, 'CUT': cut_final, 'CUT_TYPE':  kwargs.get('cut_type'),
+                   'PEAK': [peak, peak_err], 'RESOLUTION': [resolution, resolution_err],
+                   'MODULATION_1': [modulation_1, modulation_err_1], 'PHASE_1': [phase_1, phase_err_1], 'CHI2_1': chi2_1,
+                   'MODULATION_2': [modulation_2, modulation_err_2], 'PHASE_2': [phase_2, phase_err_2], 'CHI2_2': chi2_2,
+                   'MU_STOKES_1': [mu_1, mu_err_1], 'PHASE_STOKES_1': [phase_st_1, phase_st_err_1],
+                   'MU_STOKES_2': [mu_2, mu_err_2], 'PHASE_STOKES_2': [phase_st_2, phase_st_err_2],
+                   'QN_1': [QN_1, dQN_1], 'UN_1': [UN_1, dUN_1], 'QN_2': [QN_2, dQN_2], 'UN_2': [UN_2, dUN_2]}
 
         return results
 
