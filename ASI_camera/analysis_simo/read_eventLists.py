@@ -52,7 +52,7 @@ NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
 YBINS=4144
 
-REBINXY=40.
+REBINXY=1.
 
 SAVE_HISTOGRAMS=True
 spectrum_file_name='test_spectrum.npz'
@@ -97,7 +97,7 @@ if cut=='xy':
     myCut_pos=np.where( (x_all>x_inf)&(x_all<x_sup)&(y_all>y_inf)&(y_all<y_sup) )
     myCut=np.where( w_all>0 )
 if cut=='None':
-    myCut=np.where(( w_all>40))
+    myCut=np.where(( w_all>20))
    # myCut=np.where(( ( w_all*calP1+calP0)<10.5 )&( ( w_all*calP1+calP0)>9.5)   )
     #myCut=np.where(  ((w_all*calP1+calP0)>0.03)& (size==2) )
     #myCut=np.where( (x_all>x_inf)&(x_all<x_sup)&(y_all>y_inf)&(y_all<y_sup)& (w_all>100)  ) 

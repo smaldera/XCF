@@ -160,13 +160,13 @@ if __name__ == "__main__":
 
         OBJ = aotr2(path, sample_size, WB_R, WB_B, EXPO, GAIN, bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent,
                    Raw, Eps,num ,leng,bunch)
-        try:
-            OBJ.CaptureAnalyze()
+        #   try:
+        OBJ.CaptureAnalyze()
             #CaptureAnalyze(camera, path, sample_size, WB_R,WB_B,EXPO,GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps)
-            sg.popup("Analize is complete and files are saved in " + path)
-        except Exception as e:
-            sg.popup(f" there are trobles: {e}")
-            print("\n \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n there are troubles:" , e)
+        sg.popup("Analize is complete and files are saved in " + path)
+       # except Exception as e: !!!!!!!!!!!!!!!!!!!!
+       #     sg.popup(f" there are trobles in CaptureAndAnalyze2: {e}")
+       #     print("\n \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n there are troubles in CaptureAndAnalyze2:" , e)
 
 
     def update_info():

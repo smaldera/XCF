@@ -103,6 +103,7 @@ class aotr2:
         self.y_allClu = np.empty(0)
         self.w_all = np.empty(0)
         self.clusizes_all = np.empty(0)
+        
     def recover_data(self, data_buffer):
         self.countsAll2dRaw = data_buffer[0]
         self.countsAll2dClu = data_buffer[1]
@@ -225,13 +226,19 @@ class aotr2:
                 while True:
                     try:
                         data = np.empty((2822, 4144), dtype=np.uint16)
+                        #print("going to get  img i=",i)
+                        #asi.list_cameras()
                         data = camera.capture_video_frame()
+                        #print("captured img i=",i)
                         data_queue.put(data)
+                        #print("put que img i=",i)
+                        
                         break
                     except Exception as e:
                         camera.stop_video_capture()
                         camera.start_video_capture()
-                        print(" there are troubles:" , e)                        
+                        print(" there are troubles in while true:" , e, " frame=", i)
+                        
                 progress_bar_capture.UpdateBar(i)
                 analizza_lista = []
 
@@ -243,9 +250,12 @@ class aotr2:
                                   extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
                     ax3[0].set_title("Image Raw")
                     # ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAll, histtype='step', label="raw")
+
+                    print("len conteggi spettroZeroSupp=",len(self.countsAllZeroSupp))
                     self.bins = calP0 + calP1 * self.bins
                     ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllZeroSupp, histtype='step', label="pixel thresold", color = "green")
                     ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllClu, histtype='step', label='CLUSTERING', color = "red")
+                    
                     ax3[1].set_xlim([0,12])
                     ax3[1].set_yscale('log')
                     ax3[1].set_title("Spettro")
@@ -460,7 +470,7 @@ class aotr2:
             if id==0:
             	progress_bar.UpdateBar(i)
             i+=1
-            #with lock serve per far accedere gli analizzatori uno alal volta ai dati
+            #with lock serve per far accedere gli analizzatori uno alla volta ai dati
             with lock:
                 data_buffer[0] += counts2dRaw
                 data_buffer[2] += counts_i
