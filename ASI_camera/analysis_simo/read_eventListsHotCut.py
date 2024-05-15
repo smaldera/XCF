@@ -9,6 +9,16 @@ import fit_histogram as fitSimo
 from  histogramSimo import histogramSimo
 
 
+
+
+
+def cercaBin(bin_edges,val):
+
+    bin= np.max(np.where( (bin)edges<val))[0])
+    return bin
+
+
+
 ####
 # small scripts to plot CMOS data from the event list whit cuts
 # draws: 2D map,  energy, x-y projections
@@ -50,7 +60,7 @@ NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
 YBINS=4144
 
-REBINXY=50.
+REBINXY=1
 
 SAVE_HISTOGRAMS=True
 spectrum_file_name='test_spectrum.npz'
@@ -105,11 +115,18 @@ counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbi
 counts2dClu=   counts2dClu.T
 im=ax1.imshow(np.log10(counts2dClu), interpolation='nearest', origin='upper',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
 
-# mask hot pixels:
-for i in range(0, XBINS):
-    for j in  range(0, YBINS):
-        print("i=",i," j="," => ",counts2dClu[i][j])
+counts2dBig,  xedgesBig, yedgesBig= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d/2, ybins2d/2 ],range=[[0,XBINS],[0,YBINS]])
+counts2dBig=   counts2dBig.T
 
+
+
+# mask hot pixels:
+for i in range(1, XBINS-1):
+    for j in  range(1, YBINS-1):
+        print("i=",i," j=",j," => ",counts2dClu[j][i])
+        print("i-1=",i-1," j=",j," => ",counts2dClu[j][i])
+        
+        
 
 
 
