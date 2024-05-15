@@ -9,20 +9,16 @@ import fit_histogram as fitSimo
 from  histogramSimo import histogramSimo
 
 
-
-
-
 def cercaBin(bin_edges,val):
 
-    bin= np.max(np.where( (bin)edges<val))[0])
+    bin= np.max(np.where( (bin_edges<val))[0])
     return bin
-
 
 
 ####
 # small scripts to plot CMOS data from the event list whit cuts
 # draws: 2D map,  energy, x-y projections
-# 
+#
 
 # cut type:
 # cut='x' if cut on x axis
@@ -99,7 +95,7 @@ if cut=='xy':
 if cut=='None':
     myCut=np.where( w_all>100 )
     myCut_pos=myCut
-  
+
 
 
 
@@ -109,13 +105,13 @@ fig2=plt.figure(figsize=(10,10))
 #fig2=plt.figure()
 ax1=plt.subplot(221)
 
-#plot 
+#plot
 # mappa posizioni:
 counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
 counts2dClu=   counts2dClu.T
 im=ax1.imshow(np.log10(counts2dClu), interpolation='nearest', origin='upper',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
 
-counts2dBig,  xedgesBig, yedgesBig= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d/2, ybins2d/2 ],range=[[0,XBINS],[0,YBINS]])
+counts2dBig,  xedgesBig, yedgesBig= np.histogram2d(x_all[myCut],y_all[myCut],bins=[int(xbins2d/2), int(ybins2d/2) ],range=[[0,XBINS],[0,YBINS]])
 counts2dBig=   counts2dBig.T
 
 
@@ -123,12 +119,14 @@ counts2dBig=   counts2dBig.T
 # mask hot pixels:
 for i in range(1, XBINS-1):
     for j in  range(1, YBINS-1):
-        print("i=",i," j=",j," => ",counts2dClu[j][i])
-        print("i-1=",i-1," j=",j," => ",counts2dClu[j][i])
-        
-        
-
-
+        counts=counts2dClu[j][i]
+        #print("i=",i," j=",j," => ",counts2dClu[j][i])
+        iBig=cercaBin(xedgesBig,i)
+        jBig=cercaBin(yedgesBig,j)
+        #print("average=",counts2dBig[jBig][iBig])
+        countsAve=counts2dBig[jBig][iBig]/4.
+        if (counts-countsAve)>3.*np.sqrt(countsAve):
+            print ("noise!! couts=",counts," ave =",countsAve," i=",i," j=",j)
 
 
 
@@ -203,7 +201,7 @@ if SAVE_HISTOGRAMS==True:
     np.savez(DIR + spectrum_file_name, counts = countsClu,  bins = binsE)
     np.savez(DIR + xproj_file_name, counts = xprojection,  bins = bins_x)
     np.savez(DIR + yproj_file_name, counts = yprojection,  bins = bins_y)
-    
+
 
 
 plt.show()
