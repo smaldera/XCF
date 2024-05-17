@@ -74,6 +74,8 @@ parser.add_argument('--suffix', type=str, help='suffix to save the data', defaul
 parser.add_argument('--polcoord', type=str, help='array coord for polygon cut', default=None)
 parser.add_argument('--cut-sigma', type=float, default=3, help='sigma cut')
 parser.add_argument('--mod-bins', type=int, default=360, help='modulation bins')
+parser.add_argument('--map-bins', type=int, default=200, help='map bins')
+parser.add_argument('--save-phi', action='store_true',default=False,help='save phi arrays')
 
 
 parser.add_pha_options()
@@ -307,7 +309,7 @@ class GPD_analysis(ixpeDqmTask):
         x_max=8
         y_min=-8
         y_max=8
-        nside=200
+        nside=kwargs.get('map_bins')
         x_edges = numpy.linspace(x_min, x_max, nside +1)
         y_edges = numpy.linspace(y_min, y_max, nside +1)
         hist_map = ixpeHistogram2d(x_edges, y_edges,  xtitle='x [mm]', ytitle='y [mm]')
@@ -359,7 +361,14 @@ class GPD_analysis(ixpeDqmTask):
                 plt.savefig(kwargs.get('output_folder')+f'modulation_phi{phi}_{suf}.png')
             else:
                 plt.savefig(kwargs.get('output_folder')+f'modulation_phi{phi}.png')
-        return phase, phase_err, modulation, modulation_err, chi2, cut
+            
+        return phase, phase_err, modulation, modulation_err, chi2, cut#, hist_phi.bin_edges, hist_phi.bin_centers, hist_phi.bin_weights
+
+    def save_phi(self,phi1,phi2,suf,**kwargs):
+        if suf is not None:
+            numpy.savez(kwargs.get('output_folder')+f'phi_{suf}.npz', array1=phi1, array2=phi2)
+        else:
+            numpy.savez(kwargs.get('output_folder')+f'phi.npz', array1=phi1, array2=phi2)
 
     def cut_string(self,cut,symbol):
         cut_ = cut.split(symbol)
@@ -533,6 +542,7 @@ class GPD_analysis(ixpeDqmTask):
         track_size_cut='(TRK_SIZE > 0)'
         cut2= cut_logical_and(ecut,track_size_cut)
 
+        '''
         if gauss_model is not None:
 
             n_physical=self.run_list.num_events(cut_base)
@@ -556,6 +566,8 @@ class GPD_analysis(ixpeDqmTask):
 
         else:
             cut_final = cut2
+        '''
+        cut_final = cut2
         
         ###################################
         self.map(expression='TRK_BAR', merge_cut=True,  extra_cut=cut_final, map_title='barycenter map cut', shape=None, cut_edges=None, suf='cut_'+cut_suf, **kwargs)
@@ -581,6 +593,9 @@ class GPD_analysis(ixpeDqmTask):
         mu_2, mu_err_2, phase_st_2, phase_st_err_2 = polarization(I_2,Q_2,U_2,**kwargs)
         phase_st_2 = numpy.degrees(phase_st_2)
         phase_st_err_2 = numpy.degrees(phase_st_err_2)
+        
+        if kwargs.get('save_phi') is not None:
+            self.save_phi(phi_1_arr,phi_2_arr,suf=cut_suf,**kwargs)
         
         print(self.run_list.num_events(cut_final), len(phi_1_arr), len(phi_2_arr))
 
