@@ -49,8 +49,9 @@ ff=open(args.inFile,'r')
 
 
 # retta calibrazione cmos
-calP1=1
-calP0=1
+
+calP0=-0.003201340833319255
+calP1=0.003213272145961988
 
 NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
@@ -82,6 +83,69 @@ for f in ff:
     y_all=np.append(y_all,y)
     size_all=np.append(size_all,size)
 
+
+
+fig2=plt.figure(figsize=(10,10))
+#fig2=plt.figure()
+ax1=plt.subplot(221)
+
+#plot
+myCut=np.where( w_all>100 )
+# mappa posizioni:
+counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
+counts2dClu=   counts2dClu.T
+im=ax1.imshow(np.log10(counts2dClu), interpolation='nearest', origin='upper',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+
+print('len(counts2dClu)=',len(counts2dClu), "np.shape(counts2dClu)=",np.shape(counts2dClu))
+
+
+
+
+# mask hot pixels:
+i_cut=[]
+j_cut=[]
+for i in range(1, YBINS-1):
+    for j in  range(1, XBINS-1):
+        counts=counts2dClu[i][j]
+        
+     
+        mysum2=0
+        for delta_i in range(-1,2):
+            for delta_j in range(-1,2):
+                mysum2+=counts2dClu[i+delta_i][j+delta_j]
+           
+        if counts<10:
+            continue
+        mysum2corr=(mysum2-counts)/8.
+        if (counts-mysum2corr)>10.*np.sqrt(mysum2corr):
+            print ("noise!! couts=",counts," ave =",mysum2corr ," i=",i," j=",j)
+            i_cut.append(i)  #Y
+            j_cut.append(j)  #X
+
+
+
+
+print ("x_cut=",j_cut)
+print ("y_cut=",i_cut)
+
+for i in range(0,len(j_cut)):
+    print("pix_x=",j_cut[i]," inf= ",xedges[j_cut[i]-1]," up=",xedges[j_cut[i]]  )
+    print("pix_y=",i_cut[i]," inf= ",yedges[i_cut[i]-1]," up=",yedges[i_cut[i]]  )
+
+    x_low=xedges[j_cut[i]-1]
+    x_up=xedges[j_cut[i]]
+    y_low=yedges[i_cut[i]-1]
+    y_up=yedges[i_cut[i]]
+    
+    pixCut=np.where(~(((x_all<x_up)&(x_all>x_low))&( (y_all<y_up)&(y_all>y_low) )))
+    w_all=w_all[pixCut]
+    x_all=x_all[pixCut]
+    y_all=y_all[pixCut]
+    size_all= size_all[pixCut]
+
+
+print(w_all)   
+    
 # CUT di SELEZIONE EVENTI!!!
 if cut=='x':
     myCut_pos=np.where( (x_all>x_inf)&(x_all<x_sup) )
@@ -95,45 +159,7 @@ if cut=='xy':
 if cut=='None':
     myCut=np.where( w_all>100 )
     myCut_pos=myCut
-
-
-
-
-
-
-fig2=plt.figure(figsize=(10,10))
-#fig2=plt.figure()
-ax1=plt.subplot(221)
-
-#plot
-# mappa posizioni:
-counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
-counts2dClu=   counts2dClu.T
-im=ax1.imshow(np.log10(counts2dClu), interpolation='nearest', origin='upper',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
-
-counts2dBig,  xedgesBig, yedgesBig= np.histogram2d(x_all[myCut],y_all[myCut],bins=[int(xbins2d/2), int(ybins2d/2) ],range=[[0,XBINS],[0,YBINS]])
-counts2dBig=   counts2dBig.T
-
-
-
-# mask hot pixels:
-for i in range(1, XBINS-1):
-    for j in  range(1, YBINS-1):
-        counts=counts2dClu[j][i]
-        #print("i=",i," j=",j," => ",counts2dClu[j][i])
-        iBig=cercaBin(xedgesBig,i)
-        jBig=cercaBin(yedgesBig,j)
-        #print("average=",counts2dBig[jBig][iBig])
-        countsAve=counts2dBig[jBig][iBig]/4.
-        if (counts-countsAve)>3.*np.sqrt(countsAve):
-            print ("noise!! couts=",counts," ave =",countsAve," i=",i," j=",j)
-
-
-
-
-
-
-
+    
 
 if cut=='x':
     ax1.axvline(x=x_inf,color='red',linestyle='--')
@@ -151,22 +177,25 @@ ax1.set_ylabel('Y')
 plt.colorbar(im,ax=ax1)
 ax1.legend()
 
+
+print("inizio hitograms w")
 ax2=plt.subplot(222)
 # spettro energia
 #plt.figure(2)
-countsClu, binsE = np.histogram( w_all[myCut_pos]  , bins = 2*NBINS, range = (-NBINS,NBINS) )
+countsClu, binsE = np.histogram( w_all  , bins = 2*NBINS, range = (-NBINS,NBINS) )
 binsE=binsE*calP1+calP0
 ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="energy w. clustering")
 ax2.set_xlabel('E[keV]')
 ax2.set_xlim([0,10])
 ax2.set_yscale('log')
 ax2.legend()
+print("... end here")
 
 
 # proiezione X:
 #plt.figure(3)
 ax3=plt.subplot(223)
-xprojection, bins_x = np.histogram( x_all[myCut]  , bins =xbins2d , range = (0,XBINS) )
+xprojection, bins_x = np.histogram( x_all  , bins =xbins2d , range = (0,XBINS) )
 ax3.hist(bins_x[:-1], bins = bins_x, weights = xprojection, histtype = 'step',label="x-projection")
 if cut=='x':
     ax3.axvline(x=x_inf,color='red',linestyle='--')
@@ -180,7 +209,7 @@ ax3.set_yscale('log')
 # proiezione y:
 #plt.figure(4)
 ax4=plt.subplot(224)
-yprojection, bins_y = np.histogram( y_all[myCut]  , bins =ybins2d , range = (0,YBINS) )
+yprojection, bins_y = np.histogram( y_all  , bins =ybins2d , range = (0,YBINS) )
 ax4.hist(bins_y[:-1], bins = bins_y, weights = yprojection, histtype = 'step',label="y-projection")
 if cut=='y':
     ax4.axvline(x=y_inf,color='red',linestyle='--')

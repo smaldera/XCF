@@ -12,6 +12,8 @@ from  histogramSimo import histogramSimo
 def cercaBin(bin_edges,val):
 
     bin= np.max(np.where( (bin_edges<val))[0])
+ #   bin= np.max(bin_edges[bin_edges<val])
+   
     return bin
 
 
@@ -38,7 +40,7 @@ ax1=plt.subplot(111)
 myCut=np.where(w_all>0)
 counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
 counts2dClu=   counts2dClu.T
-im=ax1.imshow(np.log10(counts2dClu), interpolation='nearest', origin='upper',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+im=ax1.imshow(np.log10(counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
 
 counts2dBig,  xedgesBig, yedgesBig= np.histogram2d(x_all[myCut],y_all[myCut],bins=[int(xbins2d/2), int(ybins2d/2) ],range=[[0,XBINS],[0,YBINS]])
 counts2dBig=   counts2dBig.T
@@ -46,7 +48,7 @@ counts2dBig=   counts2dBig.T
 fig3=plt.figure(figsize=(10,10))
 #fig2=plt.figure()
 ax2=plt.subplot(111)
-imBig=ax2.imshow(np.log10(counts2dBig), interpolation='nearest', origin='upper',  extent=[xedgesBig[0], xedgesBig[-1], yedgesBig[0], yedgesBig[-1]])
+imBig=ax2.imshow(np.log10(counts2dBig), interpolation='nearest', origin='lower',  extent=[xedgesBig[0], xedgesBig[-1], yedgesBig[0], yedgesBig[-1]])
 
 
 
