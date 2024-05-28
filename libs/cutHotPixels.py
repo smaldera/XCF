@@ -5,7 +5,7 @@ import numpy as np
 
 class hotPixels():
 
-    def __init__(self,x_all=np.array([]),y_all=np.array([]),w_all=np.array([]),size_all=np.array([])):
+    def __init__(self,x_all=np.array([]),y_all=np.array([]),w_all=np.array([]),size_all=np.array([]),rebin=1):
 
         self.x=x_all
         self.y=y_all
@@ -18,21 +18,24 @@ class hotPixels():
    
         self.counts2d=np.array([])
         self.xedges=np.array([])
-        self.yedges=np.array([]) 
+        self.yedges=np.array([])
+        self.rebin=rebin
         
-    def find_HotPixels(self):
-       myCut=np.where( (self.w>10))
+    def find_HotPixels(self, n_sigma=100,low_threshold=100):
+       myCut=np.where( (self.w>100))
+       xbins2d=int(self.XBINS/self.rebin)
+       ybins2d=int(self.YBINS/self.rebin)
        if len(self.size!=0):
             myCut=np.where( (self.w>10)&(self.size==1) )
             print("cut=  (self.w>10)&(self.size==1) ")
-       self.counts2d,  self.xedges, self.yedges= np.histogram2d(self.x[myCut],self.y[myCut],bins=[self.XBINS, self.YBINS ],range=[[0,self.XBINS],[0,self.YBINS]])
+       self.counts2d,  self.xedges, self.yedges= np.histogram2d(self.x[myCut],self.y[myCut],bins=[xbins2d, ybins2d ],range=[[0,self.XBINS],[0,self.YBINS]])
        self.counts2d=   self.counts2d.T 
       
        self.i_cut=[]
        self.j_cut=[]
        #for i in range(1, YBINS-1):
-       for i in range(1, self.YBINS-1):
-             for j in  range(1, self.XBINS-1):
+       for i in range(1, ybins2d-1):
+             for j in  range(1, xbins2d-1):
         
                  counts=self.counts2d[i][j]
                  mysum2=0
@@ -40,10 +43,10 @@ class hotPixels():
                      for delta_j in range(-1,2):
                          mysum2+=self.counts2d[i+delta_i][j+delta_j]
            
-                 if counts<100:
+                 if counts<low_threshold:
                     continue
                  mysum2corr=(mysum2-counts)/8.
-                 if (counts-mysum2corr)>100.*np.sqrt(mysum2corr):   
+                 if (counts-mysum2corr)>n_sigma*np.sqrt(mysum2corr):   
                         print ("AAAAGGGHHHH noise!! couts=",counts," ave =",mysum2corr ," i=",i," j=",j)
                         self.i_cut.append(i)  #Y
                         self.j_cut.append(j)  #X

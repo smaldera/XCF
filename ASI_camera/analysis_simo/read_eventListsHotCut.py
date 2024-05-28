@@ -43,7 +43,8 @@ parser.add_argument('-specName','--specName',type=str ,  help="spectrum file nam
 parser.add_argument('-xprojName','--xprojName',type=str ,  help="x-projection file name", required=False,default='test_xproj.npz')
 parser.add_argument('-yprojName','--yprojName',type=str ,  help="y-projection file name", required=False,default='test_yproj.npz')
 
-
+FIND_HOTPIXELS=True
+CUT_HOT_PIXELS=True
 
 args = parser.parse_args()
 DIR = args.saveDir
@@ -93,14 +94,19 @@ for f in ff:
 print("len w_all ",len(w_all))
 #================
 #  cut hot pixels....
-hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all)
-hotPix.find_HotPixels()
-hotPix.save_cuts(DIR+'/cuts.npz')
-hotPix.retrive_cuts(DIR+'/cuts.npz')
-hotPix.applyCuts()
-w_all,   x_all,  y_all, size_all=hotPix.get_cutVectors()
+
+
+if FIND_HOTPIXELS==True:
+    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all)
+    hotPix.find_HotPixels(n_sigma=10,low_threshold=10)
+    hotPix.save_cuts(DIR+'/cuts.npz')
+if CUT_HOT_PIXELS==True:
+    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all)
+    hotPix.retrive_cuts(DIR+'/cuts.npz')
+    hotPix.applyCuts()
+    w_all,   x_all,  y_all, size_all=hotPix.get_cutVectors()
                     
-#w_all,   x_all,  y_all, size_all=hotPix.do_all()
+
 print("len w_all dopo cut ",len(w_all))
 #===============
 
@@ -109,7 +115,7 @@ fig2=plt.figure(figsize=(10,10))
 ax1=plt.subplot(221)
 
 #plot
-myCut=np.where( (w_all>10))
+myCut=np.where( (w_all>100))
 # mappa posizioni:
 counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
 counts2dClu=   counts2dClu.T
@@ -122,7 +128,7 @@ countsClu, binsE = np.histogram( w_all[myCut]  , bins = 2*NBINS, range = (-NBINS
 binsE=binsE*calP1+calP0
 ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="energy w. clustering")
 ax2.set_xlabel('E[keV]')
-ax2.set_xlim([0,10])
+ax2.set_xlim([0,12])
 ax2.set_yscale('log')
 ax2.legend()
 

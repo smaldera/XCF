@@ -29,12 +29,17 @@ def EB_theta(thetaB,dd):
 #E=2697
 #pol_formula= computePol_thetaB(thetaBragg)
 
+dd_Si220=3.840
+dd_Ge111=6.532
+
+dd=dd_Si220
+
 E=np.linspace(1000,20000,1000)
 #print(E)
-plt.plot(E,thetaB_E(E,6.532),'rp')
+plt.plot(E,thetaB_E(E,dd),'rp')
 
 plt.figure(2)
-plt.plot(E,computePol_thetaB(thetaB_E(E,6.532)),'bp')
+plt.plot(E,computePol_thetaB(thetaB_E(E,dd)),'bp')
 
 plt.figure(3)
 theta=np.linspace(0,90,900)
