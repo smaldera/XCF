@@ -10,8 +10,10 @@ Tsum=0.
 Hsum=0.
 n_sum=0.
 
-outFileName='test_sensorData.txt'
-    
+#outFileName='test_sensorData.txt'
+outFileName='/home/xcf/XCF/temp_data/temp_sensorData.txt'
+
+
 while 1:
     T=0.
     H=0.
