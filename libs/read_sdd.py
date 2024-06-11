@@ -83,13 +83,38 @@ def pharse_mca(filename):
 
 
 
+def pharse_ssdnpz(filename):
+     data=np.load(filename)
+     counts=data['spectrum']
+     utils=data['utils']
+     livetime=utils[0]
+     fast_counts=utils[1]
+     slow_counts=utils[2]
+     deadTime=utils[3]
+     rate=utils[4]
+     start=utils[5]
+     stop=utils[6]
 
+     print("livetime=",livetime)
+     print("fast_counts=", fast_counts)
+     print("slow_counts=",slow_counts)
+     print("deadTime=", deadTime)
+     print("rate=",rate)
+     print("start=",start)
+     print("stop=",stop)
+     return counts, deadTime, livetime, fast_counts,slow_counts,  start,stop
+
+   
 
 if __name__ == "__main__":
 
-    mca_file='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/SDD/Fe_14Oct2022_5mm.mca'
+   #mca_file='/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/SDD/Fe_14Oct2022_5mm.mca'
    # mca_file= '/home/maldera/Desktop/eXTP/ASI294/testImages/eureca_noVetro/misure_collimatore_14Oct/SDD/Fe_14Oct2022_2mm.mca'
-    data_array, deadTime, livetime, fast_counts, start =pharse_mca(mca_file)
+    #data_array, deadTime, livetime, fast_counts, start =pharse_mca(mca_file)
+
+    sddnpz='/home/maldera/Desktop/eXTP/data/datiSDD/sddnpz/11_06_24/Air_10kV_0.006mA_2024_6_11_10_59.npz'
+    data_array, deadTime, livetime, fast_counts,slowcounts,  start,stop= pharse_ssdnpz(sddnpz)
+    
     print("livetime=",livetime,"counts=", fast_counts, "RATE=",fast_counts/livetime,' Hz' )
     print("deadTime=",deadTime,"starting=",start)
 

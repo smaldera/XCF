@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 #sys.path.insert(0, '../../libs')
 import fit_histogram as fitSimo
 import pandas as pd
-from read_sdd import  pharse_mca
+from read_sdd import  *
 
 class histogramSimo():
       """
@@ -34,8 +34,11 @@ class histogramSimo():
 
       def normalize(self, minX,maxX):      
             bin_centers=fitSimo.get_centers(self.bins)
+            print("minx=",minX," max =",maxX)
             mask=np.where((bin_centers>minX)&(bin_centers<maxX))
             c2=self.counts[mask]
+            print("len(self.counts)=",len(self.counts)," len bin centers=",len(bin_centers), " len(c2)=",len(c2))
+            
             ka_h=np.max(c2)
             print("Ka max=",ka_h) 
 
@@ -54,7 +57,7 @@ class histogramSimo():
             if fileFormat=='sdd':
                 data_array, deadTime, livetime, fast_counts, start =pharse_mca(filename)
                 size=len(data_array)      
-                bin_edges=np.linspace(0,size+1,size+1)
+                bin_edges=np.linspace(0,size+1,size+2)[:-1] # trucco per avere i bin edges all'intero esatto
                 self.counts=data_array
                 self.bins=bin_edges
                 self.sdd_liveTime=livetime
@@ -67,7 +70,7 @@ class histogramSimo():
                  #x=df[0].values
                  y=df[1].values
                  size=len(y)      
-                 bin_edges=np.linspace(0,size+1,size+1)
+                 bin_edges=np.linspace(0,size+1,size+2)[:-1] 
                  self.counts=y
                  self.bins=bin_edges
 
@@ -79,6 +82,17 @@ class histogramSimo():
                  self.counts=counts
                  self.bins=bins
 
+            if fileFormat=='sddnpz':
+                 data_array, deadTime, livetime, fast_counts,slowcounts,  start,stop= pharse_ssdnpz(filename)
+                 size=len(data_array)      
+                 bin_edges=np.linspace(0,size+1,size+2)[:-1] 
+                 print ("bin edges=",bin_edges)
+                 self.counts=data_array
+                 self.bins=bin_edges
+                 self.sdd_liveTime=livetime
+                 self.sdd_deadTime=deadTime
+                 self.sdd_fastCounts=fast_counts
+                 self.sdd_start=start  
                  
       def rebin(self,n):
           
