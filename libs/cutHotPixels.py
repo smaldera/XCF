@@ -21,13 +21,13 @@ class hotPixels():
         self.yedges=np.array([])
         self.rebin=rebin
         
-    def find_HotPixels(self, n_sigma=100,low_threshold=100):
-       myCut=np.where( (self.w>100))
+    def find_HotPixels(self, n_sigma=10,low_threshold=10):
+       myCut=np.where( (self.w>low_threshold))
        xbins2d=int(self.XBINS/self.rebin)
        ybins2d=int(self.YBINS/self.rebin)
        if len(self.size!=0):
-            myCut=np.where( (self.w>10)&(self.size==1) )
-            print("cut=  (self.w>10)&(self.size==1) ")
+            myCut=np.where( (self.w>low_threshold)&(self.size==1) )
+            print("cut=  (self.w>",low_threshold,")&(self.size==1) ")
        self.counts2d,  self.xedges, self.yedges= np.histogram2d(self.x[myCut],self.y[myCut],bins=[xbins2d, ybins2d ],range=[[0,self.XBINS],[0,self.YBINS]])
        self.counts2d=   self.counts2d.T 
       

@@ -16,11 +16,7 @@ from cutHotPixels import hotPixels
 # draws: 2D map,  energy, x-y projections
 #
 
-# cut type:
-# cut='x' if cut on x axis
-# cut='y' if cut on y axis
-# cut='xy' if cut on both axis
-# cut=None does the normal w cut
+
 
 cut='None'
 
@@ -97,8 +93,8 @@ print("len w_all ",len(w_all))
 
 
 if FIND_HOTPIXELS==True:
-    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all)
-    hotPix.find_HotPixels(n_sigma=10,low_threshold=10)
+    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=10)
+    hotPix.find_HotPixels(n_sigma=50,low_threshold=100)
     hotPix.save_cuts(DIR+'/cuts.npz')
 if CUT_HOT_PIXELS==True:
     hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all)
