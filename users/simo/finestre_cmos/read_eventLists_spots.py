@@ -7,6 +7,8 @@ sys.path.insert(0, '../../../libs')
 import utils_v2 as al
 import fit_histogram as fitSimo
 from  histogramSimo import histogramSimo
+from cutHotPixels import hotPixels
+
 from scipy.optimize import curve_fit
 
 ####
@@ -226,6 +228,23 @@ for f in ff:
     size_all=np.append(size_all,size)
 
 # CUT di SELEZIONE EVENTI!!!
+#####################
+#selezione hot pixels
+
+if FIND_HOTPIXELS==True:
+    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all)
+    hotPix.find_HotPixels(n_sigma=10,low_threshold=10)
+    hotPix.save_cuts(DIR+'/cuts.npz')
+if CUT_HOT_PIXELS==True:
+    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all)
+    hotPix.retrive_cuts(DIR+'/cuts.npz')
+    hotPix.applyCuts()
+    w_all,   x_all,  y_all, size_all=hotPix.get_cutVectors()
+                    
+
+print("len w_all dopo cut ",len(w_all))
+
+#################3
 
 x_inf0=250
 x_sup0=2820

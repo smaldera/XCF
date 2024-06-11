@@ -79,9 +79,10 @@ def  plotAllSpectra(InputFileName):
 
                     
         if splitted[0]=="ACQ_TIME":
-            compute_time=1
-            if fileFormat=='sdd':
+            compute_rate=1
+            if fileFormat=='sdd' or  fileFormat=='sddnpz':
                 time=p.sdd_liveTime
+                print("livetime=",time)
             else:    
                 time=float(splitted[1])
        
@@ -101,15 +102,15 @@ def  plotAllSpectra(InputFileName):
                 exit()
             print ('up=',up, "low = ",low)
             print("NORMALIZZO!!!!!")
-            p.normalize(low,up)
-            
+            # p.normalize(low,up)
+            normalize=1 
             
 
                 
  
         if splitted[0]=="ADD_PLOT": 
             # plot istogramma?
-            if fileFormat=='sdd':
+            if fileFormat=='sdd' or  fileFormat=='sddnpz':
                 calP0=-0.03544731540487446
                 calP1=0.0015013787118821926
             if fileFormat=='npz':
@@ -121,15 +122,17 @@ def  plotAllSpectra(InputFileName):
                 calP1 = P1_
             print("calP1=",calP1,"  calP0=",calP0)    
             p.bins=p.bins*calP1+calP0
-
+            plt.ylabel('counts')
+            
             if compute_rate==1:
+                 print("compute rate time=",time)
                  p.counts=p.counts/time
                  compute_rate=0
                  time=1
-                 plt.ylabel('events/s')
+                 plt.ylabel('counts/s')
             if normalize==1:
-                 #print("NORMALIZZO!!!!!")
-                 #p.normalize(low,up)
+                 print("NORMALIZZO!!!!!")
+                 p.normalize(low,up)
                  normalize=0
                  low=0.
                  up=0.
@@ -140,9 +143,9 @@ def  plotAllSpectra(InputFileName):
                 p.plot(ax,None)
             plt.xlabel('energy [keV]')
             
-            plt.ylabel('norm. counts') # non so perche', ,ma nell'if non funziona!
-            plt.xlim(0.5,6)
-            plt.ylim(7e-3,1.1)
+            #plt.ylabel('norm. counts') # non so perche', ,ma nell'if non funziona!
+          #  plt.xlim(0.5,6)
+          #  plt.ylim(7e-3,1.1)
             plt.yscale('log')
             plt.legend()
 
