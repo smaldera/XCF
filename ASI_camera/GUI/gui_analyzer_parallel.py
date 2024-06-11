@@ -251,7 +251,9 @@ class aotr2:
                     ax3[0].set_title("Image Raw")
                     # ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAll, histtype='step', label="raw")
 
-                    print("len conteggi spettroZeroSupp=",len(self.countsAllZeroSupp))
+                    #print("len conteggi spettroZeroSupp=",len(self.countsAllZeroSupp))
+                    self.bins = np.linspace(-self.NBINS, self.NBINS, 2*self.NBINS+1)
+
                     self.bins = calP0 + calP1 * self.bins
                     ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllZeroSupp, histtype='step', label="pixel thresold", color = "green")
                     ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllClu, histtype='step', label='CLUSTERING', color = "red")
@@ -259,6 +261,8 @@ class aotr2:
                     ax3[1].set_xlim([0,12])
                     ax3[1].set_yscale('log')
                     ax3[1].set_title("Spettro")
+                    if i == 10:
+                    	ax3[1].legend()
                     fig3.canvas.draw()
 
                 ####salvare ogni tot
@@ -375,14 +379,16 @@ class aotr2:
         print ('SAVE_EVENTLIST=',self.SAVE_EVENTLIST)
         if self.SAVE_EVENTLIST:
             outfileVectors = self.file_path + 'events_list' + self.pixMask_suffix + self.cluCut_suffix + '_v2.npz'
-            print('writing events in:', outfileVectors)
+            #print('writing events in:', outfileVectors)
             # al.save_vectors(outfileVectors, w_all, x_allClu, y_allClu,clusizes_all)
             np.savez(outfileVectors, w=self.w_all, x_pix=self.x_allClu, y_pix=self.y_allClu, sizes=self.clusizes_all)
 
         plt.show()
 
     def Analizza(self, data_queue,id,data_buffer,lock):
+
         self.reset_allVariables()
+
         progress_bar2 = tqdm(total=(self.sample_size/self.num), desc="Analizzatore_" + str(id), colour='green', position=self.num+id)
         if id==0:
             layout = [
@@ -392,14 +398,18 @@ class aotr2:
         i=1
 
         while True:
+
             #prende data passata
+
             data= data_queue.get()
             if data is None:
                 progress_bar2.close()
                 if (id==0):
                     window_progress.Close()
                 break
+                
             rms_pedCut = np.mean(self.rms_ped) + self.PIX_CUT_SIGMA * np.std(self.rms_ped)
+
             # MASCHERA PIXEL RUMOROSI
 
             mySigmaMask = np.where((self.rms_ped > rms_pedCut))
