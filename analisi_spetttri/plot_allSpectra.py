@@ -143,7 +143,7 @@ def  plotAllSpectra(InputFileName):
                 p.plot(ax,None)
             plt.xlabel('energy [keV]')
             
-            #plt.ylabel('norm. counts') # non so perche', ,ma nell'if non funziona!
+           
           #  plt.xlim(0.5,6)
           #  plt.ylim(7e-3,1.1)
             plt.yscale('log')

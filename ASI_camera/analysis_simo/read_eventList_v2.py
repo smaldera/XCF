@@ -39,8 +39,8 @@ parser.add_argument('-specName','--specName',type=str ,  help="spectrum file nam
 parser.add_argument('-xprojName','--xprojName',type=str ,  help="x-projection file name", required=False,default='test_xproj.npz')
 parser.add_argument('-yprojName','--yprojName',type=str ,  help="y-projection file name", required=False,default='test_yproj.npz')
 
-FIND_HOTPIXELS=True
-CUT_HOT_PIXELS=True
+FIND_HOTPIXELS=False
+CUT_HOT_PIXELS=False
 
 args = parser.parse_args()
 DIR = args.saveDir
@@ -79,18 +79,17 @@ size_all=np.array([])
 
 for f in ff:
     print(f)
-    #w, x,y=al.retrive_vectors(f[:-1])
-    w, x,y,size=al.retrive_vectors2(f[:-1])
+    w, x,y=al.retrive_vectors(f[:-1])
+    #w, x,y,size=al.retrive_vectors2(f[:-1])
     print("len w =",w)
     w_all=np.append(w_all,w)
     x_all=np.append(x_all,x)
     y_all=np.append(y_all,y)
-    size_all=np.append(size_all,size)
+    #size_all=np.append(size_all,size)
 
 print("len w_all ",len(w_all))
 #================
 #  cut hot pixels....
-
 
 if FIND_HOTPIXELS==True:
     hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=10)
@@ -111,7 +110,7 @@ fig2=plt.figure(figsize=(10,10))
 ax1=plt.subplot(221)
 
 #plot
-myCut=np.where( (w_all>100))
+myCut=np.where( (w_all>10)&(x_all>1000)&(x_all<1251)&(y_all>2200)&(y_all<2500))
 # mappa posizioni:
 counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
 counts2dClu=   counts2dClu.T
