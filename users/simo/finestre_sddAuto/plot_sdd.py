@@ -113,7 +113,9 @@ if __name__ == "__main__":
         prcRatios,prcErrs=  compute_Ratios( spec_list[2][kk].counts,  spec_list[0][kk].counts)
         comparisonRatios,comparisonErrs=  compute_Ratios( spec_list[1][kk].counts,  spec_list[2][kk].counts)
 
-         gpdTrasp=  gpdRatios
+       # gpdTrasp=  gpdRatios
+       # prcTrasp=prcRatios
+       
         if kk==0:           
               gpdTrasp=  gpdRatios
               prcTrasp=  prcRatios
@@ -143,11 +145,11 @@ if __name__ == "__main__":
 
     fig4, ax4=plt.subplots()
    
-    ax4.plot(x, gpdTrasp/16.,'p','gpd/air')               
-    ax4.plot(x, prcTrasp/16.,'p','prc/air')               
+    ax4.plot(x, gpdTrasp/16.,'p',label='gpd/air')               
+    ax4.plot(x, prcTrasp/16.,'p',label='prc/air')               
      
     plt.title("Be trasparency")
-    
+    plt.legend()
                     
     plt.show()    
     
