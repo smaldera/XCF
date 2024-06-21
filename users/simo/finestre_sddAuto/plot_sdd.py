@@ -106,8 +106,6 @@ if __name__ == "__main__":
     gpdTraspErr=np.array([])
     prcTraspErr=np.array([])
     comparisonErr=np.array([])
-
-    comparison_list=np.array([])  
     
     for kk in range(0,len(spec_list[0])):
 
@@ -115,10 +113,7 @@ if __name__ == "__main__":
         prcRatios,prcErrs=  compute_Ratios( spec_list[2][kk].counts,  spec_list[0][kk].counts)
         comparisonRatios,comparisonErrs=  compute_Ratios( spec_list[1][kk].counts,  spec_list[2][kk].counts)
 
-        print("kk=",kk," compRatios=  ",comparisonRatios)
-        
-        comparison_list=np.append(comparisonRatios,  comparison_list, )
-        
+         gpdTrasp=  gpdRatios
         if kk==0:           
               gpdTrasp=  gpdRatios
               prcTrasp=  prcRatios
@@ -143,36 +138,16 @@ if __name__ == "__main__":
     
     fig3, ax3=plt.subplots()
     x=fitSimo.get_centers(spec_list[1][0].bins)               
-    
+    ax3.errorbar(x,comparison/16.,yerr=comparisonErr,fmt='p')               
     plt.title("GPD/PRC")
-    plt.grid()
-    plt.xlabel("E[keV]")
 
-   # errore da rms rapporti??
-    ratiosArray=comparison_list.reshape(16,40)
-    print ("ratiosArray shape",np.shape(ratiosArray))
-    ratiosArrayT=ratiosArray.T
-    print ("ratiosArrayT",ratiosArrayT)
-
-    ybin=[]
-    ybinErr=[]
-    for jj in range (0,40):
-          ybin.append(ratiosArrayT[jj].mean())
-          ybinErr.append(ratiosArrayT[jj].std(ddof=1)/np.sqrt(16))
-    ax3.errorbar(x,ybin,yerr=ybinErr,fmt='bp',label='error from std')    
-    ax3.errorbar(x,comparison/16.,yerr=comparisonErr,fmt='pr')
-    plt.legend()
-
-
-    
     fig4, ax4=plt.subplots()
    
-    ax4.errorbar(x, gpdTrasp/16.,yerr=gpdTraspErr ,fmt='p',label='gpd/air')               
-    ax4.errorbar(x, prcTrasp/16.,yerr=prcTraspErr,fmt='p',label='prc/air')               
+    ax4.plot(x, gpdTrasp/16.,'p','gpd/air')               
+    ax4.plot(x, prcTrasp/16.,'p','prc/air')               
      
     plt.title("Be trasparency")
-    plt.legend()
-    plt.xlim(1,9.9)
+    
                     
     plt.show()    
     
