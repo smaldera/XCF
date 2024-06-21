@@ -11,10 +11,7 @@ from cutHotPixels import hotPixels
 
 from scipy.optimize import curve_fit
 
-####
-# small scripts to plot CMOS data from the event list whit cuts
-# draws: 2D map,  energy, x-y projections
-# 
+
 
 
 def fit_peak(hSpec,  min_x1, max_x1,   amplitude,    peak,   sigma,n_sigma=1):
@@ -30,7 +27,46 @@ def fit_peak(hSpec,  min_x1, max_x1,   amplitude,    peak,   sigma,n_sigma=1):
 
     return   par, cov, xmin,xmax, chi2
     
+def draw_and_save( w_i,x_i, y_i,DIR,suffix):
     
+         fig=plt.figure(figsize=(10,10))
+         ax1=plt.subplot(111)
+         NBINS=int(16384) 
+         #plot 
+         # mappa posizioni:
+         counts2dClu,  xedges, yedges= np.histogram2d(x_i,y_i,bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
+         counts2dClu=   counts2dClu.T
+         im=ax1.imshow(np.log10(counts2dClu), interpolation='nearest', origin='upper',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+         ax1.set_xlabel('X')
+         ax1.set_ylabel('Y')
+         plt.colorbar(im,ax=ax1)
+
+         #ax2=plt.subplot(312)
+         fig2=plt.figure(figsize=(10,10))
+         ax2=plt.subplot(111)
+         
+         calP1= 0.0032132721459619882
+         calP0=-0.003201340833319255
+         # spettro energia
+         #plt.figure(2)
+         #countsClu, binsE = np.histogram( w_i*calP1+calP0  , bins = NBINS, range = (0,16384*calP1+calP0) )
+         countsClu, binsE = np.histogram( w_i, bins = NBINS, range = (0,NBINS) )
+         binsE=binsE*calP1+calP0       
+       
+         ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="energy w. clustering")
+         ax2.legend()
+         ax2.set_xlabel('E[keV]')
+         ax2.set_xlim([0,10])
+         ax2.set_yscale('log')
+         
+                  
+         if SAVE_HISTOGRAMS==True:
+             spectrum_file_name =DIR + '/spectrumPos_'+suffix+'.npz'
+             np.savez(spectrum_file_name, counts = countsClu,  bins = binsE)
+             fig.savefig(DIR+'/img_'+suffix+'.png')
+             
+                         
+########################################################################
 
 def draw_and_recalibrate( w_i,x_i, y_i,DIR,suffix):
     
@@ -188,7 +224,8 @@ parser.add_argument('-dir','--saveDir', type=str,  help='direxctory where npz fi
 
 args = parser.parse_args()
 
-
+FIND_HOTPIXELS=False
+CUT_HOT_PIXELS=False
 
 
 ff=open(args.inFile,'r')
@@ -254,13 +291,13 @@ myCut0=np.where( (w_all>100)&(y_all>y_inf0)&(y_all<y_sup0)&(x_all>x_inf0)&(x_all
 
 
 n_events=len(w_all[myCut0])
-events_bins=1
+events_bins=2
 print("n_eventsAll=",n_events)
 
 deltaX=(x_sup0-x_inf0)/events_bins
 deltaY=(y_sup0-y_inf0)/events_bins
 
-"""
+
 for i in range(0, int(events_bins)):
    x_inf=x_inf0+i*deltaX 
    x_sup=x_inf0+(i+1)*deltaX 
@@ -276,8 +313,8 @@ for i in range(0, int(events_bins)):
          size_i=size_all[myCut]
 
          suffix=str(i)+'_'+str(j)
-         draw_and_recalibrate( w_i,x_i, y_i,args.saveDir,suffix)
-"""         
+         #draw_and_recalibrate( w_i,x_i, y_i,args.saveDir,suffix)
+         draw_and_save( w_i,x_i, y_i,args.saveDir,suffix)
 
 
 # spettro total:
@@ -285,7 +322,8 @@ w_i=w_all[myCut0]
 x_i=x_all[myCut0]
 y_i=y_all[myCut0]
 size_i=size_all[myCut0]
-draw_and_recalibrate( w_i,x_i, y_i,args.saveDir,'all')
+#draw_and_recalibrate( w_i,x_i, y_i,args.saveDir,'all')
+draw_and_save( w_i,x_i, y_i,args.saveDir,'all')
 
 
 plt.show()
