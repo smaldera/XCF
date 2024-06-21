@@ -75,7 +75,10 @@ parser.add_argument('--polcoord', type=str, help='array coord for polygon cut', 
 parser.add_argument('--cut-sigma', type=float, default=3, help='sigma cut')
 parser.add_argument('--mod-bins', type=int, default=360, help='modulation bins')
 parser.add_argument('--map-bins', type=int, default=200, help='map bins')
+parser.add_argument('--tbins', type=int, default=10, help='time bins')
 parser.add_argument('--save-phi', action='store_true',default=False,help='save phi arrays')
+parser.add_argument('--save-pha', action='store_true',default=False,help='save pha array')
+parser.add_argument('--no-ecut', action='store_true',default=False,help='do not perform an energy cut')
 
 
 parser.add_pha_options()
@@ -89,8 +92,12 @@ parser.add_cut_options()
 
 ### PARAMETRI....
 cut_sigma=parser.parse_args().cut_sigma
-cut_base='( (abs(TRK_BARX) < 7.000) && (abs(TRK_BARY) < 7.000)) && ( (NUM_CLU > 0) && (LIVETIME > 15) )'# && (TRK_PI<30000) && (TRK_PI>22000)  )'
+cut_base='( (abs(TRK_BARX) < 7.000) && (abs(TRK_BARY) < 7.000) ) && ( (NUM_CLU > 0) && (TRK_SIZE > 0) )' #&& (LIVETIME > 15) )'# && (TRK_PI<30000) && (TRK_PI>22000)  )'
 #cut_base='( TRK_BARX >-1) && ( TRK_BARX <-0.2) &&  ( TRK_BARY >0.4) && ( TRK_BARY <0.8)   && ( (NUM_CLU > 0) && (LIVETIME > 15)  )'
+
+cut_gem = '( (TRK_BARX > 4.960) + (TRK_BARX < 4.799) + (TRK_BARY > -2.559) + (TRK_BARY < -2.641) )'
+
+cut_base = cut_logical_and(cut_base,cut_gem)
 
 
 def find_quantile(run, quantile, expr, cut):
@@ -164,7 +171,7 @@ class GPD_analysis(ixpeDqmTask):
         print(f'Cut in action = {cut}')
         return cut
     
-    def gauss_model_fit(self, hist, name, figure_name, **kwargs):
+    def gauss_model_fit(self, hist, name, figure_name, new_show=True, **kwargs):
         index_max=numpy.where(hist.bin_weights==hist.max_val())[0][0]
         x_max= hist.bin_centers[0][index_max]                    
         deltaX=3.5*x_max*0.1
@@ -176,8 +183,8 @@ class GPD_analysis(ixpeDqmTask):
         else:
             gauss_model = fit_gaussian_iterative(hist, verbose=kwargs.get('verbose'), xmin=x_max-deltaX, xmax=x_max+deltaX, num_sigma_left=nsigma, num_sigma_right=nsigma, num_iterations=2)
 
-        
-        self.add_plot(name, gauss_model, figure_name=figure_name, save=False, display_stat_box=kwargs.get('display_stat_box', True), position=kwargs.get('position', 'upper right'))
+        if new_show:
+            self.add_plot(name, gauss_model, figure_name=figure_name, save=False, display_stat_box=kwargs.get('display_stat_box', True), position=kwargs.get('position', 'upper right'))
         peak = gauss_model.parameter_value('Peak')
         peak_err = gauss_model.parameter_error('Peak')
         resolution = gauss_model.resolution()
@@ -219,7 +226,7 @@ class GPD_analysis(ixpeDqmTask):
         print(f"Number of events after the cut = {len(pha)}")
         return hist
 
-    def pha_spectrum_plot(self, figure_name, energy_cut, merge_cut, extra_cut, suf, **kwargs):
+    def pha_spectrum_plot(self, figure_name, merge_cut, extra_cut, suf, **kwargs):
         print(f'####\nPHA spectrum')
         if merge_cut == True:
             cut = self.merge_cut(new_cut=extra_cut,**kwargs)
@@ -230,7 +237,7 @@ class GPD_analysis(ixpeDqmTask):
 
         if kwargs.get('fit')==True:
             gauss_model = self.gauss_model_fit(hist=hist, name='pha_spectrum', figure_name=figure_name, **kwargs)
-            if energy_cut==True:
+            if kwargs.get('no_ecut')==False:
                 ecut = cut_logical_and(cut,peak_cut(gauss_model))
                 print ("Energuy cut = ", ecut)
                 if kwargs.get('output_folder')!=None:
@@ -239,9 +246,18 @@ class GPD_analysis(ixpeDqmTask):
                     else:
                         plt.savefig(kwargs.get('output_folder')+f'PHA_spectrum1.png')
                 return ecut, gauss_model
+            if kwargs.get('no_ecut')==True:
+                ecut = cut
+                print ("Energuy cut = ", ecut)
+                if kwargs.get('output_folder')!=None:
+                    if suf is not None:
+                        plt.savefig(kwargs.get('output_folder')+f'PHA_spectrum1_noecut_{suf}.png')
+                    else:
+                        plt.savefig(kwargs.get('output_folder')+f'PHA_noecut_spectrum1.png')
+                return ecut, gauss_model
         else:
             ecut_ = f'( (TRK_PI < {kwargs.get("max_pha")}) && (TRK_PI > {kwargs.get("min_pha")}) )'
-            ecut = cut_logical_and(cut,ecut_)
+            ecut = cut#cut_logical_and(cut,ecut_)
             gauss_model = None
             if kwargs.get('output_folder')!=None:
                 if suf is not None:
@@ -365,10 +381,24 @@ class GPD_analysis(ixpeDqmTask):
         return phase, phase_err, modulation, modulation_err, chi2, cut#, hist_phi.bin_edges, hist_phi.bin_centers, hist_phi.bin_weights
 
     def save_phi(self,phi1,phi2,suf,**kwargs):
-        if suf is not None:
-            numpy.savez(kwargs.get('output_folder')+f'phi_{suf}.npz', array1=phi1, array2=phi2)
+        if kwargs.get('output_folder') is not None:
+            if suf is not None:
+                numpy.savez(kwargs.get('output_folder')+f'phi_{suf}.npz', array1=phi1, array2=phi2)
+            else:
+                numpy.savez(kwargs.get('output_folder')+f'phi.npz', array1=phi1, array2=phi2)
+
+    def save_pha(self, merge_cut, extra_cut, suf, **kwargs):
+        pha_expr = kwargs.get('pha_expr')
+        if merge_cut == True:
+            cut = self.merge_cut(new_cut=extra_cut,**kwargs)
         else:
-            numpy.savez(kwargs.get('output_folder')+f'phi.npz', array1=phi1, array2=phi2)
+            cut = extra_cut
+        pha = self.run_list.values(pha_expr, cut)
+        if kwargs.get('output_folder') is not None:
+            if suf is not None:
+                numpy.savez(kwargs.get('output_folder')+f'pha_{suf}.npz', pha)
+            else:
+                numpy.savez(kwargs.get('output_folder')+f'pha.npz', pha)
 
     def cut_string(self,cut,symbol):
         cut_ = cut.split(symbol)
@@ -486,7 +516,56 @@ class GPD_analysis(ixpeDqmTask):
         UN = u_norm(U,I)
         dUN = du_norm(UN,I)
         return I, QN, dQN, UN, dUN
-            
+
+    def peak_vs_time(self, figure_name, merge_cut, extra_cut, suf, **kwargs):
+        print(f'#####\nTIME')
+        if merge_cut == True:
+            cut = self.merge_cut(new_cut=extra_cut,**kwargs)
+        else:
+            cut = extra_cut
+        time = self.run_list.values(f'TIME', cut)
+        time_min = numpy.min(time)
+        time_max = numpy.max(time)
+        tbins = kwargs.get('tbins')
+        tedges = numpy.linspace(time_min, time_max, tbins+1)
+        peak_t, peak_err_t, res_t, res_err_t = [], [], [], []
+        cut_binned = []
+        for i in range(len(tedges)-1):
+            cut_time = f"( (TIME > {tedges[i]}) && (TIME < {tedges[i+1]}) )"
+            cut_time_bin = cut_logical_and(cut,cut_time)
+            cut_binned.append(cut_time_bin)
+            hist = self.pha_spectrum_hist(merge_cut=merge_cut, extra_cut=cut_time_bin, **kwargs)
+            try:
+                gauss_model = self.gauss_model_fit(hist=hist, name='pha_spectrum', figure_name=figure_name, new_show=False,**kwargs)
+                peak_t.append(gauss_model.parameter_value('Peak'))
+                peak_err_t.append(gauss_model.parameter_error('Peak'))
+                res_t.append(gauss_model.resolution())
+                res_err_t.append(gauss_model.resolution_error())
+            except RuntimeError:
+                print('ERROR!!!!!!!')
+                peak_t.append(0.)
+                peak_err_t.append(0.)
+                res_t.append(0.)
+                res_err_t.append(0.)
+        #breakpoint()
+        time_centers = (tedges[1:]+tedges[:-1])/2
+        
+        fig_, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+        ax1.errorbar(time_centers, peak_t, yerr=peak_err_t, linestyle='-', marker='o', capsize=4)
+        ax2.errorbar(time_centers, res_t, yerr=res_err_t, linestyle='-', marker='o', capsize=4)
+        ax1.set_ylabel('peak')
+        ax2.set_ylabel('resolution')
+        ax2.set_xlabel('time [s]')
+        ax1.grid(True)
+        ax2.grid(True)
+
+
+
+        """
+           DO RUN !!!
+        """
+
+        
     def do_run(self, **kwargs):
         """
         """
@@ -537,7 +616,7 @@ class GPD_analysis(ixpeDqmTask):
             self.projections(coord='Y', expression='TRK_BAR', figure_name='y bar proj', merge_cut=False, extra_cut=cut_base, cut_edges=None, suf=cut_suf, **kwargs)
             n_physical=self.run_list.num_events(cut_base)
         
-        ecut, gauss_model = self.pha_spectrum_plot(figure_name='pha_spectrum', energy_cut=True, merge_cut = True, extra_cut = cut_base, suf=cut_suf, **kwargs) 
+        ecut, gauss_model = self.pha_spectrum_plot(figure_name='pha_spectrum', merge_cut = True, extra_cut = cut_base, suf=cut_suf, **kwargs) 
         
         track_size_cut='(TRK_SIZE > 0)'
         cut2= cut_logical_and(ecut,track_size_cut)
@@ -568,6 +647,8 @@ class GPD_analysis(ixpeDqmTask):
             cut_final = cut2
         '''
         cut_final = cut2
+
+        self.peak_vs_time(figure_name='peak_vs_time', merge_cut=True, extra_cut=cut_final, suf=None, **kwargs)
         
         ###################################
         self.map(expression='TRK_BAR', merge_cut=True,  extra_cut=cut_final, map_title='barycenter map cut', shape=None, cut_edges=None, suf='cut_'+cut_suf, **kwargs)
@@ -596,6 +677,9 @@ class GPD_analysis(ixpeDqmTask):
         
         if kwargs.get('save_phi') is not None:
             self.save_phi(phi_1_arr,phi_2_arr,suf=cut_suf,**kwargs)
+            
+        if kwargs.get('save_pha') is not None:
+            self.save_pha(merge_cut=True, extra_cut=cut_base, suf=cut_suf, **kwargs)
         
         print(self.run_list.num_events(cut_final), len(phi_1_arr), len(phi_2_arr))
 
