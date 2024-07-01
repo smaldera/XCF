@@ -48,10 +48,15 @@ def compute_HistRatios(p1,p2):
 if __name__ == "__main__":
 
     
-    pathGPD='/home/maldera/Desktop/eXTP/data/test_finestre/cmos/data_GPD/3x3/'
-    pathAir='/home/maldera/Desktop/eXTP/data/test_finestre/cmos/data_100_air/3x3/'
-    pathPRC='/home/maldera/Desktop/eXTP/data/test_finestre/cmos/data_100_PRC/3x3/'
-    nameSpectrum='spectrumPos_'
+    #pathGPD='/home/maldera/Desktop/eXTP/data/test_finestre/cmos/data_GPD/3x3/'
+    #pathAir='/home/maldera/Desktop/eXTP/data/test_finestre/cmos/data_100_air/3x3/'
+    #pathPRC='/home/maldera/Desktop/eXTP/data/test_finestre/cmos/data_100_PRC/3x3/'
+
+    pathGPD='/home/maldera/Desktop/eXTP/data/test_finestre/cmos/data_GPD/2x2new/'
+    pathAir='/home/maldera/Desktop/eXTP/data/test_finestre/cmos/data_100_air/2x2new/'
+    pathPRC='/home/maldera/Desktop/eXTP/data/test_finestre/cmos/data_100_PRC/2x2new/'
+
+    nameSpectrum='spectrumPos_New_'
     pAir_list=[]
     pGPD_list=[]
     pPRC_list=[]
@@ -61,8 +66,10 @@ if __name__ == "__main__":
     ratiosPRC=[]
     ratiosPRC_err=[]
    
-    n_bins=3
-    nRebin=100
+    n_bins=2
+    #nRebin=100
+    nRebin=64
+    
     pAir=histogramSimo()
     pGPD=histogramSimo()
     pPRC=histogramSimo()

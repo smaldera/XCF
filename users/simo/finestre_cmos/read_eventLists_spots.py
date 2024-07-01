@@ -196,8 +196,8 @@ def draw_and_recalibrate( w_i,x_i, y_i,DIR,suffix):
                   
          if SAVE_HISTOGRAMS==True:
             # DIR = args.saveDir
-             spectrum_file_name =DIR + '/spectrumCorrPos_'+suffix+'.npz'
-             print('... saving energy spectrun  in:', spectrum_file_name  )
+             #spectrum_file_name =DIR + '/spectrumCorrPos_'+suffix+'.npz'
+             #print('... saving energy spectrun  in:', spectrum_file_name  )
              #np.savez(spectrum_file_name, counts = countsCluCorr,  bins = binsE)
              spectrum_file_name =DIR + '/spectrumPos_'+suffix+'.npz'
              np.savez(spectrum_file_name, counts = countsClu,  bins = binsE)
@@ -283,10 +283,18 @@ print("len w_all dopo cut ",len(w_all))
 
 #################3
 
-x_inf0=250
-x_sup0=2820
-y_inf0=1000
-y_sup0=3500
+#x_inf0=250
+#x_sup0=2820
+#y_inf0=1000
+#y_sup0=3500
+
+
+x_inf0=350
+x_sup0=2720
+y_inf0=1100
+y_sup0=3400
+
+
 myCut0=np.where( (w_all>100)&(y_all>y_inf0)&(y_all<y_sup0)&(x_all>x_inf0)&(x_all<x_sup0))
 
 
@@ -312,7 +320,7 @@ for i in range(0, int(events_bins)):
          y_i=y_all[myCut]
          size_i=size_all[myCut]
 
-         suffix=str(i)+'_'+str(j)
+         suffix='New_'+str(i)+'_'+str(j)
          #draw_and_recalibrate( w_i,x_i, y_i,args.saveDir,suffix)
          draw_and_save( w_i,x_i, y_i,args.saveDir,suffix)
 

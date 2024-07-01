@@ -41,7 +41,7 @@ def get_HistSpectrum(filesList):
         p.read_from_file(filename, 'sddnpz' )
 
         p.bins=calP0+calP1*p.bins
-        p.rebin(200)
+        p.rebin(100)
         pList.append(p)
 
     return pList     
@@ -66,10 +66,17 @@ if __name__ == "__main__":
     axList=[]
     airRateList=[]
     airTimeList=[]
+
+    n_measures=float(len(fileList[0]))
+    n_bins=0
+    print ("n_measures=",n_measures)
+    
     for jj in range(0,len(windows)): 
     
         spec_list.append(get_HistSpectrum(fileList[jj]))
-        
+        n_bins=len(spec_list[0][0].counts)
+
+        print("n_bins=",n_bins)
     
     
         fig, ax=plt.subplots()
@@ -106,6 +113,10 @@ if __name__ == "__main__":
     gpdTraspErr=np.array([])
     prcTraspErr=np.array([])
     comparisonErr=np.array([])
+
+    ratiosArray=np.array([])
+    gpdRatiosArray=np.array([])
+    prcRatiosArray=np.array([])
     
     for kk in range(0,len(spec_list[0])):
 
@@ -115,7 +126,13 @@ if __name__ == "__main__":
 
        # gpdTrasp=  gpdRatios
        # prcTrasp=prcRatios
+
+        print("kk=",kk,  '-->> ',comparisonRatios)
        
+        ratiosArray=np.append(comparisonRatios, ratiosArray)
+        gpdRatiosArray=np.append(gpdRatios, gpdRatiosArray)
+        prcRatiosArray=np.append(prcRatios, prcRatiosArray)
+      
         if kk==0:           
               gpdTrasp=  gpdRatios
               prcTrasp=  prcRatios
@@ -133,21 +150,57 @@ if __name__ == "__main__":
               comparisonErr+= comparisonErrs**2
 
               
-    gpdTraspErr=np.sqrt(gpdTraspErr)/(16)
-    prcTraspErr=np.sqrt(prcTraspErr)/(16)
-    comparisonErr=np.sqrt(comparisonErr)/(16)
+    gpdTraspErr=np.sqrt(gpdTraspErr)/(n_measures)
+    prcTraspErr=np.sqrt(prcTraspErr)/(n_measures)
+    comparisonErr=np.sqrt(comparisonErr)/(n_measures)
 
+    print("reshaped=",ratiosArray.reshape(int(n_measures),n_bins).T)
+    ratiosArray=ratiosArray.reshape(int(n_measures),n_bins).T
+    prcRatiosArray=prcRatiosArray.reshape(int(n_measures),n_bins).T
+    gpRatiosArray=gpdRatiosArray.reshape(int(n_measures),n_bins).T
+  
     
     fig3, ax3=plt.subplots()
     x=fitSimo.get_centers(spec_list[1][0].bins)               
-    ax3.errorbar(x,comparison/16.,yerr=comparisonErr,fmt='p')               
-    plt.title("GPD/PRC")
 
+    
+    yRatio=[]
+    yRatioErr=[]
+
+    gpdRatio=[]
+    gpdRatioErr=[]
+
+    prcRatio=[]
+    prcRatioErr=[]
+
+    
+    for i in range(0,n_bins):
+           yRatio.append(ratiosArray[i].mean())
+           yRatioErr.append(ratiosArray[i].std()/np.sqrt(n_measures))
+           gpdRatio.append(gpdRatiosArray[i].mean())
+           gpdRatioErr.append(gpdRatiosArray[i].std()/np.sqrt(n_measures))
+          
+           prcRatio.append(prcRatiosArray[i].mean())
+           prcRatioErr.append(prcRatiosArray[i].std()/np.sqrt(n_measures))
+           
+
+    
+ 
+    ax3.errorbar(x,yRatio,yerr=yRatioErr,fmt='pr',label='error from RMS')
+    ax3.errorbar(x,comparison/n_measures,yerr=comparisonErr,fmt='p',label='stat. errors')
+    plt.xlabel("E [keV]") 
+    plt.title("GPD/PRC")
+    plt.legend()
+    plt.grid()
+    
     fig4, ax4=plt.subplots()
-   
-    ax4.plot(x, gpdTrasp/16.,'p',label='gpd/air')               
-    ax4.plot(x, prcTrasp/16.,'p',label='prc/air')               
+
+    ax4.errorbar(x,gpdRatio,yerr=gpdRatioErr,fmt='pr',label='gpd/air errors from RMS')
+    ax4.errorbar(x,prcRatio,yerr=prcRatioErr,fmt='pb',label='prc/air errors from RMS')
      
+    ax4.plot(x, gpdTrasp/n_measures,'p',label='gpd/air')               
+    ax4.plot(x, prcTrasp/n_measures,'p',label='prc/air')               
+    plt.xlabel("E [keV]") 
     plt.title("Be trasparency")
     plt.legend()
                     
