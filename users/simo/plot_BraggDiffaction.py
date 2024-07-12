@@ -31,6 +31,7 @@ def EB_theta(thetaB,dd):
 
 dd_Si220=3.840
 dd_Ge111=6.532
+dd_Si111=6.271
 
 dd=dd_Si220
 
@@ -46,6 +47,7 @@ theta=np.linspace(0,90,900)
 plt.plot(theta,EB_theta(theta,6.532) ,'kp')
 plt.grid()
 
+print("Bragg angle Si11 Ag",thetaB_E(2697 ,dd_Ge111))
 
 
 plt.show()
