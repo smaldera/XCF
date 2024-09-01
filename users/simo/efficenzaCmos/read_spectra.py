@@ -18,12 +18,7 @@ def read_allSdd(common_path, mca_file):
     calP1=0.0015013787118821926
 
     
-    #common_path='/home/maldera/Desktop/eXTP/data/CMOS_efficiency/sdd/'
-  
-    #"dati sdd"
-    #mca_file=['UnPol_10kV_0.01mA_set1.mca','UnPol_10kV_0.01mA_set2.mca','UnPol_10kV_0.01mA_set3.mca','UnPol_10kV_0.01mA_set4.mca']
-    
-
+   
     livetime=[]
     counts=[]
     counts_all=0.
@@ -61,8 +56,38 @@ def read_allSdd(common_path, mca_file):
     return bins,counts_all,livetime_all
 
 
+def read_allCMOS(cmos_eventsFiles,binsSdd):
 
 
+    # retta calibrazione cmos
+    calP0=-0.003201340833319255
+    calP1=0.003213272145961988
+ 
+    counts=[]
+    counts_all=0.
+    #livetime_all=0
+    bins=0
+ 
+    for i in range(0,len(  cmos_eventsFiles)):
+
+        f=common_path+'cmos/efficency_test/'+cmos_eventsFiles[i]
+        print("reading: ",f)
+        w, x,y,size=al.retrive_vectors2(f)
+        print("len w =",w)
+        energies=w*calP1+calP0
+        countsClu, binsE = np.histogram( energies  , bins =len(binsSdd)-1, range = (binsSdd[0],binsSdd[-1]) )
+        plt.hist(binsE[:-1],bins=binsE ,weights=countsClu, histtype='step', label="cmos")
+        plt.legend()
+        if i==0:
+           counts_all=countsClu
+        else:
+            counts_all+=countsClu 
+        
+    plt.title('cmos')
+
+    return binsE,counts_all 
+
+    
 
 if __name__ == "__main__":
 
@@ -72,18 +97,23 @@ if __name__ == "__main__":
     mca_file=['UnPol_10kV_0.01mA_set1.mca','UnPol_10kV_0.01mA_set2.mca','UnPol_10kV_0.01mA_set3.mca','UnPol_10kV_0.01mA_set4.mca']
 
     plt.figure(1)
-    bins,counts_all,livetime_all=read_allSdd(common_path, mca_file)
+    binsSdd,counts_all,livetime_all=read_allSdd(common_path, mca_file)
                
     #plot SDD
     plt.xlabel('keV')
     plt.ylabel('counts/s [Hz]')
     plt.title('SDD')
-    plt.hist(bins[:-1],bins=bins ,weights=counts_all/livetime_all, histtype='step', label="spettro somma")
+    plt.hist(binsSdd[:-1],bins=binsSdd ,weights=counts_all/livetime_all, histtype='step', label="spettro somma")
     plt.legend()  
     plt.title('SDD')
 
-    
-
+    ### read CMOS data:
+    list_name='events_list_pixCut10sigma_CLUcut_10sigma_v2.npz'
+    cmos_eventsFiles=['/DATA1/'+list_name, '/DATA2/'+list_name, '/DATA3/'+list_name, '/DATA4/'+list_name]
+    plt.figure(2)
+    binsCmos,counts_allCmos= read_allCMOS(cmos_eventsFiles,binsSdd)
+    plt.hist(binsCmos[:-1],bins=binsCmos ,weights=counts_allCmos, histtype='step', label="spettro somma")
+    plt.legend()  
 
 
 
