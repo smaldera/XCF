@@ -12,6 +12,23 @@ from  histogramSimo import histogramSimo
 
 
 mpl.rcParams["font.size"] = 15
+def compute_Ratios(c1,c2,s1,s2):
+       r=c1/c2
+       rErr=np.sqrt( (s1**2)*((1/c2)**2)+(s2**2)*(c1/(c2**2))**2)
+       return r, rErr
+       
+def compute_HistRatios(p1,p2):
+    x=fitSimo.get_centers(p1.bins)
+    p1=p1.counts
+    p2=p2.counts
+    
+    s1=np.sqrt(p1)
+    s2=np.sqrt(p2)
+
+    y,yerr=compute_Ratios(p1,p2,s1,s2)
+        
+
+    return x,y,yerr
 
 def read_allSdd(common_path, mca_file):
     calP0=-0.03544731540487446
@@ -139,7 +156,13 @@ if __name__ == "__main__":
     pcmos.plot(ax,"cmos")
     psdd.plot(ax,"sdd")
     plt.legend()
-   
+
+
+
+    x,y,err= compute_HistRatios(psdd,pcmos)
+    plt.figure(4)
+    plt.errorbar(x,y,yerr=err,fmt='or')
+    
     plt.show()
 
 
