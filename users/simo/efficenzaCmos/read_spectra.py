@@ -75,6 +75,8 @@ def read_allCMOS(cmos_eventsFiles,binsSdd):
         w, x,y,size=al.retrive_vectors2(f)
         print("len w =",w)
         energies=w*calP1+calP0
+        #taglio spaziale!!!! 
+        #mask=np.where( (x-xc)**2+(y-yc)**2<r )
         countsClu, binsE = np.histogram( energies  , bins =len(binsSdd)-1, range = (binsSdd[0],binsSdd[-1]) )
         plt.hist(binsE[:-1],bins=binsE ,weights=countsClu, histtype='step', label="cmos")
         plt.legend()
@@ -116,8 +118,28 @@ if __name__ == "__main__":
     plt.legend()  
 
 
+    print("binsSdd=",binsSdd)
+    print("binsCmos=",binsCmos)
+  
 
-    
+    #rebinno gli istogrammi??
+    psdd=histogramSimo()
+    psdd.counts=counts_all
+    psdd.bins=binsSdd
+
+    pcmos=histogramSimo()
+    pcmos.counts=counts_allCmos
+    pcmos.bins=binsCmos
+
+    pcmos.rebin(100)
+    psdd.rebin(100)
+
+    fig=plt.figure(3)
+    ax = fig.subplots()
+    pcmos.plot(ax,"cmos")
+    psdd.plot(ax,"sdd")
+    plt.legend()
+   
     plt.show()
 
 
