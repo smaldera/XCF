@@ -12,6 +12,44 @@ from  histogramSimo import histogramSimo
 
 
 mpl.rcParams["font.size"] = 15
+
+
+
+
+
+def correct_spectrumConst(counts,rebin):
+
+   # kcorr=rebin*(0.04/300.)
+    kcorr=1*(0.04/300.)
+    
+    # correzione con 4% fisso!!!
+    counts2=counts
+    nbins=len(counts2)
+    for i in range(1,nbins+1):
+        k=nbins-i
+        #print(k," count=",counts[k])
+        corr_k=counts2[k]*kcorr
+        #print("corr_k=",corr_k)
+        # loop su tutti i bin precedenti:
+        subtracted=0
+        for j in range(0,k):
+            #print("j=",j)
+            subtracted=subtracted+corr_k
+            counts2[j]=  counts2[j]-corr_k
+            if (counts2[j]<0): counts2[j]=0
+            
+            
+        counts2[k]= counts2[k]+subtracted   
+
+        
+        
+    return counts2   
+
+
+
+
+
+
 def compute_Ratios(c1,c2,s1,s2):
        r=c1/c2
        rErr=np.sqrt( (s1**2)*((1/c2)**2)+(s2**2)*(c1/(c2**2))**2)
@@ -180,20 +218,36 @@ if __name__ == "__main__":
 
     pcmos.rebin(3)
     psdd.rebin(3)
+    pippo=  pcmos.counts.copy() #!!!!!!
 
-   
-
-
+    corr_counts=correct_spectrumConst(pippo,6)
+    
+    pcmosCorr=histogramSimo()
+    pcmosCorr.counts=corr_counts
+    pcmosCorr.bins=  pcmos.bins
+    
+    #pcmos.rebin(90)
+    #psdd.rebin(90)
+    #pcmosCorr.rebin(90)
 
     x,y,err= compute_HistRatios(pcmos,psdd)
+    xCorr,yCorr,errCorr= compute_HistRatios(pcmosCorr,psdd)
+   
     plt.figure(4)
     ratioLivetime=livetime_all/livetimeCmos
     plt.errorbar(x,y*ratioLivetime,yerr=err*ratioLivetime,fmt='or')
-
+    plt.errorbar(xCorr,yCorr*ratioLivetime,yerr=errCorr*ratioLivetime,fmt='ob')
+   
+    
     fig=plt.figure(3)
     ax = fig.subplots()
     pcmos.counts=  pcmos.counts/livetimeCmos
     pcmos.plot(ax,"cmos")
+
+    pcmosCorr.counts=  pcmosCorr.counts/livetimeCmos
+    pcmosCorr.plot(ax,"cmosCorrected")
+
+    
     psdd.counts=  psdd.counts/livetime_all
     psdd.plot(ax,"sdd")
     plt.legend()
