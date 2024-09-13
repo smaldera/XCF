@@ -14,25 +14,60 @@ from  histogramSimo import histogramSimo
 mpl.rcParams["font.size"] = 15
 
 
+    
+    
 
+
+def correct_spectrumLin(counts,binCenters):
+
+
+    P1=0.0065
+    ycorr=0.05
+
+    #P1=0.0044
+    #ycorr=0.03
+
+    nbins=len(counts)
+    for i in range(2,nbins+1):
+        k=nbins-i
+        #print(k," count=",counts[k])
+        q=ycorr-P1*binCenters[k+1]
+        
+        # loop su tutti i bin precedenti:
+        subtracted=0
+        for j in range(0,k):
+            #print("j=",j)
+            kcorr=P1*binCenters[j]+q
+            if kcorr<0:kcorr=0
+            corr_k=counts[k]*kcorr
+            subtracted=subtracted+corr_k
+            counts[j]=  counts[j]-corr_k
+            if (counts[j]<0): counts[j]=0
+            
+            
+        counts[k]+= subtracted   
+    
+    return counts   
 
 
 def correct_spectrumConst(counts,rebin):
 
-   # kcorr=rebin*(0.04/300.)
-    kcorr=1*(0.04/300.)
+    kcorr=rebin*(0.04/300.)
+   # kcorr=1*(0.04/300.)
     
     # correzione con 4% fisso!!!
     counts2=counts
     nbins=len(counts2)
-    for i in range(1,nbins+1):
+    for i in range(5,nbins+1):
         k=nbins-i
         #print(k," count=",counts[k])
         corr_k=counts2[k]*kcorr
         #print("corr_k=",corr_k)
         # loop su tutti i bin precedenti:
         subtracted=0
+        #for j in range(0,k):
         for j in range(0,k):
+           
             #print("j=",j)
             subtracted=subtracted+corr_k
             counts2[j]=  counts2[j]-corr_k
@@ -146,9 +181,12 @@ def read_allCMOS(common_path,cmos_eventsFiles,binsSdd,ax2):
         xc=2064
         yc=2207
         r=502
+        #r=5000
         livetime=300.
         mask=np.where( (x-xc)**2+(y-yc)**2<r**2 )
         countsClu, binsE = np.histogram( energies[mask]  , bins =len(binsSdd)-1, range = (binsSdd[0],binsSdd[-1]) )
+        
+       
         ax2.hist(binsE[:-1],bins=binsE ,weights=countsClu/livetime, histtype='step', label="cmos")
         #plt.legend()
 
@@ -203,11 +241,11 @@ if __name__ == "__main__":
     ax2.legend()  
 
 
-    print("binsSdd=",binsSdd)
-    print("binsCmos=",binsCmos)
+    print("len(binsSdd=",len(binsSdd))
+    print("LEN binsCmos=",len(binsCmos))
   
 
-    #rebinno gli istogrammi??
+    #rebinno gli istogrammi
     psdd=histogramSimo()
     psdd.counts=counts_all
     psdd.bins=binsSdd
@@ -216,11 +254,20 @@ if __name__ == "__main__":
     pcmos.counts=counts_allCmos
     pcmos.bins=binsCmos
 
-    pcmos.rebin(3)
-    psdd.rebin(3)
-    pippo=  pcmos.counts.copy() #!!!!!!
 
-    corr_counts=correct_spectrumConst(pippo,6)
+    
+    pcmos.rebin(100)
+    psdd.rebin(100)
+    pippo=  pcmos.counts.copy() #!!!!!!
+    binCenters=pcmos.bins[0:-1]+(pcmos.bins[1]-pcmos.bins[0])/2.
+    corr_counts=correct_spectrumConst(pippo,100)
+    #corr_counts=pippo
+
+    print("len dopoRebin (binsSdd=",len(psdd.bins))
+    print("LEN dopo rebin  binsCmos=",len(pcmos.bins))
+  
+    #corr_counts=correct_spectrumLin(pippo,binCenters)
+
     
     pcmosCorr=histogramSimo()
     pcmosCorr.counts=corr_counts
@@ -234,10 +281,18 @@ if __name__ == "__main__":
     xCorr,yCorr,errCorr= compute_HistRatios(pcmosCorr,psdd)
    
     plt.figure(4)
+
+    print("livetime sdd=",livetime_all)
+    print("livetime cmos=",livetimeCmos)
+   
+    
     ratioLivetime=livetime_all/livetimeCmos
     plt.errorbar(x,y*ratioLivetime,yerr=err*ratioLivetime,fmt='or')
-    plt.errorbar(xCorr,yCorr*ratioLivetime,yerr=errCorr*ratioLivetime,fmt='ob')
-   
+    #plt.errorbar(xCorr,yCorr*ratioLivetime,yerr=errCorr*ratioLivetime,fmt='ob')
+    plt.xlim(1.8,7)
+    plt.ylim(0,1)
+    
+    plt.grid()
     
     fig=plt.figure(3)
     ax = fig.subplots()
