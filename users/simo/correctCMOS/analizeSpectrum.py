@@ -67,8 +67,40 @@ def correct_spectrumConst(counts,rebin):
         for j in range(0,k):
             #print("j=",j)
             subtracted=subtracted+corr_k
-            p.counts[j]=  counts[j]-corr_k
-            if (counts[j]<0): p.counts[j]=0
+            counts[j]=  counts[j]-corr_k
+            if (counts[j]<0): counts[j]=0
+            
+            
+        counts[k]=counts[k]+ subtracted   
+    
+    return counts   
+
+
+def correct_spectrumLin(counts,binCenters):
+
+
+    P1=0.0065
+    ycorr=0.05
+
+    #P1=0.0044
+    #ycorr=0.03
+
+    nbins=len(counts)
+    for i in range(2,nbins+1):
+        k=nbins-i
+        #print(k," count=",counts[k])
+        q=ycorr-P1*binCenters[k+1]
+        
+        # loop su tutti i bin precedenti:
+        subtracted=0
+        for j in range(0,k):
+            #print("j=",j)
+            kcorr=P1*binCenters[j]+q
+            if kcorr<0:kcorr=0
+            corr_k=counts[k]*kcorr
+            subtracted=subtracted+corr_k
+            counts[j]=  counts[j]-corr_k
+            if (counts[j]<0): counts[j]=0
             
             
         counts[k]+= subtracted   
@@ -80,7 +112,7 @@ def correct_spectrumConst(counts,rebin):
 if __name__ == "__main__":
 
     path='/home/maldera/Desktop/eXTP/data/ASI_55Fe/FF/22April2024/data_3/test_spectrum.npz'
-    nRebin=1   
+    nRebin=300   
     p=histogramSimo()
     p.read_from_file(path, 'npz' )
     p.rebin(nRebin)
@@ -101,14 +133,24 @@ if __name__ == "__main__":
 
     x=np.linspace(bin_centers[mask][0],bin_centers[mask][-1],1000)
     yfit= linFunc(x,popt[0],popt[1])
+    print("pop1=",popt[1])
     ax1.plot(x,yfit,'-')
 
 
-    p.counts= correct_spectrumConst(p.counts,nRebin)
-            
-            
+    countsConst= correct_spectrumConst(p.counts.copy(),nRebin)
 
-    p.plot(ax1,'corrected')
+    countsLin=correct_spectrumLin(p.counts.copy(), bin_centers)
+            
+    pLin=histogramSimo()
+    pLin.counts= countsLin
+    pLin.bins=p.bins
+
+    pConst=histogramSimo()
+    pConst.counts= countsConst
+    pConst.bins=p.bins
+    
+    pConst.plot(ax1,'corrected CONST')
+    pLin.plot(ax1,'corrected LIN')
     plt.legend()
         
     plt.show()
