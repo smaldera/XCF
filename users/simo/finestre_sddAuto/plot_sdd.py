@@ -27,7 +27,7 @@ def get_all_path(base_path,prefix):
 
        mypath=base_path+'/'+prefix+'*.npz'
        file_list=glob(mypath)
-       print('file_list=',file_list)
+       #print('file_list=',file_list)
        return file_list
 
 def get_HistSpectrum(filesList):
@@ -105,7 +105,7 @@ if __name__ == "__main__":
 
 
     # rapporti:
-    print("n. spettrii=",len( spec_list[0]), " ",len( spec_list[1]),len( spec_list[2])  )
+    print("n. spettrii=",len(spec_list[0]), " ",len( spec_list[1]),len( spec_list[2])  )
 
     gpdTrasp=np.array([])
     prcTrasp=np.array([])
@@ -127,7 +127,7 @@ if __name__ == "__main__":
        # gpdTrasp=  gpdRatios
        # prcTrasp=prcRatios
 
-        print("kk=",kk,  '-->> ',comparisonRatios)
+        #print("kk=",kk,  '-->> ',comparisonRatios)
        
         ratiosArray=np.append(comparisonRatios, ratiosArray)
         gpdRatiosArray=np.append(gpdRatios, gpdRatiosArray)
@@ -154,10 +154,10 @@ if __name__ == "__main__":
     prcTraspErr=np.sqrt(prcTraspErr)/(n_measures)
     comparisonErr=np.sqrt(comparisonErr)/(n_measures)
 
-    print("reshaped=",ratiosArray.reshape(int(n_measures),n_bins).T)
+    #print("reshaped=",ratiosArray.reshape(int(n_measures),n_bins).T)
     ratiosArray=ratiosArray.reshape(int(n_measures),n_bins).T
     prcRatiosArray=prcRatiosArray.reshape(int(n_measures),n_bins).T
-    gpRatiosArray=gpdRatiosArray.reshape(int(n_measures),n_bins).T
+    gpdRatiosArray=gpdRatiosArray.reshape(int(n_measures),n_bins).T
   
     
     fig3, ax3=plt.subplots()
@@ -192,17 +192,26 @@ if __name__ == "__main__":
     plt.title("GPD/PRC")
     plt.legend()
     plt.grid()
+    plt.xlim(1,7)
+    plt.ylim(0.9,1.1)
+
     
     fig4, ax4=plt.subplots()
 
-    ax4.errorbar(x,gpdRatio,yerr=gpdRatioErr,fmt='pr',label='gpd/air errors from RMS')
-    ax4.errorbar(x,prcRatio,yerr=prcRatioErr,fmt='pb',label='prc/air errors from RMS')
-     
-    ax4.plot(x, gpdTrasp/n_measures,'p',label='gpd/air')               
-    ax4.plot(x, prcTrasp/n_measures,'p',label='prc/air')               
+    #ax4.errorbar(x,gpdRatio,yerr=gpdRatioErr,fmt='pr',label='gpd/air errors from RMS',alpha=0.4)
+    #ax4.errorbar(x,prcRatio,yerr=prcRatioErr,fmt='pb',label='prc/air errors from RMS',alpha=0.4)
+    ax4.errorbar(x,gpdRatio,yerr=gpdRatioErr,fmt='pr',label='gpd/air')
+    ax4.errorbar(x,prcRatio,yerr=prcRatioErr,fmt='pb',label='prc/air')
+    
+    #ax4.plot(x, gpdTrasp/n_measures,'s',label='gpd/air')               
+    #ax4.plot(x, prcTrasp/n_measures,'s',label='prc/air')               
     plt.xlabel("E [keV]") 
     plt.title("Be trasparency")
     plt.legend()
+    plt.grid()
+    plt.xlim(1,9)
+    plt.ylim(0.45,1.05)
+   
                     
     plt.show()    
     
