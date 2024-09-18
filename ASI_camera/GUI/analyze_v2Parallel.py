@@ -1,28 +1,26 @@
-import numpy as np
-from matplotlib import pyplot as plt
+import clustering_cmos
 import glob
+import numpy as np
+import FreeSimpleGUI as sg
 import sys
-
 sys.path.insert(0, '../../libs')
 import utils_v2 as al
+
 from cmos_pedestal2 import bg_map
-import clustering_cmos
-import PySimpleGUI as sg
-
-
+from matplotlib import pyplot as plt
 from multiprocessing import Process, Queue
 from tqdm import tqdm
 from tqdm.gui import  tqdm_gui
 
 
 class analize_v2():
-    """
-    """
-
+    
+    
+    
     def __init__(self, fileList, bg_path):
 
         self.create_bg_map = False
-        self.NBINS = 16384  # n.canali ADC (2^14)
+        self.NBINS = 16384  # ADC (14 BIT)
         self.XBINS = 2822
         self.YBINS = 4144
         self.PIX_CUT_SIGMA = 10.  # cut per pixel rumorosi
@@ -40,6 +38,8 @@ class analize_v2():
         self.cluCut_suffix = '_CLUcut_' + str(self.CLU_CUT_SIGMA) + 'sigma'
         self.fileList = fileList
         self.bg_path = bg_path
+
+
 
     def reset_allVariables(self):
         x = []
@@ -60,87 +60,71 @@ class analize_v2():
         self.countsAllClu, self.bins = np.histogram(x, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
         self.h_cluSizeAll, self.binsSize = np.histogram(x, bins=100, range=(0, 100))
 
-        # creo histo2d vuoto:
         self.countsAll2dClu, self.xedges, self.yedges = np.histogram2d(x, x, bins=[self.xbins2d, self.ybins2d],
                                                                        range=[[0, self.XBINS], [0, self.YBINS]])
         self.countsAll2dRaw, self.xedgesRaw, self.yedgesRaw = np.histogram2d(x, x, bins=[self.xbins2d, self.ybins2d],
                                                                              range=[[0, self.XBINS], [0, self.YBINS]])
 
-        # x_all=np.empty(0)
-        # y_all=np.empty(0)
         self.x_allClu = np.empty(0)
         self.y_allClu = np.empty(0)
         self.w_all = np.empty(0)
 
+
+
     def do_analyze(self, queue, n_job):
         j = 0
         layout = [
-            [sg.Text('Progresso:', size=(10, 1)),
+            [sg.Text('Progress:', size=(10, 1)),
              sg.ProgressBar(len(self.fileList), orientation='h', size=(20, 20), key='progress')],
         ]
-        window_progress = sg.Window('Analisi' + str(n_job)+' corso', layout, finalize=True)
-
-        progress_bar = window_progress['progress']
+        window_progress = sg.Window('Analysis' + str(n_job)+' corso', layout, finalize=True)
+        progress_bar = window_progress['Progress']
         if self.create_bg_map == True:
             bg_map(self.bg_path, self.bg_path + 'mean_ped.fits', self.bg_path + 'std_ped.fits', draw=0)
 
-        # inizio analisi...
-        # leggo files pedestal (mean e rms)
+        # -------------------------------------------------------------------------
+        # ----------------------------------START----------------------------------
+        # Read pedestal files
         pedfile = self.bg_path + 'mean_ped.fits'
         mean_ped = al.read_image(pedfile)
         pedSigmafile = self.bg_path + 'std_ped.fits'
         rms_ped = al.read_image(pedSigmafile)
 
-        # MASCHERA PIXEL RUMOROSI
+        # Mask noisy pixels: where pixel > mean + n * sigma
         rms_pedCut = np.mean(rms_ped) + self.PIX_CUT_SIGMA * np.std(rms_ped)
-        # mySigmaMask=np.where( (rms_ped>10)&(mean_ped>500) )
         mySigmaMask = np.where((rms_ped > rms_pedCut))
         self.reset_allVariables()
 
-        # inizio loop sui files
+        # Loop over files
         bar_prefix = 'processing data chunk ' + str(n_job)
         for image_file in tqdm(self.fileList, desc=bar_prefix, colour='green', position=n_job - 1):
-            # read image:
+            # Read image
             image_data = al.read_image(image_file) / 4.
-            # subtract pedestal:
+            # Subtract pedestal
             image_data = image_data - mean_ped  #
-
-            # applica maschera
-            image_data[mySigmaMask] = 0  # maschero tutti i pixel con RMS pedestal > soglia
+            # Noise mask
+            image_data[mySigmaMask] = 0
 
             if self.make_rawSpectrum == True:
                 flat_image = image_data.flatten()
-                counts_i, bins_i = np.histogram(flat_image, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
+                counts_i, _ = np.histogram(flat_image, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
                 self.countsAll = self.countsAll + counts_i
 
-            #################
-            # ZERO SUPPRESSION
-            # applico selezione su carica dei pixel
-            # supp_coords, supp_weights=al.select_pixels2(image_data, 150)
+            # Apllying charge threshold (Zero suppression)
             supp_coords, supp_weights = al.select_pixels_RMS(image_data, rms_ped, self.CLU_CUT_SIGMA)
-
             if len(supp_weights) == 0:
-                print('no pixel above zero supp. threshold... skipping image')
+                print('No pixel above zero supp. threshold - Skipping image')
                 continue
-
-            # salvo pixel che sopravvivono alla selezione:
-            zeroSupp_trasposta = supp_coords
-
-            # istogramma 2d immagine raw dopo zero suppression:
-            counts2dRaw, xedgesRaw, yedgesRaw = np.histogram2d(zeroSupp_trasposta[0], zeroSupp_trasposta[1],
+            counts2dRaw, _, _ = np.histogram2d(supp_coords[0], supp_coords[1],
                                                                bins=[self.xbins2d, self.ybins2d],
                                                                range=[[0, self.XBINS], [0, self.YBINS]])
             self.countsAll2dRaw = self.countsAll2dRaw + counts2dRaw
-
-            # spettro dopo zeroSuppression
-            countsZeroSupp_i, bins_i = np.histogram(supp_weights, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
+            countsZeroSupp_i, _ = np.histogram(supp_weights, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
             self.countsAllZeroSupp = self.countsAllZeroSupp + countsZeroSupp_i
 
             # CLUSTERING
             if self.APPLY_CLUSTERING:
-
-                # test clustering.... # uso v3 per avere anche le posizioni
-                w_clusterAll, clu_coordsAll, clu_sizes, clu_baryCoords = clustering_cmos.clustering_v3(
+                w_clusterAll, _, clu_sizes, clu_baryCoords = clustering_cmos.clustering_v3(
                     np.transpose(supp_coords), supp_weights, myeps=self.myeps)
                 cluBary_trasposta = clu_baryCoords.transpose()
 
@@ -149,53 +133,44 @@ class analize_v2():
                     self.y_allClu = np.append(self.y_allClu, cluBary_trasposta[1])
                     self.w_all = np.append(self.w_all, w_clusterAll)
 
-                    # istogramma 2d dopo clustering solo baricentri!!!!
-                    counts2dClu, xedges, yedges = np.histogram2d(cluBary_trasposta[0], cluBary_trasposta[1],
+                    counts2dClu, _, _ = np.histogram2d(cluBary_trasposta[0], cluBary_trasposta[1],
                                                                  bins=[self.xbins2d, self.ybins2d],
                                                                  range=[[0, self.XBINS], [0, self.YBINS]])
                     self.countsAll2dClu = self.countsAll2dClu + counts2dClu
-
-                    # istogramma spettro dopo il clustering
-
-                    countsClu_i, bins_i = np.histogram(w_clusterAll, bins=2 * self.NBINS,
+                    countsClu_i, _ = np.histogram(w_clusterAll, bins=2 * self.NBINS,
                                                        range=(-self.NBINS, self.NBINS))
                     self.countsAllClu = self.countsAllClu + countsClu_i
 
-                # istogramma size clusters:
+                # Cluster Size histogram
                 h_cluSizes_i, binsSizes_i = np.histogram(clu_sizes, bins=100, range=(0, 100))
                 self.h_cluSizeAll = self.h_cluSizeAll + h_cluSizes_i
             j+=1
             progress_bar.UpdateBar(j)
 
-
         window_progress.Close()
         queue.put(self)
 
 
-####################################
-####################################
-def set_args(analizer, args):
-    analizer.REBINXY = args.xyrebin
-    analizer.APPLY_CLUSTERING = args.apply_clustering
-    analizer.SAVE_EVENTLIST = args.save_eventlist
-    analizer.myeps = args.myeps
-    analizer.make_rawSpectrum = args.make_rawspectrum
-    analizer.PIX_CUT_SIGMA = args.pix_cut_sigma  # cut per pixel rumorosi
-    analizer.CLU_CUT_SIGMA = args.clu_cut_sigma  # clustering cut
 
+
+
+
+
+# -----------------------------------------------------------------------------
+# ----------------------------------FUNCTIONS----------------------------------
 
 def run_analyze(args):
     shots_path = args.inFilesPath
     bg_shots_path = args.bkgFilesPath
 
     print('\n==================================')
-    print(' *** starting images analysis  ***\n')
-    print("reading images from: ", shots_path)
-    print("pedestals from: ", bg_shots_path)
+    print(' *** Starting images analysis  ***\n')
+    print("Reading images from: ", shots_path)
+    print("Pedestals from: ", bg_shots_path)
 
     fileList = glob.glob(shots_path + "/*.FIT")
     n_splits = args.n_jobs
-    print("n. of parallel jobs: ", n_splits)
+    print("N. of parallel jobs: ", n_splits)
 
     countsAll2dRaw = None
     countsAll2dClu = None
@@ -206,30 +181,26 @@ def run_analyze(args):
     w_all = None
     x_allClu = None
     y_allClu = None
-
+    
     analizer_list = []
     processes = []
-    rets = []
     q = Queue()
 
+    # Generates all the processes, making a list called "process"
     for i in range(1, n_splits + 1):
-
         frames_block = int(len(fileList) / n_splits)
 
         low = (i - 1) * frames_block
-        if i == 1:
-            low = 0
-
         up = i * frames_block
         if i == n_splits:
             up = len(fileList)
-
         block_fileList = fileList[low:up]
 
         analizer = analize_v2(block_fileList, bg_shots_path)
         set_args(analizer, args)
         if (i == 1):
-            print("\nanalize_v2 options:")
+            print('\n============ANALIZE_V2============')
+            print("Options:")
             print('   pixel_cut_sigma= ', analizer.PIX_CUT_SIGMA, '  (cut on pixels pedestal RMS)')
             print('   clustering cut sigma= ', analizer.CLU_CUT_SIGMA, '  (cut on pixel value)')
             print('   apply clustering= ', analizer.APPLY_CLUSTERING)
@@ -243,18 +214,16 @@ def run_analyze(args):
         p.start()
         processes.append(p)
 
-    # set queue to get the data form porcess
+    # Set queue to get the data form porcess
     for process in processes:
-        ret = q.get()  # will block
-        analizer_list.append(ret)
+        analizer_list.append(q.get())
 
-    # wait for all the sunprocedd to finish
+    # Wait for all the subprocess to finish
     for process in processes:
         process.join()
-    print('\n... all data processed')
+    print('\n Done Processing')
 
-    # risommo tutte le componenti... (tutti i job devono aver finito!!)
-
+    # Sum all jobs results
     for i in range(0, n_splits):
         if i == 0:
             countsAll2dRaw = analizer_list[i].countsAll2dRaw
@@ -266,7 +235,6 @@ def run_analyze(args):
             w_all = analizer_list[i].w_all
             x_allClu = analizer_list[i].x_allClu
             y_allClu = analizer_list[i].y_allClu
-
         if i > 0:
             countsAll2dRaw = countsAll2dRaw + analizer_list[i].countsAll2dRaw
             countsAll2dClu = countsAll2dClu + analizer_list[i].countsAll2dClu
@@ -274,13 +242,12 @@ def run_analyze(args):
             countsAllZeroSupp = countsAllZeroSupp + analizer_list[i].countsAllZeroSupp
             countsAllClu = countsAllClu + analizer_list[i].countsAllClu
             h_cluSizeAll = h_cluSizeAll + analizer_list[i].h_cluSizeAll
-            w_all = np.append(w_all, analizer_list[i].w_all)
+            w_all = np.append(w_all, analizer_list[i].w_all) # Using Np.arrray could be unefficient (or worse)
             x_allClu = np.append(x_allClu, analizer_list[i].x_allClu)
             y_allClu = np.append(y_allClu, analizer_list[i].y_allClu)
 
-    # plot immagini
+    # Image plot
     fig2, ax2 = plt.subplots()
-
     countsAll2dClu = countsAll2dClu.T
     plt.imshow(countsAll2dClu, interpolation='nearest', origin='lower',
                extent=[analizer_list[0].xedges[0], analizer_list[0].xedges[-1], analizer_list[0].yedges[0],
@@ -288,7 +255,7 @@ def run_analyze(args):
     plt.colorbar()
     plt.title('hit pixels (rebinned)')
 
-    # plot immagine Raw
+    # Raw image plot
     fig3, ax3 = plt.subplots()
     countsAll2dRaw = countsAll2dRaw.T
     plt.imshow(countsAll2dRaw, interpolation='nearest', origin='lower',
@@ -297,7 +264,7 @@ def run_analyze(args):
     plt.colorbar()
     plt.title('pixels>zero_suppression threshold')
 
-    # plot spettro
+    # Spectra plot
     fig, h1 = plt.subplots()
     bins = analizer_list[0].bins
     if analizer_list[0].make_rawSpectrum == True:
@@ -307,15 +274,15 @@ def run_analyze(args):
     plt.legend()
     plt.title('spectra')
 
-    # plot spettro sizes
+    # Size plot
     fig5, h5 = plt.subplots()
     h5.hist(analizer_list[0].binsSize[:-1], bins=analizer_list[0].binsSize, weights=h_cluSizeAll, histtype='step',
             label='Cluster sizes')
     plt.legend()
     plt.title('CLU size')
 
-    # save histos
-    print('... saving histograms in:', shots_path)
+    # Saving Hists and images
+    print('Saving histograms in: ', shots_path)
     np.savez(shots_path + 'spectrum_all_raw' + analizer_list[0].pixMask_suffix + '_parallel', counts=countsAll,
              bins=bins)
     np.savez(shots_path + 'spectrum_all_ZeroSupp' + analizer_list[0].pixMask_suffix + analizer_list[
@@ -326,14 +293,12 @@ def run_analyze(args):
     np.savez(shots_path + 'cluSizes_spectrum' + analizer_list[0].pixMask_suffix + '_parallel', counts=h_cluSizeAll,
              bins=analizer_list[0].binsSize)
 
-    # save figures
-
     al.write_fitsImage(countsAll2dClu, shots_path + 'imageCUL' + analizer_list[0].pixMask_suffix + analizer_list[
         0].cluCut_suffix + '_parallel.fits', overwrite="False")
     al.write_fitsImage(countsAll2dRaw, shots_path + 'imageRaw' + analizer_list[0].pixMask_suffix + '_parallel.fits',
                        overwrite="False")
 
-    # salva vettori con even_list:
+    # Saving eventslists
     if analizer_list[0].SAVE_EVENTLIST:
         outfileVectors = shots_path + 'events_list' + analizer_list[0].pixMask_suffix + analizer_list[
             0].cluCut_suffix + '.npz'
@@ -341,13 +306,28 @@ def run_analyze(args):
         al.save_vectors(outfileVectors, w_all, x_allClu, y_allClu)
 
 
+
+def set_args(analizer, args):
+    analizer.REBINXY = args.xyrebin
+    analizer.APPLY_CLUSTERING = args.apply_clustering
+    analizer.SAVE_EVENTLIST = args.save_eventlist
+    analizer.myeps = args.myeps
+    analizer.make_rawSpectrum = args.make_rawspectrum
+    analizer.PIX_CUT_SIGMA = args.pix_cut_sigma
+    analizer.CLU_CUT_SIGMA = args.clu_cut_sigma
+    
+    
+    
+    
+    
+    
+
 if __name__ == '__main__':
     import time
     import argparse
 
     formatter = argparse.ArgumentDefaultsHelpFormatter
     parser = argparse.ArgumentParser(formatter_class=formatter)
-
     parser.add_argument('-in', '--inFilesPath', type=str, help='path to FIT files', required=True)
     parser.add_argument('-bkg', '--bkgFilesPath', type=str, help='path to bkg files', required=True)
     parser.add_argument('--n_jobs', type=int, help='n. of parallel jobs', required=True, default=3)
@@ -362,12 +342,10 @@ if __name__ == '__main__':
     parser.add_argument('--make_rawspectrum', help='make raw spectrum ', required=False, default=False,
                         action='store_true')
     parser.add_argument('--myeps', type=float, help='DBSCAN eps', required=False, default=1.5)
-
     args = parser.parse_args()
 
     start = time.time()
     run_analyze(args)
     end = time.time()
-    print('\n\nelapsed time: ', end - start, ' [s]')
+    print('\n\nElapsed time: ', end - start, ' [s]')
     plt.show()
-

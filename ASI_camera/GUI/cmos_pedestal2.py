@@ -1,29 +1,19 @@
-import sys
-import numpy as np
-from matplotlib import pyplot as plt
 import glob
+import math
+import matplotlib
+import numpy as np
+import FreeSimpleGUI as sg
+import sys
 sys.path.insert(0, '../../libs')
 import utils_v2 as al
-from tqdm import tqdm
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import matplotlib
-import PySimpleGUI as sg
-matplotlib.use('TkAgg')
-import math
-from tqdm.gui import  tqdm_gui
-from matplotlib import use as use_agg
 import zwoasi as asi
 from astropy.io import fits
-
-
-def plot_pixel_dist(file_list, pixel):
-    myVal = []
-    for image_file in file_list:
-        image_data = al.read_image(image_file) / 4.
-        myVal.append(image_data[pixel[0]][pixel[1]])
-        # print("val = ",image_data[pixel[0]][pixel[1]])
-    npVal = np.array(myVal)
-    al.isto_all(npVal)
+from matplotlib import use as use_agg
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+matplotlib.use('TkAgg')
+from tqdm import tqdm
+from tqdm.gui import  tqdm_gui
 
 
 def bg_map_rt(outMeanPed_file, outStdPed_file, sample_size,GAIN,WB_B,WB_R,EXPO ,hist_pixel=None):
@@ -113,3 +103,12 @@ def bg_map_rt(outMeanPed_file, outStdPed_file, sample_size,GAIN,WB_B,WB_R,EXPO ,
     al.write_fitsImage(mean, outMeanPed_file, overwrite='True')
     al.write_fitsImage(std, outStdPed_file, overwrite='True')
 
+
+def plot_pixel_dist(file_list, pixel):
+    myVal = []
+    for image_file in file_list:
+        image_data = al.read_image(image_file) / 4.
+        myVal.append(image_data[pixel[0]][pixel[1]])
+        # print("val = ",image_data[pixel[0]][pixel[1]])
+    npVal = np.array(myVal)
+    al.isto_all(npVal)
