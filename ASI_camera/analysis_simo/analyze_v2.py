@@ -14,8 +14,8 @@ start = time.time()
 #shots_path = '/home/xcf/Desktop/ASI_polarizzata/Rodio/22Febb_10KV_0.3mA_120gain_200ms_1000f_h12.99_xtal_asse1-15ksx_asse2_80ksx_foro5mmLong/'
 #bg_shots_path ='/home/xcf/Desktop/ASI_polarizzata/bkg/bg_22feb_g120_200ms/'
 
-shots_path = '/home/maldera/Desktop/eXTP/data/misureCMOS_24Jan2023/Mo/10KV_0.1mA/G120_10ms/'
-bg_shots_path ='/home/maldera/Desktop/eXTP/data/misureCMOS_24Jan2023/Mo/sensorPXR/G120_10ms_bg/'
+shots_path = '/home/xcf/Desktop/ASI_MXr/27_06_24/data/'
+bg_shots_path ='/home/xcf/Desktop/ASI_MXr/27_06_24/bkg/'
 
 
 
