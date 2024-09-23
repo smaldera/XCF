@@ -147,8 +147,8 @@ if __name__ == "__main__":
 
     fig3, ax3 = plt.subplots()
     fitRatio,fitRatioErr= compute_Ratios(normsGPD,normsPRC,normsErrGPD,normsErrPRC)
-    ax3.errorbar(x,yRatio,yerr=yRatio_err,fmt='ko',label='GPD/PRC')
-    ax3.errorbar(energies,fitRatio,yerr=fitRatioErr, fmt='rs',label="peak  ratios GPD/PRC" )
+    ax3.errorbar(x,yRatio,yerr=yRatio_err,fmt='ko',label='GPD/PRC cmos ')
+   # ax3.errorbar(energies,fitRatio,yerr=fitRatioErr, fmt='rs',label="peak  ratios GPD/PRC" )
     plt.grid()
 
     # get sdd data:
@@ -159,14 +159,18 @@ if __name__ == "__main__":
     hRatioSdd.bins=data['arr_0']
     hRatioSdd.counts=data['arr_1']
     
-    hRatioSdd.plot(ax3,"ratio SDD")
+    hRatioSdd.plot(ax3,"ratio GPD/PRC  SDD_1 (Lorenzo) ")
     
-    
-    
-    
+    datasdAuto=np.load('/home/maldera/Desktop/eXTP/data/test_finestre/trapsrancySddAutoRms.npz')
+    xSddAuto= datasdAuto['x']
+    ySddAuto= datasdAuto['y']
+    yErrSddAuto= datasdAuto['yerr']
+    ax3.errorbar(xSddAuto,ySddAuto,yerr=yErrSddAuto,fmt='ro',label='GPD/PRC sddAuto')
+    plt.grid()   
     plt.legend() 
-    
-
+    plt.xlim(1,6)
+    plt.ylim(0.95,1.065)
+    plt.grid()
     plt.show()
 
 
