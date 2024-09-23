@@ -195,7 +195,9 @@ if __name__ == "__main__":
     plt.xlim(1,7)
     plt.ylim(0.9,1.1)
 
-    
+    np.savez('/home/maldera/Desktop/eXTP/data/test_finestre/trapsrancySddAutoRms.npz',x=x,y=yRatio,yerr=yRatioErr)
+    #np.savez(outHisto_name,counts=countsAll,bins=bins)
+     
     fig4, ax4=plt.subplots()
 
     #ax4.errorbar(x,gpdRatio,yerr=gpdRatioErr,fmt='pr',label='gpd/air errors from RMS',alpha=0.4)
