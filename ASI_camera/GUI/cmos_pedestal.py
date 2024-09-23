@@ -4,7 +4,7 @@ import matplotlib
 import numpy as np
 import FreeSimpleGUI as sg
 import sys
-sys.path.insert(0, '../../libs')
+#sys.path.insert(0, '../../libs')
 import time
 import utils_v2 as al
 import zwoasi as asi

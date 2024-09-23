@@ -1,8 +1,9 @@
+from cmos_pedestal import checkup
 import numpy as np
 from matplotlib import pyplot as plt
 import glob
 import sys
-sys.path.insert(0, '../../libs')
+#sys.path.insert(0, '../../libs')
 import utils_v2 as al
 import clustering_cmos 
 import time
@@ -12,8 +13,8 @@ from astropy.io import fits
 import multiprocessing
 import FreeSimpleGUI as sg
 from datetime import datetime
-from multiprocessing import Manager, Lock
-from cmos_pedestal import checkup
+#from multiprocessing import Manager, Lock
+#from cmos_pedestal import checkup
 
 
 # CMOS Energy calibration parameters
@@ -72,6 +73,8 @@ class aotr2:
 
 
     def Analizza(self, data_queue,id,data_buffer,lock):
+
+        print ("... starting analizza")
         self.reset_allVariables()
         progress_bar2 = tqdm(total=(self.sample_size/self.num), desc="Analizzatore_" + str(id), colour='green', position=self.num+id)
         if id==0:
@@ -155,11 +158,17 @@ class aotr2:
 
 
     def CaptureAnalyze(self):
+
+        print("... starting Capture and Analize!!! ")
         camera = checkup()
-        lock = Lock() # Data can't be simoultanously analysed by 2 or more processes
+        print("22222222222222222222")
+        lock = multiprocessing.Lock() # Data can't be simoultanously analysed by 2 or more processes
+
+        print("bbbbbbbbbbbbbbbb")
         
         # Buffers
-        manager = Manager()
+        manager =multiprocessing.Manager()
+        print("ccccccccccccccccccc")
         data_buffer = manager.list(range(10))
         data_buffer[0] = self.countsAll2dRaw
         data_buffer[1] = self.countsAll2dClu
@@ -171,10 +180,12 @@ class aotr2:
         data_buffer[7] = self.x_allClu
         data_buffer[8] = self.y_allClu
         data_buffer[9] = self.clusizes_all
+        
         data_queue = multiprocessing.Queue()
 
         numero_analizzatori = self.num
         processi = []
+        print("333333333333333333333333333")
         for i in range(numero_analizzatori):
             processo = multiprocessing.Process(target=self.Analizza, args= ( data_queue, i,data_buffer, lock))
             processi.append(processo)
