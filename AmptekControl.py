@@ -45,7 +45,7 @@ class SDD(object):
     def Acquire(self, livetime=10):
         self.itSelf.ClearSpectrum()
         self.itSelf.SetPresetAccumulationTime(livetime)
-        print(f'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA: {livetime}')
+        print(f'Check livetime: {livetime}')
         self.itSelf.Enable()
         start = self.GetTime()
         print("Acquisition started")
