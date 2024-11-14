@@ -22,7 +22,7 @@ def create_plots(dir_path):
         f=open(filename)
     
         for line in f:
-           print(line[:-1].split())
+         #  print(line[:-1].split())
 
            time.append(dt.datetime.fromtimestamp(  (float(line[:-1].split()[0]))   ))
            temp.append(float(line[:-1].split()[1]))
