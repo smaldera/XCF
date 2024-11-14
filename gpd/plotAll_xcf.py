@@ -70,10 +70,10 @@ parser.set_defaults(pha_expr='PHA_EQ')
 
 parser.add_cut_options()
 
-
+# ((abs(TRK_BARX) < 7.000) && (abs(TRK_BARY) < 7.000)) && ( (NUM_CLU > 0) && (LIVETIME > 15))
 
 ### PARAMETRI....
-cut_sigma=3
+cut_sigma=2
 cut_base='((abs(TRK_BARX) < 7.000) && (abs(TRK_BARY) < 7.000)) && ( (NUM_CLU > 0) && (LIVETIME > 15)  )'
 #cut_base='( TRK_BARX >-1) && ( TRK_BARX <-0.2) &&  ( TRK_BARY >0.4) && ( TRK_BARY <0.8)   && ( (NUM_CLU > 0) && (LIVETIME > 15)  )'
 
