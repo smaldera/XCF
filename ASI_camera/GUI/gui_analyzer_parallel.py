@@ -83,7 +83,7 @@ class aotr2:
             window_progress = sg.Window('Data cruncher number: ' + str(id), layout, finalize=True)
             progress_bar = window_progress['progress']
         i=1
-
+        print ("... Analizza: prima del while true")
         while True:
             data= data_queue.get()
             if data is None:
@@ -161,14 +161,10 @@ class aotr2:
 
         print("... starting Capture and Analize!!! ")
         camera = checkup()
-        print("22222222222222222222")
         lock = multiprocessing.Lock() # Data can't be simoultanously analysed by 2 or more processes
-
-        print("bbbbbbbbbbbbbbbb")
         
         # Buffers
         manager =multiprocessing.Manager()
-        print("ccccccccccccccccccc")
         data_buffer = manager.list(range(10))
         data_buffer[0] = self.countsAll2dRaw
         data_buffer[1] = self.countsAll2dClu
@@ -185,7 +181,6 @@ class aotr2:
 
         numero_analizzatori = self.num
         processi = []
-        print("333333333333333333333333333")
         for i in range(numero_analizzatori):
             processo = multiprocessing.Process(target=self.Analizza, args= ( data_queue, i,data_buffer, lock))
             processi.append(processo)

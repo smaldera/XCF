@@ -106,7 +106,6 @@ def Analyze(path_to_fit, path_to_bkg, cores, rebins, sigma, cluster, clu, event,
             
 def CaptureAndAnalyze2(path, sample_size, WB_R, WB_B, EXPO, GAIN, bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num, leng, bunch):
         print('Make event list in CaptureAndAnalyze2=',NoEvent)
-        print("11111111111")
         OBJ = aotr2(path, sample_size, WB_R, WB_B, EXPO, GAIN, bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent,
                    Raw, Eps,num ,leng,bunch)
         try:
