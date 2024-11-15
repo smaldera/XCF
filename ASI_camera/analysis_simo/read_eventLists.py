@@ -22,9 +22,9 @@ from  histogramSimo import histogramSimo
 
 cut='None'
 x_inf = 0
-x_sup = 2000
-y_inf = 1000
-y_sup = 2000
+x_sup = 20000
+y_inf = 0
+y_sup = 20000
 
 
 import argparse
@@ -96,7 +96,9 @@ if cut=='xy':
     myCut_pos=np.where( (x_all>x_inf)&(x_all<x_sup)&(y_all>y_inf)&(y_all<y_sup) )
     myCut=np.where( w_all>0 )
 if cut=='None':
-    myCut=np.where(( w_all>20))
+   # myCut=np.where(( w_all>0))
+    myCut=np.where((0==0))
+    
    # myCut=np.where(( ( w_all*calP1+calP0)<10.5 )&( ( w_all*calP1+calP0)>9.5)   )
     #myCut=np.where(  ((w_all*calP1+calP0)>0.03)& (size==2) )
     #myCut=np.where( (x_all>x_inf)&(x_all<x_sup)&(y_all>y_inf)&(y_all<y_sup)& (w_all>100)  ) 
@@ -105,12 +107,9 @@ if cut=='None':
 #myCut=np.where( (w_all>2390)&(w_all<2393)  )
 # myCut=np.where( (x_all>800)&(x_all<1200)&(y_all>1900)&(y_all<2500)  )
 # myCut=np.where( (x_all>1950)&(x_all<2420))
-
 #myCut=np.where( (w_all>800)&(w_all<900)  )
 
-
 print("n eventi=",len(w_all))
-
 
 fig2=plt.figure(figsize=(10,10))
 #fig2=plt.figure()
@@ -118,7 +117,7 @@ ax1=plt.subplot(221)
 
 #plot 
 # mappa posizioni:
-counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut][0:1000000],y_all[myCut][0:1000000],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
+counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
 counts2dClu=   counts2dClu.T
 im=ax1.imshow(np.log10(counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
 if cut=='x':
@@ -140,16 +139,13 @@ ax1.legend()
 ax2=plt.subplot(222)
 # spettro energia
 #plt.figure(2)
-countsClu, binsE = np.histogram( w_all[myCut_pos]  , bins = 2*NBINS, range = (-NBINS,NBINS) )
+
+#countsClu, binsE = np.histogram( w_all[myCut_pos]  , bins = 2*NBINS, range = (-NBINS,NBINS) )
+countsClu, binsE = np.histogram( w_all, bins = 2*NBINS, range = (-NBINS,NBINS) )
+
 binsE=binsE*calP1+calP0
 
-mySelection=np.where( ((w_all*calP1+calP0)>5.7)& ((w_all*calP1+calP0)<6.7)    )
-print("n eventi!!! =",len(w_all[mySelection]))
 
-
-
-print()
-print("AAAAAAAAAAAAAAAAAAAAAAAA")
 print("y = ", countsClu)
 print("x = ", binsE)
 print()
