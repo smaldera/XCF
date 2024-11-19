@@ -92,8 +92,8 @@ class aotr2:
                     window_progress.Close()
                 break
                 
-            rms_pedCut = np.mean(self.rms_ped) + self.PIX_CUT_SIGMA * np.std(self.rms_ped)
-            mySigmaMask = np.where((self.rms_ped > rms_pedCut))
+            rms_pedCut = np.mean(self.rms_ped) + self.PIX_CUT_SIGMA * np.std(self.rms_ped)   # definire fuori dal loop
+            mySigmaMask = np.where((self.rms_ped > rms_pedCut))                              # definire fuori dal loop   
             image_data = data / 4.
             image_data = image_data - self.mean_ped
             image_data[mySigmaMask] = 0
@@ -142,7 +142,7 @@ class aotr2:
                 progress_bar.UpdateBar(i)
             i += 1
 
-            with lock:
+            with lock: #!!!!!!!!!!!!!!!!!!!!!!!!!1  guarda qua
                 data_buffer[0] += counts2dRaw
                 data_buffer[2] += counts_i
                 data_buffer[3] += countsZeroSupp_i
@@ -151,10 +151,12 @@ class aotr2:
                     data_buffer[4] += countsClu_i
                     data_buffer[5] += h_cluSizes_i
                     if self.SAVE_EVENTLIST:
-                        data_buffer[6] = np.append(self.w_all, self.w_clusterAll)
-                        data_buffer[7] = np.append(self.x_allClu, cluBary_trasposta[0])
-                        data_buffer[8] = np.append(self.y_allClu, cluBary_trasposta[1])
-                        data_buffer[9] = np.append(self.clusizes_all, clu_sizes)
+                        data_buffer[6] = np.append(data_buffer[6] , self.w_clusterAll)
+                        data_buffer[7] = np.append(data_buffer[7] , cluBary_trasposta[0])
+                        data_buffer[8] = np.append(data_buffer[8] , cluBary_trasposta[1])
+                        data_buffer[9] = np.append(data_buffer[9] , clu_sizes)
+
+                        
 
 
     def CaptureAnalyze(self):
@@ -187,6 +189,8 @@ class aotr2:
         for processo in processi:
             processo.start()
 
+
+        ## la grafica non andrebbe qua!!!!!!    
         layout_capture = [
             [sg.Text('Cattura in corso:', size=(15, 1)), sg.ProgressBar(self.sample_size, orientation='h', size=(20, 20), key='progress_capture')],
         ]
