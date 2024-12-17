@@ -15,7 +15,7 @@ import FreeSimpleGUI as sg
 from datetime import datetime
 
 
-
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 # CMOS Energy calibration parameters
@@ -214,10 +214,16 @@ class aotr2:
             mytime=[]
             k=1
             plt.ion()
-            fig3, ax3 = plt.subplots(nrows=1, ncols=2, figsize=(11,7))
+            fig3, ax3 = plt.subplots(nrows=1, ncols=2, figsize=(11,7), constrained_layout=True )
+            plt.subplots_adjust(wspace=0.4)
             fig3.canvas.manager.window.wm_geometry("+%d+%d" % (2, 2))
+           # fig3.tight_layout() 
             ax3[1].set_xlim([0,12])  #starting x limits
-
+            #im=ax3[0].imshow( self.countsAll2dRaw, interpolation='nearest', origin='lower', extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
+            #clb=plt.colorbar(im,ax=ax3[0], orientation='vertical')
+            div = make_axes_locatable(ax3[0])
+            cax = div.append_axes('right', '5%', '5%')
+            
             
             for i in tqdm(range (self.sample_size), desc='acquiring data', colour='green'):
 
@@ -265,7 +271,7 @@ class aotr2:
                 # ---------------------------------LIVE  PLOTS------------------------------------
                 if i%20 == 0:
                     self.recover_data(data_buffer)
-                    self.livePlots(ax3,fig3)
+                    self.livePlots(ax3,fig3,cax)
 
 
                 # ------------------SAVINGS-------------------
@@ -366,24 +372,29 @@ class aotr2:
 
 
 
-    def livePlots(self, ax3,fig):
+    def livePlots(self, ax3,fig,cax):
            All2dRaw = self.countsAll2dRaw.T
            old_xLim=ax3[1].get_xlim()
            
            ax3[0].cla()
-           im=ax3[0].imshow(np.log10(All2dRaw), interpolation='nearest', origin='lower', extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
-           #im=ax3[0].imshow(All2dRaw, interpolation='nearest', origin='lower', extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
+           #im=ax3[0].imshow(np.log10(All2dRaw), interpolation='nearest', origin='lower', extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
+           im=ax3[0].imshow(All2dRaw, interpolation='nearest', origin='lower', extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
            self.bins = np.linspace(-self.NBINS, self.NBINS, 2*self.NBINS+1)
            self.bins = calP0 + calP1 * self.bins
-                     
+
+
+           
            ax3[1].cla()
+           cax.cla()
            ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllZeroSupp, histtype='step', label="pixel thresold", color = "green")
            ax3[1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllClu, histtype='step', label='CLUSTERING', color = "red")
-          
-           
+                    
            ax3[0].set_title("Image Raw", fontsize = 16)
            ax3[0].set_xlabel("X [pix]", fontsize = 12)
            ax3[0].set_ylabel("Y [pix]", fontsize = 12)
+          
+           cb=fig.colorbar(im,cax=cax, orientation='vertical')
+           
            
            ax3[1].set_xlabel("Energy [keV]", fontsize = 12)
            ax3[1].set_ylabel("log10(Counts)", fontsize = 12)
@@ -392,34 +403,43 @@ class aotr2:
            ax3[1].set_title("Spectrum", fontsize = 16)
            ax3[1].legend()
           
-
+         
 
     def final_plots(self):
         
         fig6, ax6 = plt.subplots(nrows=2, ncols=2, figsize=(11,7) )
         self.countsAll2dClu = self.countsAll2dClu.T
         im=ax6[0,0].imshow(np.log10(self.countsAll2dClu), interpolation='nearest', origin='lower', extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
-        #fig6.colorbar(im)
+        #plt.colorbar(ax6[0,0])
+        
         ax6[0,0].set_title('hit pixels clustering  (rebinned)')
+        fig6.colorbar(im,ax=ax6[0,0], orientation='vertical')
 
         # plot immagine Raw
         self.countsAll2dRaw = self.countsAll2dRaw.T
-        ax6[1,0].imshow(self.countsAll2dRaw, interpolation='nearest', origin='lower',  extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
+        im2=ax6[1,0].imshow(self.countsAll2dRaw, interpolation='nearest', origin='lower',  extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
         #plt.colorbar()
         ax6[1,0].set_title('pixels >zero_suppression threshold')
+        fig6.colorbar(im2,ax=ax6[1,0], orientation='vertical')
 
+        
         # plot spettro
         ax6[1,1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAll, histtype='step', label="raw")
         ax6[1,1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllZeroSupp, histtype='step', label="pixel thresold")
         ax6[1,1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllClu, histtype='step', label='CLUSTERING')
         plt.legend()
-        ax6[1,1].set_title('spectra')
-
-
+        ax6[1,1].set_title('spectra', fontsize = 12)
+        ax6[1,1].set_xlabel("Energy [keV]", fontsize = 12)
+        ax6[1,1].set_yscale('log')
+        ax6[1,1].set_xlim([0,12])
+        
         # plot spettro sizes
         ax6[0,1].hist(self.binsSize[:-1], bins=self.binsSize, weights=self.h_cluSizeAll, histtype='step', label='Cluster sizes')
         plt.legend()
         ax6[0,1].set_title('CLU size')
+        ax6[0,1].set_yscale('log')
+        ax6[0,1].set_xlim([0,10])
+       
 
         # save histos
         np.savez(self.file_path + 'spectrum_all_raw' + self.pixMask_suffix, counts=self.countsAll, bins=self.bins)
