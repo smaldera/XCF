@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, '../../libs')
 import utils_v2 as al
 
-from cmos_pedestal2 import bg_map
+from cmos_pedestal2 import bg_map_rt as bg_map
 from matplotlib import pyplot as plt
 from multiprocessing import Process, Queue
 from tqdm import tqdm
