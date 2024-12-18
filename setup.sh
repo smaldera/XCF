@@ -25,3 +25,5 @@ echo "LD_LIBRARY_PATH=" $LD_LIBRARY_PATH
 
 export PYTHONPATH="$XCFROOTDIR/libs/":$PYTHONPATH
 echo "pythonpath="$PYTHONPATH
+
+export ZWO_ASI_LIB=$ASIROOTDIR/lib/x64/libASICamera2.so
