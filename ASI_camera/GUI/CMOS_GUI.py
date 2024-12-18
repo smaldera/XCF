@@ -76,9 +76,6 @@ def write_config(config, filename='config.ini'): #writes in filename (config)
 
 
 
-
-
-
 #-------------------------------------------------------------------------------------------------
 #---------------------------------------------ANALYSIS--------------------------------------------
 def Analyze(path_to_fit, path_to_bkg, cores, rebins, sigma, cluster, clu, event, raw, eps): #Launches analyze_v2Parallel.py
@@ -99,7 +96,7 @@ def Analyze(path_to_fit, path_to_bkg, cores, rebins, sigma, cluster, clu, event,
             script_parameters.append(' --make_rawspectrum ')
         try:
             # Run the script with parameters using subprocess
-            command = f'python3 "{script_path}" {" ".join(script_parameters)}'
+            command = f'python3 "{script_path}" {" ".join(script_parameters)}'   #!!!!!!!!!!!! python3????
             subprocess.run(command, check=True, shell=True)
         except subprocess.CalledProcessError as e:
             print(f"Error running the script: {e}")
@@ -513,7 +510,7 @@ if __name__ == "__main__":
                 CaptureAndAnalyze2(StoreDataIn, int(SampleSize),int(WBR),int(WBB),int(exposure),int(gain),bkg_folder_b, xyRebin2, sigma2, cluster2, NoClustering2, NoEvent2, Raw2, Eps2, int(num) , int(length),int(bunch))
             except Exception as e:
                 sg.popup(f"Cannot launch CaptureAndAnalyze2: {e}")
-                print("Error in CaptureAndAnalyze2:" , e)
+                print("Error running CaptureAndAnalyze2:" , e)
         
         if event == "_CLUSTER2_":
             cluster2 = int(values["_CLUSTER2_"])
