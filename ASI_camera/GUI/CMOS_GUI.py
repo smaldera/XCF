@@ -11,7 +11,8 @@ from cmos_pedestal import capture
 from utils_v2 import read_image
 from utils_v2 import plot_image
 from utils_v2 import isto_all
-from gui_analyzer_parallel import aotr2
+#from gui_analyzer_parallel import aotr2
+from gui_analyzer_parallelSaveLargeClu import aotr2
 import multiprocessing
 import glob
 
