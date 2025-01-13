@@ -150,15 +150,39 @@ class aotr2:
                         data_buffer[8] = np.append(data_buffer[8] , cluBary_trasposta[1])
                         data_buffer[9] = np.append(data_buffer[9] , clu_sizes)
 
-                        
 
+
+    def initialize_camera(self):
+        import zwoasi as asi
+        camera = checkup()
+       
+        #Use minimum USB bandwidth permitted
+        camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, 95)
+        camera.set_control_value(asi.ASI_HIGH_SPEED_MODE, True)
+        camera.disable_dark_subtract()
+        camera.set_control_value(asi.ASI_GAMMA, 50)
+        camera.set_control_value(asi.ASI_BRIGHTNESS, 50)
+        camera.set_control_value(asi.ASI_FLIP, 0)
+        camera.set_control_value(asi.ASI_GAIN, self.GAIN)
+        camera.set_control_value(asi.ASI_WB_B, self.WB_B)
+        camera.set_control_value(asi.ASI_WB_R, self.WB_R)
+        camera.set_control_value(asi.ASI_EXPOSURE, self.EXPO)
+        camera.set_image_type(asi.ASI_IMG_RAW16)
+        timeout = (camera.get_control_value(asi.ASI_EXPOSURE)[0] / 1000) * 2 + 10500
+        camera.default_timeout = timeout
+
+
+        return camera
+           
+             
 
     def CaptureAnalyze(self):
         import time
         import zwoasi as asi
         
         print("... starting Capture and Analize!!! ")
-        camera = checkup()
+       # camera = checkup()
+        camera=self.initialize_camera()
         lock = multiprocessing.Lock() # Data can't be simoultanously analysed by 2 or more processes
         
         # Buffers
@@ -196,21 +220,22 @@ class aotr2:
         # --------------------------------------CAMERA--------------------------------------
         try:
             #Use minimum USB bandwidth permitted
-            camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, 95)
-            camera.set_control_value(asi.ASI_HIGH_SPEED_MODE, True)
-            camera.disable_dark_subtract()
-            camera.set_control_value(asi.ASI_GAMMA, 50)
-            camera.set_control_value(asi.ASI_BRIGHTNESS, 50)
-            camera.set_control_value(asi.ASI_FLIP, 0)
-            camera.set_control_value(asi.ASI_GAIN, self.GAIN)
-            camera.set_control_value(asi.ASI_WB_B, self.WB_B)
-            camera.set_control_value(asi.ASI_WB_R, self.WB_R)
-            camera.set_control_value(asi.ASI_EXPOSURE, self.EXPO)
-            camera.set_image_type(asi.ASI_IMG_RAW16)
-            
-            timeout = (camera.get_control_value(asi.ASI_EXPOSURE)[0] / 1000) * 2 + 10500
-            camera.default_timeout = timeout
+            #camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, 95)
+            #camera.set_control_value(asi.ASI_HIGH_SPEED_MODE, True)
+            #camera.disable_dark_subtract()
+            #camera.set_control_value(asi.ASI_GAMMA, 50)
+            #camera.set_control_value(asi.ASI_BRIGHTNESS, 50)
+            #camera.set_control_value(asi.ASI_FLIP, 0)
+            #camera.set_control_value(asi.ASI_GAIN, self.GAIN)
+            #camera.set_control_value(asi.ASI_WB_B, self.WB_B)
+            #camera.set_control_value(asi.ASI_WB_R, self.WB_R)
+            #camera.set_control_value(asi.ASI_EXPOSURE, self.EXPO)
+            #camera.set_image_type(asi.ASI_IMG_RAW16)
+            #timeout = (camera.get_control_value(asi.ASI_EXPOSURE)[0] / 1000) * 2 + 10500
+            #camera.default_timeout = timeout
 
+            #camera=initialize_camera()
+            
             temp=[]
             mytime=[]
             k=1
@@ -263,9 +288,16 @@ class aotr2:
                         data_queue.put(data)
                         break
                     except Exception as e:
-                        camera.stop_video_capture()
-                        camera.start_video_capture()
+                      #  camera.stop_video_capture()
+                      
                         print("There are troubles in CaptureAnalyze True:" , e, ", frame = ", i)
+                        print("stopping video capture...")
+                        camera.stop_video_capture()
+                        time.sleep(10)
+                        camera=self.initialize_camera()
+                        print("restarting video capture...")
+                        camera.start_video_capture()
+                        print("... done")
                         
                 progress_bar_capture.UpdateBar(i)
 
