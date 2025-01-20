@@ -101,7 +101,13 @@ def clustering_v3(supp_coords,supp_weights,myeps=1):
    coordsAll=np.empty((0,0))
    cg_coords = np.empty((0,0))
    sum_w=[]
-   clu_size=[] 
+   clu_size=[]
+
+   print (" len(supp_coords=", len(supp_coords))
+   if len(supp_coords)==0:
+      print("clustering: vettore vuoto... skip event")
+      return(np.array(sum_w),coordsAll.reshape(int(len(coordsAll)/2),2 ), np.array(clu_size),  cg_coords.reshape(int(len(cg_coords)/2),2))
+   
    db = DBSCAN(eps=myeps, min_samples=1, n_jobs=1, algorithm='ball_tree').fit(supp_coords)
   
   

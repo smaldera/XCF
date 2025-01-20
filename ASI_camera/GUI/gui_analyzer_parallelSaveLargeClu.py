@@ -17,6 +17,7 @@ import time
 # CMOS Energy calibration parameters
 calP1= 0.00321327
 calP0=-0.0032013
+LIVE_PLOTS=False
 
 class aotr2:
 
@@ -91,7 +92,8 @@ class aotr2:
                 if (id==0):
                     window_progress.Close()
                 break
-                
+
+            #print("DEBUG=> analizza: data.shape=",data.shape)
            
             image_data = data / 4.
             image_data = image_data - self.mean_ped
@@ -101,6 +103,10 @@ class aotr2:
             counts_i, _ = np.histogram(flat_image, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
            
             supp_coords, supp_weights = al.select_pixels_RMS(image_data, self.rms_ped, self.CLU_CUT_SIGMA)
+            if len(supp_weights)==0:
+                print ("empty event",i,"... skipping")
+                continue
+            
             zeroSupp_trasposta = supp_coords
             counts2dRaw, _, _ = np.histogram2d(zeroSupp_trasposta[0], zeroSupp_trasposta[1],
                                                                bins=[self.xbins2d, self.ybins2d],
@@ -118,13 +124,14 @@ class aotr2:
                 h_cluSizes_i, _ = np.histogram(clu_sizes, bins=100, range=(0, 100))                               
                 self.h_cluSizeAll = self.h_cluSizeAll + h_cluSizes_i
 
-                if (max(clu_sizes)>10) and  (n_images<1000) : 
+                if (max(clu_sizes)>9) and  (n_images<1000) : 
                      #salvo immagine
                      n_images+=1 
                      nomefile=self.file_path+'/img_cluSize10_'+str(n_images)+'.fits'
                      header = fits.Header()
                      header['DATE-OBS'] = time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime())
-                     # Saving Image.FITS
+                     #Saving Image.FITS
+                     # print("DEBUG11: before saving.. data.shape=",data.shape)
                      hdu = fits.PrimaryHDU(data, header=header)
                      hdulist = fits.HDUList([hdu])
                      hdulist.writeto(nomefile, overwrite=True)
@@ -219,36 +226,19 @@ class aotr2:
 
         # --------------------------------------CAMERA--------------------------------------
         try:
-            #Use minimum USB bandwidth permitted
-            #camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, 95)
-            #camera.set_control_value(asi.ASI_HIGH_SPEED_MODE, True)
-            #camera.disable_dark_subtract()
-            #camera.set_control_value(asi.ASI_GAMMA, 50)
-            #camera.set_control_value(asi.ASI_BRIGHTNESS, 50)
-            #camera.set_control_value(asi.ASI_FLIP, 0)
-            #camera.set_control_value(asi.ASI_GAIN, self.GAIN)
-            #camera.set_control_value(asi.ASI_WB_B, self.WB_B)
-            #camera.set_control_value(asi.ASI_WB_R, self.WB_R)
-            #camera.set_control_value(asi.ASI_EXPOSURE, self.EXPO)
-            #camera.set_image_type(asi.ASI_IMG_RAW16)
-            #timeout = (camera.get_control_value(asi.ASI_EXPOSURE)[0] / 1000) * 2 + 10500
-            #camera.default_timeout = timeout
-
-            #camera=initialize_camera()
             
+                    
             temp=[]
             mytime=[]
             k=1
             plt.ion()
-            fig3, ax3 = plt.subplots(nrows=1, ncols=2, figsize=(11,7), constrained_layout=True )
-            plt.subplots_adjust(wspace=0.4)
-            fig3.canvas.manager.window.wm_geometry("+%d+%d" % (2, 2))
-           # fig3.tight_layout() 
-            ax3[1].set_xlim([0,12])  #starting x limits
-            #im=ax3[0].imshow( self.countsAll2dRaw, interpolation='nearest', origin='lower', extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
-            #clb=plt.colorbar(im,ax=ax3[0], orientation='vertical')
-            div = make_axes_locatable(ax3[0])
-            cax = div.append_axes('right', '5%', '5%')
+            if LIVE_PLOTS==True:
+                fig3, ax3 = plt.subplots(nrows=1, ncols=2, figsize=(11,7), constrained_layout=True )
+                plt.subplots_adjust(wspace=0.4)
+                fig3.canvas.manager.window.wm_geometry("+%d+%d" % (2, 2))
+                ax3[1].set_xlim([0,12])  #starting x limits
+                div = make_axes_locatable(ax3[0])
+                cax = div.append_axes('right', '5%', '5%')
             
             
             for i in tqdm(range (self.sample_size), desc='acquiring data', colour='green'):
@@ -285,6 +275,7 @@ class aotr2:
                     try:
                         data = np.empty((2822, 4144), dtype=np.uint16)
                         data = camera.capture_video_frame()
+                        #print("DEBUG=> captureAnalyze: data.shape=",data.shape)
                         data_queue.put(data)
                         break
                     except Exception as e:
@@ -302,9 +293,10 @@ class aotr2:
                 progress_bar_capture.UpdateBar(i)
 
                 # ---------------------------------LIVE  PLOTS------------------------------------
-                if i%20 == 0:
-                    self.recover_data(data_buffer)
-                    self.livePlots(ax3,fig3,cax)
+                if LIVE_PLOTS==True:
+                    if i%20 == 0:
+                        self.recover_data(data_buffer)
+                        self.livePlots(ax3,fig3,cax)
 
 
                 # ------------------SAVINGS-------------------
@@ -351,7 +343,10 @@ class aotr2:
         analizer_list = []
         for processo in processi:
             processo.join()
-        plt.close(fig3)
+        #if  LIVE_PLOTS==True:
+        #    plt.close(fig3)
+        
+        
         plt.ioff()
 
         self.recover_data(data_buffer)
@@ -457,6 +452,8 @@ class aotr2:
 
         
         # plot spettro
+        self.bins = np.linspace(-self.NBINS, self.NBINS, 2*self.NBINS+1)
+        self.bins = calP0 + calP1 * self.bins
         ax6[1,1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAll, histtype='step', label="raw")
         ax6[1,1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllZeroSupp, histtype='step', label="pixel thresold")
         ax6[1,1].hist(self.bins[:-1], bins=self.bins, weights=self.countsAllClu, histtype='step', label='CLUSTERING')
