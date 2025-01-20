@@ -13,8 +13,8 @@ start = time.time()
 
 
 
-shots_path = '/home/maldera/Desktop/eXTP/data/ASI_testMu/testCMOS_verticale/data2/'
-bg_shots_path ='/home/maldera/Desktop/eXTP/data/ASI_testMu/testCMOS_verticale/data2/bkg/'
+shots_path = '/home/maldera/Desktop/eXTP/data/ASI_testMu/testCMOS_verticale/data4/'
+bg_shots_path ='/home/maldera/Desktop/eXTP/data/ASI_testMu/testCMOS_verticale/data4/bkg/'
 
 calP0=-0.003201340833319255
 calP1=0.003213272145961988
@@ -178,7 +178,7 @@ for image_file in tqdm(f, colour='green'):
             print ("clu_weight=",clu_weights)
             clu_size=len(clu_weights)
             print("clu_size=",clu_size )
-            if clu_size>9:
+            if clu_size>6:
                 #plt.plot( clu_coords.T[0], clu_coords.T[1],'o')
                 counts2dClu,  xedges2dClu, yedges2dClu= np.histogram2d(clu_coords.T[0], clu_coords.T[1],weights=clu_weights,bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
                 counts2dClu=   counts2dClu.T
