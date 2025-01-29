@@ -10,9 +10,11 @@ import utils_v2 as al
 import zwoasi as asi
 
 from astropy.io import fits
-from matplotlib import use as use_agg
+#from matplotlib import use as use_agg
 from matplotlib import pyplot as plt
-matplotlib.use('TkAgg')
+#matplotlib.use('TkAgg')
+#matplotlib.use('Agg')
+
 from tqdm import tqdm
 from tqdm.gui import  tqdm_gui
 
@@ -130,7 +132,7 @@ def bg_map_rt(bg_shots_path, outMeanPed_file, outStdPed_file, sample_size, GAIN,
 def initialize_camera( WB_R, WB_B, EXPO, GAIN):
         
         camera = checkup()
-       
+        
         #Use minimum USB bandwidth permitted
         camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, 95)
         camera.set_control_value(asi.ASI_HIGH_SPEED_MODE, True)
@@ -201,11 +203,15 @@ def capture(file_name, file_path, sample_size, WB_R, WB_B, EXPO, GAIN):
 
 
 def checkup():
-    try:
-        camera_id = 0
-        camera = asi.Camera(camera_id)
-    except Exception as e:
-        sg.popup(f"Camera not found in bg_map_rt: {e}")
+
+    camera_id = 0
+    camera = asi.Camera(camera_id)
+
+    #try:
+    #    camera_id = 0
+    #    camera = asi.Camera(camera_id)
+    #except Exception as e:
+    #    sg.popup(f"!!!Camera not found in bg_map_rt: {e}")
     try:
         # Force any single exposure to be halted
         camera.stop_video_capture()

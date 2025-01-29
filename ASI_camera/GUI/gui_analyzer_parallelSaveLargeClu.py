@@ -13,16 +13,17 @@ import FreeSimpleGUI as sg
 from datetime import datetime
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import time
-
+import matplotlib
+from matplotlib import use as use_agg
 # CMOS Energy calibration parameters
 calP1= 0.00321327
 calP0=-0.0032013
-LIVE_PLOTS=False
+
 
 class aotr2:
 
 
-    def __init__(self, file_path, sample_size, WB_R, WB_B, EXPO, GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num ,leng,bunch):
+    def __init__(self, file_path, sample_size, WB_R, WB_B, EXPO, GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num ,leng,bunch,  LIVE_PLOTS=True):
         self.NBINS = 16384  # ADC (14 bit)
         self.XBINS = 2822
         self.YBINS = 4144
@@ -39,6 +40,7 @@ class aotr2:
         self.rms_ped = al.read_image(self.pedSigmafile)
         self.num = num
         self.bunch = bunch
+        self.LIVE_PLOTS=LIVE_PLOTS
 
         # Camera Variables
         self.WB_R = WB_R
@@ -69,7 +71,11 @@ class aotr2:
         self.countsAll2dRaw, self.xedgesRaw, self.yedgesRaw = np.histogram2d(self.x, self.x, bins=[self.xbins2d, self.ybins2d], range=[[0, self.XBINS], [0, self.YBINS]])
 
 
-
+        if  self.LIVE_PLOTS==True:
+            print("using TKAgg")
+            from matplotlib import use as use_agg
+            matplotlib.use('TkAgg')
+            
     def Analizza(self, data_queue,id,data_buffer,lock):
 
         print ("... starting analizza")
@@ -77,10 +83,13 @@ class aotr2:
         self.reset_allVariables()
         progress_bar2 = tqdm(total=(self.sample_size/self.num), desc="Analizzatore_" + str(id), colour='green', position=self.num+id)
         if id==0:
-            layout = [
+            try:
+                layout = [
 		    [sg.Text('Progresso:', size=(10, 1)),sg.ProgressBar((self.sample_size/self.num), orientation='h', size=(20, 20), key='progress')],]
-            window_progress = sg.Window('Data cruncher number: ' + str(id), layout, finalize=True)
-            progress_bar = window_progress['progress']
+                window_progress = sg.Window('Data cruncher number: ' + str(id), layout, finalize=True)
+                progress_bar = window_progress['progress']
+            except:
+                print("no analyzer progress bar")
         i=1
         rms_pedCut = np.mean(self.rms_ped) + self.PIX_CUT_SIGMA * np.std(self.rms_ped)   
         mySigmaMask = np.where((self.rms_ped > rms_pedCut))                              
@@ -90,7 +99,10 @@ class aotr2:
             if data is None:
                 progress_bar2.close()
                 if (id==0):
-                    window_progress.Close()
+                    try:
+                        window_progress.Close()
+                    except:
+                       pass
                 break
 
             #print("DEBUG=> analizza: data.shape=",data.shape)
@@ -136,11 +148,16 @@ class aotr2:
                      hdulist = fits.HDUList([hdu])
                      hdulist.writeto(nomefile, overwrite=True)
                      
+            try:     
+                progress_bar2.update(1)
+            except:
+                pass
                 
-            progress_bar2.update(1)
-
             if id==0:
-                progress_bar.UpdateBar(i)
+                try:
+                    progress_bar.UpdateBar(i)
+                except:
+                    pass
             i += 1
 
             with lock: 
@@ -190,6 +207,7 @@ class aotr2:
         print("... starting Capture and Analize!!! ")
        # camera = checkup()
         camera=self.initialize_camera()
+        print("camera initialized")
         lock = multiprocessing.Lock() # Data can't be simoultanously analysed by 2 or more processes
         
         # Buffers
@@ -217,13 +235,16 @@ class aotr2:
             processo.start()
 
 
-       
-        layout_capture = [
-            [sg.Text('Cattura in corso:', size=(15, 1)), sg.ProgressBar(self.sample_size, orientation='h', size=(20, 20), key='progress_capture')],
-        ]
-        window_capture = sg.Window('Cattura in corso', layout_capture, finalize=True)
-        progress_bar_capture = window_capture['progress_capture']
+        try: 
+            layout_capture = [
+                [sg.Text('Cattura in corso:', size=(15, 1)), sg.ProgressBar(self.sample_size, orientation='h', size=(20, 20), key='progress_capture')],
+            ]
+            window_capture = sg.Window('Cattura in corso', layout_capture, finalize=True)
+            progress_bar_capture = window_capture['progress_capture']
+        except:
+            print("no progress bar")
 
+            
         # --------------------------------------CAMERA--------------------------------------
         try:
             
@@ -232,8 +253,10 @@ class aotr2:
             mytime=[]
             k=1
             plt.ion()
-            if LIVE_PLOTS==True:
-                fig3, ax3 = plt.subplots(nrows=1, ncols=2, figsize=(11,7), constrained_layout=True )
+            if self.LIVE_PLOTS==True:
+                matplotlib.use('TkAgg')
+               # fig3, ax3 = plt.subplots(nrows=1, ncols=2, figsize=(11,7), constrained_layout=True )
+                fig3, ax3 = plt.subplots(nrows=1, ncols=2, figsize=(13,7))
                 plt.subplots_adjust(wspace=0.4)
                 fig3.canvas.manager.window.wm_geometry("+%d+%d" % (2, 2))
                 ax3[1].set_xlim([0,12])  #starting x limits
@@ -279,8 +302,7 @@ class aotr2:
                         data_queue.put(data)
                         break
                     except Exception as e:
-                      #  camera.stop_video_capture()
-                      
+                                            
                         print("There are troubles in CaptureAnalyze True:" , e, ", frame = ", i)
                         print("stopping video capture...")
                         camera.stop_video_capture()
@@ -289,11 +311,13 @@ class aotr2:
                         print("restarting video capture...")
                         camera.start_video_capture()
                         print("... done")
-                        
-                progress_bar_capture.UpdateBar(i)
+                try:        
+                    progress_bar_capture.UpdateBar(i)
 
+                except:
+                    pass
                 # ---------------------------------LIVE  PLOTS------------------------------------
-                if LIVE_PLOTS==True:
+                if self.LIVE_PLOTS==True:
                     if i%20 == 0:
                         self.recover_data(data_buffer)
                         self.livePlots(ax3,fig3,cax)
@@ -330,8 +354,10 @@ class aotr2:
                         np.savez(outfileVectors, w=self.w_all, x_pix=self.x_allClu, y_pix=self.y_allClu,
                                  sizes=self.clusizes_all)
 
-
-            window_capture.Close()
+            try:            
+                window_capture.Close()
+            except:
+                pass
             for asd in range(0,self.num):
                 data_queue.put(None)
                 asd+=1
@@ -343,8 +369,7 @@ class aotr2:
         analizer_list = []
         for processo in processi:
             processo.join()
-        #if  LIVE_PLOTS==True:
-        #    plt.close(fig3)
+      
         
         
         plt.ioff()
@@ -470,7 +495,9 @@ class aotr2:
         ax6[0,1].set_yscale('log')
         ax6[0,1].set_xlim([0,10])
        
+        fig6.savefig(self.file_path+"/summaryPlots.png")
 
+        
         # save histos
         np.savez(self.file_path + 'spectrum_all_raw' + self.pixMask_suffix, counts=self.countsAll, bins=self.bins)
         np.savez(self.file_path + 'spectrum_all_ZeroSupp' + self.pixMask_suffix + self.cluCut_suffix, counts=self.countsAllZeroSupp, bins=self.bins)
