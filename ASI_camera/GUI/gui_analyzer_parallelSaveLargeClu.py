@@ -23,7 +23,7 @@ calP0=-0.0032013
 class aotr2:
 
 
-    def __init__(self, file_path, sample_size, WB_R, WB_B, EXPO, GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num ,leng,bunch,  LIVE_PLOTS=True):
+    def __init__(self, file_path, sample_size, WB_R, WB_B, EXPO, GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num ,leng,bunch,  LIVE_PLOTS=True,GUI=True):
         self.NBINS = 16384  # ADC (14 bit)
         self.XBINS = 2822
         self.YBINS = 4144
@@ -41,6 +41,8 @@ class aotr2:
         self.num = num
         self.bunch = bunch
         self.LIVE_PLOTS=LIVE_PLOTS
+        self.GUI=GUI
+        
 
         # Camera Variables
         self.WB_R = WB_R
@@ -83,26 +85,24 @@ class aotr2:
         self.reset_allVariables()
         progress_bar2 = tqdm(total=(self.sample_size/self.num), desc="Analizzatore_" + str(id), colour='green', position=self.num+id)
         if id==0:
-            try:
+            if self.GUI==True:
                 layout = [
 		    [sg.Text('Progresso:', size=(10, 1)),sg.ProgressBar((self.sample_size/self.num), orientation='h', size=(20, 20), key='progress')],]
                 window_progress = sg.Window('Data cruncher number: ' + str(id), layout, finalize=True)
                 progress_bar = window_progress['progress']
-            except:
-                print("no analyzer progress bar")
+            
         i=1
         rms_pedCut = np.mean(self.rms_ped) + self.PIX_CUT_SIGMA * np.std(self.rms_ped)   
         mySigmaMask = np.where((self.rms_ped > rms_pedCut))                              
 
         while True:
+           # print("analizza... i=",i)
             data= data_queue.get()
             if data is None:
                 progress_bar2.close()
-                if (id==0):
-                    try:
-                        window_progress.Close()
-                    except:
-                       pass
+                if (self.GUI==True) and (id==0) :
+                    window_progress.Close()
+                    
                 break
 
             #print("DEBUG=> analizza: data.shape=",data.shape)
@@ -136,7 +136,7 @@ class aotr2:
                 h_cluSizes_i, _ = np.histogram(clu_sizes, bins=100, range=(0, 100))                               
                 self.h_cluSizeAll = self.h_cluSizeAll + h_cluSizes_i
 
-                if (max(clu_sizes)>9) and  (n_images<1000) : 
+                if (max(clu_sizes)>10) and  (n_images<1000) : 
                      #salvo immagine
                      n_images+=1 
                      nomefile=self.file_path+'/img_cluSize10_'+str(n_images)+'.fits'
@@ -148,16 +148,14 @@ class aotr2:
                      hdulist = fits.HDUList([hdu])
                      hdulist.writeto(nomefile, overwrite=True)
                      
-            try:     
-                progress_bar2.update(1)
-            except:
-                pass
+            #if self.GUI==True:     
+            progress_bar2.update(1)
+            
                 
             if id==0:
-                try:
+                if self.GUI==True:
                     progress_bar.UpdateBar(i)
-                except:
-                    pass
+               
             i += 1
 
             with lock: 
@@ -235,16 +233,13 @@ class aotr2:
             processo.start()
 
 
-        try: 
+        if self.GUI==True: 
             layout_capture = [
                 [sg.Text('Cattura in corso:', size=(15, 1)), sg.ProgressBar(self.sample_size, orientation='h', size=(20, 20), key='progress_capture')],
             ]
             window_capture = sg.Window('Cattura in corso', layout_capture, finalize=True)
             progress_bar_capture = window_capture['progress_capture']
-        except:
-            print("no progress bar")
-
-            
+                    
         # --------------------------------------CAMERA--------------------------------------
         try:
             
@@ -311,11 +306,9 @@ class aotr2:
                         print("restarting video capture...")
                         camera.start_video_capture()
                         print("... done")
-                try:        
+                if self.GUI==True:        
                     progress_bar_capture.UpdateBar(i)
 
-                except:
-                    pass
                 # ---------------------------------LIVE  PLOTS------------------------------------
                 if self.LIVE_PLOTS==True:
                     if i%20 == 0:
@@ -354,10 +347,9 @@ class aotr2:
                         np.savez(outfileVectors, w=self.w_all, x_pix=self.x_allClu, y_pix=self.y_allClu,
                                  sizes=self.clusizes_all)
 
-            try:            
+            if self.GUI==True:            
                 window_capture.Close()
-            except:
-                pass
+            
             for asd in range(0,self.num):
                 data_queue.put(None)
                 asd+=1
@@ -514,4 +506,5 @@ class aotr2:
             outfileVectors = self.file_path + 'events_list' + self.pixMask_suffix + self.cluCut_suffix + '_v2.npz'
             np.savez(outfileVectors, w=self.w_all, x_pix=self.x_allClu, y_pix=self.y_allClu, sizes=self.clusizes_all)
 
-        plt.show()
+        if self.GUI==True:    
+            plt.show()

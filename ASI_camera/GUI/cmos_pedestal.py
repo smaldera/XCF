@@ -61,7 +61,7 @@ def bg_map(bg_shots_path, outMeanPed_file, outStdPed_file, hist_pixel=None):
     al.write_fitsImage(std, outStdPed_file, overwrite='True')
     
 
-def bg_map_rt(bg_shots_path, outMeanPed_file, outStdPed_file, sample_size, GAIN, WB_B, WB_R, EXPO, hist_pixel=None):
+def bg_map_rt(bg_shots_path, outMeanPed_file, outStdPed_file, sample_size, GAIN, WB_B, WB_R, EXPO, hist_pixel=None,GUI=True ):
 
     
     ny = 4144
@@ -70,31 +70,23 @@ def bg_map_rt(bg_shots_path, outMeanPed_file, outStdPed_file, sample_size, GAIN,
     allSum2 = np.zeros((nx, ny), dtype=np.int16) # Array made of squared sum of each pixel
     
     camera= initialize_camera( WB_R, WB_B, EXPO, GAIN)
-    # Images file list:
-    #f = glob.glob(bg_shots_path + "/*.FIT")
-    #print("Pedestals from :", bg_shots_path)
 
-    #if hist_pixel != None:
-    #    print('Plotting histogram for pixel:', hist_pixel[0], ", ", hist_pixel[1])
-    #    plot_pixel_dist(f, [hist_pixel[0],
-    #                        hist_pixel[1]])  # if hist_pixel differnt form null, plot the histo of that pixel and return
-    #    return
-    
-    # SimpleGui style for progress bar
     custom_style = "{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]"
-    layout = [
-        [sg.Text('Progresso:', size=(10, 1)), sg.ProgressBar(sample_size, orientation='h', size=(20, 20), key='progress')],
-    ]
-    window = sg.Window('Barra di Progresso', layout, finalize=True)
+    if GUI==True:
+       # SimpleGui style for progress bar
+       layout = [
+           [sg.Text('Progresso:', size=(10, 1)), sg.ProgressBar(sample_size, orientation='h', size=(20, 20), key='progress')],
+       ]
+       window = sg.Window('Barra di Progresso', layout, finalize=True)
 
     try:
         n=0
         camera.start_video_capture()
         for n in tqdm(range(sample_size),desc="Processing", bar_format=custom_style):
-            #if n == 0:
-            #    camera.start_video_capture()
+            
             n = n + 1.
-            window['progress'].update(n)
+            if GUI==True:
+                window['progress'].update(n)
             image_data = np.empty((nx, ny), dtype=np.uint16)
             try:
                 image_data =camera.capture_video_frame()
@@ -115,6 +107,7 @@ def bg_map_rt(bg_shots_path, outMeanPed_file, outStdPed_file, sample_size, GAIN,
                 
     finally:
       # Stops exposure and closes the camera
+      print("bg_map_rt: closing camera")  
       camera.stop_exposure()
       camera.close()
     mean = allSum / n # Mean pedestal for each pixel
