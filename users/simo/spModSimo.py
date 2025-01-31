@@ -151,7 +151,7 @@ def makeUQmaps(x,y,phi):
     q=2.*np.cos(2.*phi) # phi in rad!!!
     u=2.*np.sin(2.*phi) # phi in rad!!!
 
-    nBins=100
+    nBins=300
     
     countsMap, xedges, yedges= np.histogram2d(x,y,bins=[nBins,nBins],range=[[-7.5,7.5],[-7.5,7.5]],density=False)
     QMap, xedges, yedges= np.histogram2d(x,y, weights=q,bins=[nBins, nBins],range=[[-7.5,7.5],[-7.5,7.5]],density=False)
@@ -315,15 +315,25 @@ if __name__ == '__main__':
     sigmaQsp=0.5*np.sqrt((np.square(QErr_map0)+np.square(QErr_map90)))
     sigmaUsp=0.5*np.sqrt((np.square(UErr_map0)+np.square(UErr_map90)))
     mapSp=np.sqrt(np.square(mapQsp)+np.square(mapUsp))
-
     mapSp_err=np.sqrt(  (np.square(mapQsp*sigmaQsp))+(np.square(mapUsp*sigmaUsp)) )/mapSp
     
+
+    #mappa Source:
+    mapQsource=(Q0map-Q90map)/2.
+    mapUsource=(U0map-U90map)/2.
+
+    sigmaQsource=0.5*np.sqrt((np.square(QErr_map0)+np.square(QErr_map90)))
+    sigmaUsource=0.5*np.sqrt((np.square(UErr_map0)+np.square(UErr_map90)))
+    mapSource=np.sqrt(np.square(mapQsource)+np.square(mapUsource))
+    mapSource_err=np.sqrt(  (np.square(mapQsource*sigmaQsource))+(np.square(mapUsource*sigmaUsource)) )/mapSource
+    
+
     
 
     fig1, ax1 = plt.subplots(nrows=1, ncols=2, figsize=(11,7) )
     #fig1, ax1 = plt.subplots()
     #mapSp=   mapSp.T
-    im1=ax1[0].imshow(mapSp, interpolation='nearest', origin='lower',  extent=[-7.5,7.5 , -7.5, 7.5] ) 
+    im1=ax1[0].imshow(mapSp, interpolation='bicubic', origin='lower',  extent=[-7.5,7.5 , -7.5, 7.5] ) 
     fig1.colorbar(im1,ax=ax1[0])           
 
     allSp=mapSp.flatten()
@@ -333,14 +343,49 @@ if __name__ == '__main__':
     plt.legend()
 
     fig2, ax2 = plt.subplots(nrows=1, ncols=2, figsize=(11,7) )
-    im2=ax2[0].imshow(mapSp_err, interpolation='nearest', origin='lower',  extent=[-7.5,7.5 , -7.5, 7.5] ) 
+    im2=ax2[0].imshow((mapSp_err/mapSp), interpolation='nearest', origin='lower',  extent=[-7.5,7.5 , -7.5, 7.5] ) 
     fig2.colorbar(im2,ax=ax2[0])           
-    allSp_err=mapSp_err.flatten()
-    muErr_i, bins_muErr = np.histogram(allSp_err,  bins =100,range=[0,1] )
+    allSp_err=(mapSp_err/mapSp).flatten()
+    muErr_i, bins_muErr = np.histogram(allSp_err,  bins =10000,range=[0,100] )
     #fig, h_mu = plt.subplots()
     ax2[1].hist(bins_muErr[:-1], bins = bins_muErr, weights = muErr_i, histtype = 'step',label="Errore dist mu spuria")
     plt.legend()
+
+
+    fig3, ax3 = plt.subplots(nrows=1, ncols=2, figsize=(11,7) )
+    im3=ax3[0].imshow(countsMaps0, interpolation='nearest', origin='lower',  extent=[-7.5,7.5 , -7.5, 7.5] ) 
+    fig3.colorbar(im3,ax=ax3[0])
+    ax3[0].set_title('0Deg')
+    im4=ax3[1].imshow(countsMaps90, interpolation='nearest', origin='lower',  extent=[-7.5,7.5 , -7.5, 7.5] )
+    ax3[1].set_title('90Deg')
+    fig3.colorbar(im4,ax=ax3[1])           
+
+    fig4, ax4 = plt.subplots(nrows=1, ncols=2, figsize=(11,7) )
+    im4=ax4[0].imshow(mapSource, interpolation='nearest', origin='lower',  extent=[-7.5,7.5 , -7.5, 7.5] ) 
+    fig4.colorbar(im4,ax=ax4[0])           
+    allSource=mapSource.flatten()
+    muSource_i, bins_Source = np.histogram(allSource,  bins =1000,range=[0,1] )
+    #fig, h_mu = plt.subplots()
+    ax4[1].hist(bins_Source[:-1], bins = bins_Source, weights = muSource_i, histtype = 'step',label="Mod tubo MXR")
+    plt.legend()
+    #fig4.set_title('Mod tubo')
     
+    #mappe angolo
+    mapPhiSp=0.5*np.arctan(mapUsp/mapQsp)
+
+    mapPhiSource=0.5*np.arctan(mapUsource/mapQsource)
+
+    
+    fig5, ax5 = plt.subplots(nrows=1, ncols=2, figsize=(11,7) )
+    im5=ax5[0].imshow(np.degrees(mapPhiSp), interpolation='bilinear', origin='lower',  extent=[-7.5,7.5 , -7.5, 7.5] ) 
+    fig5.colorbar(im5,ax=ax5[0])           
+    ax5[0].set_title('pol angle spurius')
+    
+    im5=ax5[1].imshow(np.degrees(mapPhiSource), interpolation='bilinear', origin='lower',  extent=[-7.5,7.5 , -7.5, 7.5] ) 
+    fig5.colorbar(im5,ax=ax5[1])           
+    ax5[1].set_title('pol angle source')
+    
+
     
     #if args.__dict__['show']:
     plt.show()
