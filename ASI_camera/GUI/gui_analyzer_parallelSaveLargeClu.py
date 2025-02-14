@@ -129,14 +129,14 @@ class aotr2:
            
 
             if self.APPLY_CLUSTERING:
-                self.w_clusterAll, self.clu_coordsAll, clu_sizes, clu_baryCoords = clustering_cmos.clustering_v3(np.transpose(supp_coords), supp_weights, myeps=self.myeps)
+                self.w_clusterAll, self.clu_coordsAll, clu_sizes, clu_baryCoords = clustering_cmos.clustering_v3(np.transpose(supp_coords), supp_weights, myeps=self.myeps, size_threshold=6, save_file=self.file_path+'/img_cluSize10_'+str(i)+'_'+str(time.clock_gettime_ns(1))[-4:-1])
                 cluBary_trasposta = clu_baryCoords.transpose()
                 counts2dClu, _, _ = np.histogram2d(cluBary_trasposta[0], cluBary_trasposta[1],bins=[self.xbins2d, self.ybins2d],range=[[0, self.XBINS], [0, self.YBINS]])
                 countsClu_i, _ = np.histogram(self.w_clusterAll, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
                 h_cluSizes_i, _ = np.histogram(clu_sizes, bins=100, range=(0, 100))                               
                 self.h_cluSizeAll = self.h_cluSizeAll + h_cluSizes_i
 
-                if (max(clu_sizes)>10) and  (n_images<1000) : 
+                if (max(clu_sizes)>6) and  (n_images<1000) : 
                      #salvo immagine
                      n_images+=1 
                      nomefile=self.file_path+'/img_cluSize10_'+str(n_images)+'.fits'
@@ -147,6 +147,9 @@ class aotr2:
                      hdu = fits.PrimaryHDU(data, header=header)
                      hdulist = fits.HDUList([hdu])
                      hdulist.writeto(nomefile, overwrite=True)
+
+                     
+
                      
             #if self.GUI==True:     
             progress_bar2.update(1)
@@ -157,6 +160,7 @@ class aotr2:
                     progress_bar.UpdateBar(i)
                
             i += 1
+            
 
             with lock: 
                 data_buffer[0] += counts2dRaw

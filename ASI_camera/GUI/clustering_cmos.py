@@ -60,7 +60,8 @@ def clustering_v2(supp_coords,supp_weights):
 
 
 
-def clustering_v3(supp_coords,supp_weights,myeps=1):
+def clustering_v3(supp_coords,supp_weights,myeps=1, size_threshold=0, save_file='saved_clu'  ):
+   
    coordsAll=np.empty((0,0))
    cg_coords = np.empty((0,0))
    sum_w=[]
@@ -87,8 +88,16 @@ def clustering_v3(supp_coords,supp_weights,myeps=1):
       
       clu_mask=np.where(labels==clu_id)
       clu_coords=supp_coords[clu_mask]
+      clu_weights=supp_weights[clu_mask] 
+
+      #salvo clustr:
+      if size_threshold>0:
+         if len(clu_weights)>size_threshold:
+             np.savez(save_file+'_'+str(clu_id),x=clu_coords.T[0],y=clu_coords.T[1],w=clu_weights )
+             print("saving cluster:",save_file+'_'+str(clu_id) )
+      
       coordsAll=np.append(coordsAll, clu_coords)
-      clu_weights=supp_weights[clu_mask]
+      
       
       x_cg = 0
       y_cg = 0

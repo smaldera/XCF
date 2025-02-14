@@ -4,7 +4,6 @@ import matplotlib
 import numpy as np
 import FreeSimpleGUI as sg
 import sys
-#sys.path.insert(0, '../../libs')
 import time
 import utils_v2 as al
 import zwoasi as asi
@@ -61,9 +60,9 @@ def bg_map(bg_shots_path, outMeanPed_file, outStdPed_file, hist_pixel=None):
     al.write_fitsImage(std, outStdPed_file, overwrite='True')
     
 
-def bg_map_rt(bg_shots_path, outMeanPed_file, outStdPed_file, sample_size, GAIN, WB_B, WB_R, EXPO, hist_pixel=None,GUI=True ):
+def bg_map_rt(bg_shots_path, outMeanPed_file, outStdPed_file, sample_size, GAIN, WB_B, WB_R, EXPO, hist_pixel=None,GUI=True,disable_bar=False ):
 
-    
+    disable_bar=True
     ny = 4144
     nx = 2822
     allSum = np.zeros((nx, ny), dtype=np.int16) # Array made of sums of each pixel
@@ -82,11 +81,14 @@ def bg_map_rt(bg_shots_path, outMeanPed_file, outStdPed_file, sample_size, GAIN,
     try:
         n=0
         camera.start_video_capture()
-        for n in tqdm(range(sample_size),desc="Processing", bar_format=custom_style):
+        for n in tqdm(range(sample_size),desc="Processing", bar_format=custom_style, disable=disable_bar):
             
             n = n + 1.
             if GUI==True:
                 window['progress'].update(n)
+            if disable_bar==True:
+                if n % (sample_size/10)==0:
+                    print ("processed ",n, " over ", sample_size)
             image_data = np.empty((nx, ny), dtype=np.uint16)
             try:
                 image_data =camera.capture_video_frame()
