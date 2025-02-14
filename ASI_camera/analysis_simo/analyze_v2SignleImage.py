@@ -187,6 +187,7 @@ for image_file in tqdm(f, colour='green'):
                 plt.xlim(min(clu_coords.T[0])-10,max(clu_coords.T[0])+10)
                 plt.ylim(min(clu_coords.T[1])-10,max(clu_coords.T[1])+10)
                              
+               # np.savez('img1_'+str(n),x=clu_coords.T[0],y=clu_coords.T[1],w=clu_weights )
                 
                 plt.show()
             # qua disegno la traccia!!!!
