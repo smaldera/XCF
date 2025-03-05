@@ -54,8 +54,8 @@ class hotPixels():
     def applyCuts(self):
 
         for i in range(0,len(self.j_cut)):
-            print("pix_x=",self.j_cut[i]," inf= ",self.xedges[self.j_cut[i]]," up=",self.xedges[self.j_cut[i]+1]  )
-            print("pix_y=",self.i_cut[i]," inf= ",self.yedges[self.i_cut[i]]," up=",self.yedges[self.i_cut[i]+1]  )
+            #print("pix_x=",self.j_cut[i]," inf= ",self.xedges[self.j_cut[i]]," up=",self.xedges[self.j_cut[i]+1]  )
+            #print("pix_y=",self.i_cut[i]," inf= ",self.yedges[self.i_cut[i]]," up=",self.yedges[self.i_cut[i]+1]  )
 
             x_low=self.xedges[self.j_cut[i]]
             x_up=self.xedges[self.j_cut[i]+1]

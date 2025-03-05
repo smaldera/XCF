@@ -78,7 +78,7 @@ class analize_v2():
              sg.ProgressBar(len(self.fileList), orientation='h', size=(20, 20), key='progress')],
         ]
         window_progress = sg.Window('Analysis' + str(n_job)+' corso', layout, finalize=True)
-        progress_bar = window_progress['Progress']
+        progress_bar = window_progress['progress']
         if self.create_bg_map == True:
             bg_map(self.bg_path, self.bg_path + 'mean_ped.fits', self.bg_path + 'std_ped.fits', draw=0)
 

@@ -97,11 +97,11 @@ print("len w_all ",len(w_all))
 
 
 if FIND_HOTPIXELS==True:
-    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all)
-    hotPix.find_HotPixels(n_sigma=10,low_threshold=10)
+    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=REBINXY)
+    hotPix.find_HotPixels(n_sigma=5,low_threshold=10)
     hotPix.save_cuts(DIR+'/cuts.npz')
 if CUT_HOT_PIXELS==True:
-    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all)
+    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=REBINXY)
     hotPix.retrive_cuts(DIR+'/cuts.npz')
     hotPix.applyCuts()
     w_all,   x_all,  y_all, size_all=hotPix.get_cutVectors()
