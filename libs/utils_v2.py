@@ -30,7 +30,7 @@ def isto_all(image_data):
     mean=flat_image.mean()
     rms=flat_image.std()
     s='mean='+str(round(mean,3))+"\n"+"RMS="+str(round(rms,3))
-    ax.text(0.7, 0.9, s,  transform=ax.transAxes,  bbox=dict(alpha=0.7))
+    ax.text(0.7, 0.9, s,  transform=ax.transAxes,  bbox=dict(alpha=0.5))
     plt.show()
 
   

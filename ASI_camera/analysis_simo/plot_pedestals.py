@@ -12,8 +12,8 @@ rootObjects=[]
 
 
 # sensore 2 G120 1s
-file_mean=['/home/maldera/Desktop/eXTP/misureCMOS_24Jan2023/Mo/sensorPXR/G120_10ms_bg/mean_ped.fits', '/home/maldera/Desktop/eXTP/misureCMOS_24Jan2023/Mo/G120_10ms_bg/mean_ped.fits']
-file_std=['/home/maldera/Desktop/eXTP/misureCMOS_24Jan2023/Mo/sensorPXR/G120_10ms_bg/std_ped.fits', '/home/maldera/Desktop/eXTP/misureCMOS_24Jan2023/Mo/G120_10ms_bg/std_ped.fits']
+file_mean=['/home/maldera/Desktop/eXTP/data/misureCMOS_24Jan2023/Mo/sensorPXR/G120_10ms_bg/mean_ped.fits', '/home/maldera/Desktop/eXTP/data/misureCMOS_24Jan2023/Mo/G120_10ms_bg/mean_ped.fits']
+file_std=['/home/maldera/Desktop/eXTP/data/misureCMOS_24Jan2023/Mo/sensorPXR/G120_10ms_bg/std_ped.fits', '/home/maldera/Desktop/eXTP/data/misureCMOS_24Jan2023/Mo/G120_10ms_bg/std_ped.fits']
 leg_names=['PXR','eureka']
 
 
