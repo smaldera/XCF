@@ -21,13 +21,13 @@ class hotPixels():
         self.yedges=np.array([])
         self.rebin=rebin
         
-    def find_HotPixels(self, n_sigma=10,low_threshold=10):
+    def find_HotPixels(self, n_sigma=10,low_threshold=10, min_counts=10 ):
        myCut=np.where( (self.w>low_threshold))
        xbins2d=int(self.XBINS/self.rebin)
        ybins2d=int(self.YBINS/self.rebin)
-       if len(self.size!=0):
-            myCut=np.where( (self.w>low_threshold)&(self.size==1) )
-            print("cut=  (self.w>",low_threshold,")&(self.size==1) ")
+       #if len(self.size!=0):
+       #     myCut=np.where( (self.w>low_threshold)&(self.size==1) )
+       #     print("cut=  (self.w>",low_threshold,")&(self.size==1) ")
        self.counts2d,  self.xedges, self.yedges= np.histogram2d(self.x[myCut],self.y[myCut],bins=[xbins2d, ybins2d ],range=[[0,self.XBINS],[0,self.YBINS]])
        self.counts2d=   self.counts2d.T 
       
@@ -43,8 +43,11 @@ class hotPixels():
                      for delta_j in range(-1,2):
                          mysum2+=self.counts2d[i+delta_i][j+delta_j]
            
-                 if counts<low_threshold:
-                    continue
+                 #if counts<low_threshold:
+                 if counts<min_counts:    
+                     continue
+
+                 
                  mysum2corr=(mysum2-counts)/8.
                  if (counts-mysum2corr)>n_sigma*np.sqrt(mysum2corr):   
                         print ("AAAAGGGHHHH noise!! couts=",counts," ave =",mysum2corr ," i=",i," j=",j)

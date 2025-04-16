@@ -42,9 +42,13 @@ parser.add_argument('-nosave','--nosaveHistos', action='store_false',  help="don
 parser.add_argument('-specName','--specName',type=str ,  help="spectrum file name", required=False,default='test_spectrum.npz')
 parser.add_argument('-xprojName','--xprojName',type=str ,  help="x-projection file name", required=False,default='test_xproj.npz')
 parser.add_argument('-yprojName','--yprojName',type=str ,  help="y-projection file name", required=False,default='test_yproj.npz')
+parser.add_argument('-suffix','--suffix',type=str ,  help="suffix in file names", required=False,default='')
+
 
 FIND_HOTPIXELS=True
 CUT_HOT_PIXELS=True
+
+
 
 args = parser.parse_args()
 DIR = args.saveDir
@@ -62,7 +66,8 @@ REBINXY=args.rebinxy
 SAVE_HISTOGRAMS=args.nosaveHistos
 spectrum_file_name=args.specName 
 xproj_file_name=args.xprojName  
-yproj_file_name=args.yprojName 
+yproj_file_name=args.yprojName
+suffix=args.suffix
 
 print("calP0=",calP0,"  calP1=",calP1)
 print("Rebin xy=",REBINXY)
@@ -70,7 +75,7 @@ print("Save histograms=",SAVE_HISTOGRAMS)
 print("spectrum name=",spectrum_file_name)
 print("x projection name=",xproj_file_name)
 print("y projection name=",yproj_file_name)
-
+print("suffix=",suffix)
 
 
 xbins2d=int(XBINS/REBINXY)
@@ -97,8 +102,8 @@ print("len w_all ",len(w_all))
 
 
 if FIND_HOTPIXELS==True:
-    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all)
-    hotPix.find_HotPixels(n_sigma=10,low_threshold=10)
+    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=2)
+    hotPix.find_HotPixels(n_sigma=3,low_threshold=40, min_counts=20)
     hotPix.save_cuts(DIR+'/cuts.npz')
 if CUT_HOT_PIXELS==True:
     hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all)
@@ -115,7 +120,9 @@ fig2=plt.figure(figsize=(10,10))
 ax1=plt.subplot(221)
 
 #plot
-myCut=np.where( (w_all>100))
+myCut=np.where( (w_all>50))
+#myCut=np.where( (w_all>40)&( (  ((x_all-1300)**2+(y_all-1750)**2)<900**2)  ))
+
 # mappa posizioni:
 counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
 counts2dClu=   counts2dClu.T
@@ -157,9 +164,9 @@ print("w_all[myCut].size()=",w_all.size )
 if SAVE_HISTOGRAMS==True:
   
     print('... saving energy spectrun  in:', spectrum_file_name  )
-    np.savez(DIR + spectrum_file_name, counts = countsClu,  bins = binsE)
-    np.savez(DIR + xproj_file_name, counts = xprojection,  bins = bins_x)
-    np.savez(DIR + yproj_file_name, counts = yprojection,  bins = bins_y)
-    fig2.savefig(DIR+'plots.png')
+    np.savez(DIR +suffix+ spectrum_file_name, counts = countsClu,  bins = binsE)
+    np.savez(DIR +suffix+ xproj_file_name, counts = xprojection,  bins = bins_x)
+    np.savez(DIR +suffix+ yproj_file_name, counts = yprojection,  bins = bins_y)
+    fig2.savefig(DIR+suffix+'plots.png')
     
 plt.show()

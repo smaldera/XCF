@@ -97,3 +97,46 @@ def fit_Gaushistogram_iterative(counts,bins,xmin=-100000,xmax=100000, initial_pa
         
     return popt,  pcov, xmin,xmax, redChi2
     
+
+
+
+
+### fit landau:
+def fit_Langau_histogram(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1,1], parsBoundsLow=-np.inf, parsBoundsUp=np.inf ):
+
+  import pylandau
+  # parametri landau:
+  mpv=initial_pars[0]
+  eta=initial_pars[1]
+  sigma=initial_pars[2]
+  A=initial_pars[3]
+  bin_centers =get_centers(bins)          
+  _mask = (counts > 0)&(bin_centers>xmin)&(bin_centers<xmax)
+  y_data=counts[_mask]
+  x_data=bin_centers[_mask]
+  yerr=np.sqrt(y_data)
+  coeff, pcov = curve_fit(pylandau.langau, x_data, y_data,sigma=yerr,  absolute_sigma=True, p0=(mpv, eta, sigma, A), bounds=(0.01, 10000))
+
+
+  return coeff,pcov
+
+
+### fit landau:
+def fit_Landau_histogram(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1], parsBoundsLow=-np.inf, parsBoundsUp=np.inf ):
+
+  import pylandau
+  # parametri landau:
+  mpv=initial_pars[0]
+  #eta=initial_pars[1]
+  sigma=initial_pars[1]
+  A=initial_pars[2]
+  bin_centers =get_centers(bins)          
+  _mask = (counts > 0)&(bin_centers>xmin)&(bin_centers<xmax)
+  y_data=counts[_mask]
+  x_data=bin_centers[_mask]
+  yerr=np.sqrt(y_data)
+  coeff, pcov = curve_fit(pylandau.landau, x_data, y_data,sigma=yerr,  absolute_sigma=True, p0=(mpv, sigma,  A), bounds=(0.01, 10000))
+
+
+  return coeff,pcov
+
