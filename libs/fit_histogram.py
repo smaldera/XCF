@@ -25,6 +25,13 @@ def gaussian_model(x,p0,p1,p2):
           
        return y
 
+def landau_gausPedestal_model(x,Ag,Mug,Sg,MPV,sigma,A):
+       import pylandau
+       y=gaussian_model(x,Ag,Mug,Sg)+pylandau.landau(x,MPV,sigma,A)
+       return y
+
+
+
 def get_centers(bins):
     centers=np.empty(0)
     for i in range(0,len(bins)-1):
@@ -136,6 +143,30 @@ def fit_Landau_histogram(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1
   x_data=bin_centers[_mask]
   yerr=np.sqrt(y_data)
   coeff, pcov = curve_fit(pylandau.landau, x_data, y_data,sigma=yerr,  absolute_sigma=True, p0=(mpv, sigma,  A), bounds=(0.01, 10000))
+
+
+  return coeff,pcov
+
+### fit landau+gaussian pedestal:
+def fit_LandauGaussinPed_histogram(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1,1,1,1], parsBoundsLow=-np.inf, parsBoundsUp=np.inf ):
+
+  import pylandau
+ # parametri Gauss:
+  Ag=initial_pars[0]
+  Mug=initial_pars[1]
+  Sg= initial_pars[2]                           
+  
+  # parametri landau:
+  mpv=initial_pars[3]
+  #eta=initial_pars[1]
+  sigma=initial_pars[4]
+  A=initial_pars[5]
+  bin_centers =get_centers(bins)          
+  _mask = (counts > 0)&(bin_centers>xmin)&(bin_centers<xmax)
+  y_data=counts[_mask]
+  x_data=bin_centers[_mask]
+  yerr=np.sqrt(y_data)
+  coeff, pcov = curve_fit(landau_gausPedestal_model, x_data, y_data,sigma=yerr,  absolute_sigma=True, p0=(Ag,Mug,Sg,mpv, sigma,  A), bounds=(parsBoundsLow, parsBoundsUp) )
 
 
   return coeff,pcov
