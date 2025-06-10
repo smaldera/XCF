@@ -5,7 +5,7 @@ import pandas as pd
 import os.path as ospath
 
 import sys
-sys.path.insert(0, '../libs')
+#sys.path.insert(0, '../libs')
 import utils_v2 as al
 from read_sdd import  pharse_mca
 import fit_histogram as fitSimo
@@ -21,7 +21,9 @@ def fit_histo(p,low,up, plot=1):
     bins=p.bins     
     popt,  pcov, xmin,xmax, redChi2= fitSimo.fit_Gaushistogram_iterative(counts,bins,xmin=low,xmax=up, initial_pars=[k0,mean0,10], nSigma=1.1 )
     mean=popt[1]
-    meanErr=pcov[1][1]
+    meanErr=pcov[1][1]**0.5
+    sigma=popt[2]
+    sigmaErr=pcov[2][2]**0.5
     print("fitted mean=",mean, " err=",meanErr, " reduced chi2=",redChi2)
 
     
@@ -34,7 +36,7 @@ def fit_histo(p,low,up, plot=1):
                
         
     
-    return  mean, meanErr
+    return  mean, meanErr, sigma, sigmaErr
 
 
 
@@ -48,6 +50,9 @@ def calibrator(calibFileName):
     true=[]
     fitted_mean=[]
     fitted_meanErr=[]
+    fitted_sigma=[]
+    fitted_sigmaErr=[]
+    
     fig, ax = plt.subplots()
     for line in f:
         line=line.strip('\n')
@@ -86,12 +91,14 @@ def calibrator(calibFileName):
             up=float(peak_string[2])
             print("true=",true_val,"  low=",low," up = ",up)
             true.append(true_val) 
-            mean,meanErr=fit_histo(p,low,up)
+            mean,meanErr,sigma,sigmaErr=fit_histo(p,low,up)
             fitted_mean.append(mean)
             fitted_meanErr.append(meanErr)
-
-
-    return      np.array(true),   np.array(fitted_mean),  np.array(fitted_meanErr )
+            fitted_sigma.append(sigma)
+            fitted_sigmaErr.append(sigmaErr)
+          
+            
+    return      np.array(true),   np.array(fitted_mean),  np.array(fitted_meanErr ),  np.array(fitted_sigma),  np.array(fitted_sigmaErr ) 
 
        
 
@@ -111,7 +118,7 @@ if __name__ == "__main__":
         print ("file not found:",args.infile)
         exit()
         
-    true,   fitted_mean,  fitted_meanErr = calibrator(args.infile)
+    true,   fitted_mean,  fitted_meanErr, fitted_sigma,  fitted_sigmaErr  = calibrator(args.infile)
    
 
     n_files=3
@@ -160,7 +167,13 @@ if __name__ == "__main__":
     plt.plot(x,y,'b-')
     plt.plot(x,y_err,'k-')
      
+
     
+    plt.figure(10)
+    plt.errorbar(true,100.*fitted_sigma/fitted_mean ,yerr=100.*fitted_sigmaErr/fitted_mean, fmt='ro') 
+    x=np.linspace(0,10,1000)
+    y= 100.*(0.1*3.6/(1000.*x))**.5
+    plt.plot(x,y,'-')
 
     plt.show()
 

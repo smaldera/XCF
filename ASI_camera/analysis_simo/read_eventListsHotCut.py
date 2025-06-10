@@ -45,10 +45,10 @@ parser.add_argument('-yprojName','--yprojName',type=str ,  help="y-projection fi
 parser.add_argument('-suffix','--suffix',type=str ,  help="suffix in file names", required=False,default='')
 
 
-FIND_HOTPIXELS=True
-CUT_HOT_PIXELS=True
+FIND_HOTPIXELS=False
+CUT_HOT_PIXELS=False
 
-
+PLOT_MAP=True
 
 args = parser.parse_args()
 DIR = args.saveDir
@@ -90,13 +90,19 @@ for f in ff:
     print(f)
     #w, x,y=al.retrive_vectors(f[:-1])
     w, x,y,size=al.retrive_vectors2(f[:-1])
-    print("len w =",w)
-    w_all=np.append(w_all,w)
-    x_all=np.append(x_all,x)
-    y_all=np.append(y_all,y)
+    print("len w =",len(w))
+    print("len x =",len(x))
+    print("len y =",len(y))
+   
+    w_all=np.append(w_all,w[0:20000000])
+    x_all=np.append(x_all,x[0:20000000])
+    y_all=np.append(y_all,y[0:20000000])
     size_all=np.append(size_all,size)
 
 print("len w_all ",len(w_all))
+print("len x_all ",len(x_all))
+print("len y_all ",len(y_all))
+
 #================
 #  cut hot pixels....
 
@@ -120,22 +126,25 @@ fig2=plt.figure(figsize=(10,10))
 ax1=plt.subplot(221)
 
 #plot
-myCut=np.where( (w_all>50))
+myCut=np.where( ((w_all*calP1+calP0)>0.4))
 #myCut=np.where( (w_all>40)&( (  ((x_all-1300)**2+(y_all-1750)**2)<900**2)  ))
+
+
+
 
 # mappa posizioni:
 counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
 counts2dClu=   counts2dClu.T
 im=ax1.imshow(np.log10(counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])  
 ax1.legend()
-
 ax2=plt.subplot(222)
+
 # spettro energia
 countsClu, binsE = np.histogram( w_all[myCut]  , bins = 2*NBINS, range = (-NBINS,NBINS) )
 binsE=binsE*calP1+calP0
 ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="energy w. clustering")
 ax2.set_xlabel('E[keV]')
-ax2.set_xlim([0,12])
+#ax2.set_xlim([0,12])
 ax2.set_yscale('log')
 ax2.legend()
 
@@ -159,6 +168,14 @@ ax4.set_yscale('log')
 
 
 print("w_all[myCut].size()=",w_all.size )
+
+
+if PLOT_MAP==True:
+    fig3=plt.figure(figsize=(10,10))
+    plt.imshow(np.log10(counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])  
+    #plt.legend()
+    plt.colorbar()
+    plt.title('log10(counts)')
 
 
 if SAVE_HISTOGRAMS==True:
