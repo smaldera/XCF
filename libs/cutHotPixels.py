@@ -55,22 +55,32 @@ class hotPixels():
                         self.j_cut.append(j)  #X
 
     def applyCuts(self):
-
+        pixCut_all=None
         for i in range(0,len(self.j_cut)):
-            print("pix_x=",self.j_cut[i]," inf= ",self.xedges[self.j_cut[i]]," up=",self.xedges[self.j_cut[i]+1]  )
-            print("pix_y=",self.i_cut[i]," inf= ",self.yedges[self.i_cut[i]]," up=",self.yedges[self.i_cut[i]+1]  )
+            print(i," (",100.*i/len(self.j_cut),"%) -- pix_x=",self.j_cut[i]," inf= ",self.xedges[self.j_cut[i]]," up=",self.xedges[self.j_cut[i]+1]  )
+            print(i," -- pix_y=",self.i_cut[i]," inf= ",self.yedges[self.i_cut[i]]," up=",self.yedges[self.i_cut[i]+1]  )
 
             x_low=self.xedges[self.j_cut[i]]
             x_up=self.xedges[self.j_cut[i]+1]
             y_low=self.yedges[self.i_cut[i]]
             y_up=self.yedges[self.i_cut[i]+1]
     
-            pixCut=np.where(~(((self.x<=x_up)&(self.x>=x_low))&( (self.y<=y_up)&(self.y>=y_low) )))
-            self.w=self.w[pixCut]
-            self.x=self.x[pixCut]
-            self.y=self.y[pixCut]
-            self.size= self.size[pixCut]
-                        
+            #pixCut=np.where(~(((self.x<=x_up)&(self.x>=x_low))&( (self.y<=y_up)&(self.y>=y_low) )))
+            pixCut=(~(((self.x<=x_up)&(self.x>=x_low))&( (self.y<=y_up)&(self.y>=y_low) )))
+            #print("pixCut=",pixCut)
+            if i==0:
+                pixCut_all=pixCut
+            else:
+                pixCut_all=(pixCut_all)&(pixCut)
+          
+           
+        self.w=self.w[pixCut_all]
+        self.x=self.x[pixCut_all]
+        self.y=self.y[pixCut_all]
+        if len(self.size!=0):
+            self.size= self.size[pixCut_all]
+
+                
 
     def get_cutVectors(self):         
 

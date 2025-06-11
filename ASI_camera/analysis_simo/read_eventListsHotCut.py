@@ -45,8 +45,8 @@ parser.add_argument('-yprojName','--yprojName',type=str ,  help="y-projection fi
 parser.add_argument('-suffix','--suffix',type=str ,  help="suffix in file names", required=False,default='')
 
 
-FIND_HOTPIXELS=False
-CUT_HOT_PIXELS=False
+FIND_HOTPIXELS=True
+CUT_HOT_PIXELS=True
 
 PLOT_MAP=True
 
@@ -89,14 +89,10 @@ size_all=np.array([])
 for f in ff:
     print(f)
     #w, x,y=al.retrive_vectors(f[:-1])
-    w, x,y,size=al.retrive_vectors2(f[:-1])
-    print("len w =",len(w))
-    print("len x =",len(x))
-    print("len y =",len(y))
-   
-    w_all=np.append(w_all,w[0:20000000])
-    x_all=np.append(x_all,x[0:20000000])
-    y_all=np.append(y_all,y[0:20000000])
+    w, x,y,size=al.retrive_vectors2(f[:-1])  
+    w_all=np.append(w_all,w)
+    x_all=np.append(x_all,x)
+    y_all=np.append(y_all,y)
     size_all=np.append(size_all,size)
 
 print("len w_all ",len(w_all))
@@ -108,8 +104,8 @@ print("len y_all ",len(y_all))
 
 
 if FIND_HOTPIXELS==True:
-    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=2)
-    hotPix.find_HotPixels(n_sigma=3,low_threshold=40, min_counts=20)
+    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=10)
+    hotPix.find_HotPixels(n_sigma=10,low_threshold=10, min_counts=10) # low_treshold in ADC, 
     hotPix.save_cuts(DIR+'/cuts.npz')
 if CUT_HOT_PIXELS==True:
     hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all)
@@ -126,7 +122,7 @@ fig2=plt.figure(figsize=(10,10))
 ax1=plt.subplot(221)
 
 #plot
-myCut=np.where( ((w_all*calP1+calP0)>0.4))
+myCut=np.where( ((w_all*calP1+calP0)>0))
 #myCut=np.where( (w_all>40)&( (  ((x_all-1300)**2+(y_all-1750)**2)<900**2)  ))
 
 
