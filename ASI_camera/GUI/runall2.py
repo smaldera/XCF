@@ -5,9 +5,11 @@ import argparse
 import zwoasi as asi
 
 
-base_path='/home/xcf/testCMOS_verticale/new7/'
-sample_size=10000
-bkg_sample_size=800
+#base_path='/home/xcf/testCMOS_verticale/new7/'
+base_path='~/test3/'
+
+sample_size=50
+bkg_sample_size=300
 
 EXPO=300000 # us
 ### creare loop principale

@@ -23,7 +23,7 @@ calP0=-0.0032013
 class aotr2:
 
 
-    def __init__(self, file_path, sample_size, WB_R, WB_B, EXPO, GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num ,leng,bunch,  LIVE_PLOTS=True,GUI=True):
+    def __init__(self, file_path, sample_size, WB_R, WB_B, EXPO, GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num ,leng,bunch, camera_id=0,  LIVE_PLOTS=True,GUI=True):
         self.NBINS = 16384  # ADC (14 bit)
         self.XBINS = 2822
         self.YBINS = 4144
@@ -42,8 +42,9 @@ class aotr2:
         self.bunch = bunch
         self.LIVE_PLOTS=LIVE_PLOTS
         self.GUI=GUI
+        self.camera_id=camera_id
+        self.timestamp=-1
         
-
         # Camera Variables
         self.WB_R = WB_R
         self.WB_B = WB_B
@@ -97,14 +98,16 @@ class aotr2:
 
         while True:
            # print("analizza... i=",i)
-            data= data_queue.get()
-            if data is None:
+            data_expanded= data_queue.get() #!!!!!!!!!!!!!!!!!!!!!!
+            if data_expanded is None:
                 progress_bar2.close()
                 if (self.GUI==True) and (id==0) :
                     window_progress.Close()
                     
                 break
-
+            data=data_expanded[0]
+            timestamp=data_expanded[1]
+           
             #print("DEBUG=> analizza: data.shape=",data.shape)
            
             image_data = data / 4.
@@ -175,12 +178,12 @@ class aotr2:
                         data_buffer[7] = np.append(data_buffer[7] , cluBary_trasposta[0])
                         data_buffer[8] = np.append(data_buffer[8] , cluBary_trasposta[1])
                         data_buffer[9] = np.append(data_buffer[9] , clu_sizes)
-
+                        data_buffer[10] = np.append(data_buffer[10] , timestamp)
 
 
     def initialize_camera(self):
         import zwoasi as asi
-        camera = checkup()
+        camera = checkup(self.camera_id)
        
         #Use minimum USB bandwidth permitted
         camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, 95)
@@ -214,7 +217,7 @@ class aotr2:
         
         # Buffers
         manager =multiprocessing.Manager()
-        data_buffer = manager.list(range(10))
+        data_buffer = manager.list(range(11))
         data_buffer[0] = self.countsAll2dRaw
         data_buffer[1] = self.countsAll2dClu
         data_buffer[2] = self.countsAll
@@ -225,6 +228,8 @@ class aotr2:
         data_buffer[7] = self.x_allClu
         data_buffer[8] = self.y_allClu
         data_buffer[9] = self.clusizes_all
+        data_buffer[10] = self.timestamp
+       
         
         data_queue = multiprocessing.Queue()
 
@@ -297,8 +302,11 @@ class aotr2:
                     try:
                         data = np.empty((2822, 4144), dtype=np.uint16)
                         data = camera.capture_video_frame()
+                        timestamp= datetime.utcnow().timestamp()
+                        #print("timestamp=",timestamp)
                         #print("DEBUG=> captureAnalyze: data.shape=",data.shape)
-                        data_queue.put(data)
+                        data_expanded=[data,timestamp]
+                        data_queue.put(data_expanded ) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         break
                     except Exception as e:
                                             
@@ -347,9 +355,9 @@ class aotr2:
                                        overwrite="False")
                     # Save eventilsts arrays
                     if self.SAVE_EVENTLIST:
-                        outfileVectors = self.file_path + 'events_list' + self.pixMask_suffix + self.cluCut_suffix + '_v2.npz'
+                        outfileVectors = self.file_path + 'events_list' + self.pixMask_suffix + self.cluCut_suffix + '_v3.npz'
                         np.savez(outfileVectors, w=self.w_all, x_pix=self.x_allClu, y_pix=self.y_allClu,
-                                 sizes=self.clusizes_all)
+                                 sizes=self.clusizes_all, timestamps=self.timestamp )
 
             if self.GUI==True:            
                 window_capture.Close()
@@ -388,7 +396,7 @@ class aotr2:
         self.x_allClu = data_buffer[7]
         self.y_allClu = data_buffer[8]
         self.clusizes_all = data_buffer[9]
-
+        self.timestamp=data_buffer[10]
     
     def reset_allVariables(self):
         x = []

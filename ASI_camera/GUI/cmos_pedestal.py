@@ -60,7 +60,7 @@ def bg_map(bg_shots_path, outMeanPed_file, outStdPed_file, hist_pixel=None):
     al.write_fitsImage(std, outStdPed_file, overwrite='True')
     
 
-def bg_map_rt(bg_shots_path, outMeanPed_file, outStdPed_file, sample_size, GAIN, WB_B, WB_R, EXPO, hist_pixel=None,GUI=True,disable_bar=False ):
+def bg_map_rt(bg_shots_path, outMeanPed_file, outStdPed_file, sample_size, GAIN, WB_B, WB_R, EXPO,camera_id=0, hist_pixel=None,GUI=True,disable_bar=False ):
 
     disable_bar=True
     ny = 4144
@@ -68,7 +68,7 @@ def bg_map_rt(bg_shots_path, outMeanPed_file, outStdPed_file, sample_size, GAIN,
     allSum = np.zeros((nx, ny), dtype=np.int16) # Array made of sums of each pixel
     allSum2 = np.zeros((nx, ny), dtype=np.int16) # Array made of squared sum of each pixel
     
-    camera= initialize_camera( WB_R, WB_B, EXPO, GAIN)
+    camera= initialize_camera( WB_R, WB_B, EXPO, GAIN,camera_id)
 
     custom_style = "{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]"
     if GUI==True:
@@ -124,9 +124,9 @@ def bg_map_rt(bg_shots_path, outMeanPed_file, outStdPed_file, sample_size, GAIN,
 
 
 
-def initialize_camera( WB_R, WB_B, EXPO, GAIN):
+def initialize_camera( WB_R, WB_B, EXPO, GAIN,camera_id=0):
         
-        camera = checkup()
+        camera = checkup( camera_id)
         
         #Use minimum USB bandwidth permitted
         camera.set_control_value(asi.ASI_BANDWIDTHOVERLOAD, 95)
@@ -197,16 +197,10 @@ def capture(file_name, file_path, sample_size, WB_R, WB_B, EXPO, GAIN):
         window_capture.Close()
 
 
-def checkup():
+def checkup( camera_id = 0):
 
-    camera_id = 0
+  
     camera = asi.Camera(camera_id)
-
-    #try:
-    #    camera_id = 0
-    #    camera = asi.Camera(camera_id)
-    #except Exception as e:
-    #    sg.popup(f"!!!Camera not found in bg_map_rt: {e}")
     try:
         # Force any single exposure to be halted
         camera.stop_video_capture()
