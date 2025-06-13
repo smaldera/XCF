@@ -105,7 +105,7 @@ print("len y_all ",len(y_all))
 
 if FIND_HOTPIXELS==True:
     hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=1)
-    hotPix.find_HotPixels(n_sigma=8,low_threshold=10, min_counts=50) # low_treshold in ADC, 
+    hotPix.find_HotPixels(n_sigma=5,low_threshold=10, min_counts=50) # low_treshold in ADC, 
     hotPix.save_cuts(DIR+'/cuts.npz')
 if CUT_HOT_PIXELS==True:
     hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all)
