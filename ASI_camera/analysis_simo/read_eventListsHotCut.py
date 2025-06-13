@@ -104,8 +104,8 @@ print("len y_all ",len(y_all))
 
 
 if FIND_HOTPIXELS==True:
-    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=10)
-    hotPix.find_HotPixels(n_sigma=10,low_threshold=10, min_counts=10) # low_treshold in ADC, 
+    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=1)
+    hotPix.find_HotPixels(n_sigma=8,low_threshold=10, min_counts=50) # low_treshold in ADC, 
     hotPix.save_cuts(DIR+'/cuts.npz')
 if CUT_HOT_PIXELS==True:
     hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all)
@@ -122,7 +122,7 @@ fig2=plt.figure(figsize=(10,10))
 ax1=plt.subplot(221)
 
 #plot
-myCut=np.where( ((w_all*calP1+calP0)>0))
+myCut=np.where( ((w_all)>40))
 #myCut=np.where( (w_all>40)&( (  ((x_all-1300)**2+(y_all-1750)**2)<900**2)  ))
 
 

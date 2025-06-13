@@ -263,7 +263,7 @@ plt.plot(x, pylandau.landau(x, *coeff), "-")
 
 
 mpv_track=coeff[0]
-mpv_90=0.14
+mpv_90=0.7
 alpha=np.arcsin(mpv_90/mpv_track)
 
 print("ALPHA=",alpha, " (",np.degrees(alpha),"deg)" )
