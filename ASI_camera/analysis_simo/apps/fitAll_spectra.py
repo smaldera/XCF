@@ -16,11 +16,11 @@ def EB_theta(thetaB,dd):
     return E
 
 #####################################################
-common_path='/home/maldera/Desktop/eXTP/data/ASI_mxr/24_04_2024/'
-dirs=['data_44.29_0.0_2/','data_44.5_0.0/','data_45.0_0.0/']
+common_path='/home/maldera/Desktop/eXTP/data/ASI_testMu/'
+dirs=['9Febb2024_piomboH20/']
 filename='test_spectrum.npz'
-leg_names=['44.29','44.6','45.0']
-theta=[44.29,44.6,45.0]
+leg_names=['pb muons']
+theta=[0]
 fig, ax = plt.subplots()
 
 popt=[]
