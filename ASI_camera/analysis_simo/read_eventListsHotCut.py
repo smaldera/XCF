@@ -43,8 +43,8 @@ parser.add_argument('-specName','--specName',type=str ,  help="spectrum file nam
 parser.add_argument('-xprojName','--xprojName',type=str ,  help="x-projection file name", required=False,default='test_xproj.npz')
 parser.add_argument('-yprojName','--yprojName',type=str ,  help="y-projection file name", required=False,default='test_yproj.npz')
 
-FIND_HOTPIXELS=True
-CUT_HOT_PIXELS=True
+FIND_HOTPIXELS=False
+CUT_HOT_PIXELS=False
 
 args = parser.parse_args()
 DIR = args.saveDir
@@ -115,7 +115,9 @@ fig2=plt.figure(figsize=(10,10))
 ax1=plt.subplot(221)
 
 #plot
-myCut=np.where( (w_all>100))
+myCut=np.where( (w_all>50))
+#myCut=np.where( (size_all>2))
+
 # mappa posizioni:
 counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
 counts2dClu=   counts2dClu.T
@@ -124,7 +126,7 @@ ax1.legend()
 
 ax2=plt.subplot(222)
 # spettro energia
-countsClu, binsE = np.histogram( w_all[myCut]  , bins = 2*NBINS, range = (-NBINS,NBINS) )
+countsClu, binsE = np.histogram( w_all[myCut]  , bins = int(2*NBINS/10.), range = (-NBINS,NBINS) )
 binsE=binsE*calP1+calP0
 ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="energy w. clustering")
 ax2.set_xlabel('E[keV]')

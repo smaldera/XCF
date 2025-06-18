@@ -43,7 +43,7 @@ class aotr2:
         self.LIVE_PLOTS=LIVE_PLOTS
         self.GUI=GUI
         self.camera_id=camera_id
-        self.timestamp=-1
+        self.timestamp=np.empty(0)
         
         # Camera Variables
         self.WB_R = WB_R
@@ -279,6 +279,7 @@ class aotr2:
 
                     while (t>50): 
                         # Stop video capture and wait for t to drop below 50
+                        print("temp=",t,"... waiting")
                         camera.stop_video_capture()
                         time.sleep(900)
                         t=camera.get_control_value(asi.ASI_TEMPERATURE)[0]/10.
@@ -516,7 +517,7 @@ class aotr2:
         print ('SAVE_EVENTLIST=',self.SAVE_EVENTLIST)
         if self.SAVE_EVENTLIST:
             outfileVectors = self.file_path + 'events_list' + self.pixMask_suffix + self.cluCut_suffix + '_v2.npz'
-            np.savez(outfileVectors, w=self.w_all, x_pix=self.x_allClu, y_pix=self.y_allClu, sizes=self.clusizes_all)
+            np.savez(outfileVectors, w=self.w_all, x_pix=self.x_allClu, y_pix=self.y_allClu, sizes=self.clusizes_all,timestamps=self.timestamp  )
 
         if self.GUI==True:    
             plt.show()
