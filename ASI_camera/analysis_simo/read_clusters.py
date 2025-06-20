@@ -1,3 +1,7 @@
+
+# aggiunger loop su diverse track size
+# aggiungere parametri fit
+
 import numpy as np
 from matplotlib import pyplot as plt
 import glob
@@ -263,7 +267,7 @@ plt.plot(x, pylandau.landau(x, *coeff), "-")
 
 
 mpv_track=coeff[0]
-mpv_90=0.7
+mpv_90=0.8
 alpha=np.arcsin(mpv_90/mpv_track)
 
 print("ALPHA=",alpha, " (",np.degrees(alpha),"deg)" )
