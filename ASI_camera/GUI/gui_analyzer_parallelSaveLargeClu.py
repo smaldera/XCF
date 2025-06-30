@@ -23,7 +23,7 @@ calP0=-0.0032013
 class aotr2:
 
 
-    def __init__(self, file_path, sample_size, WB_R, WB_B, EXPO, GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num ,leng,bunch, camera_id=0,  LIVE_PLOTS=True,GUI=True):
+    def __init__(self, file_path, sample_size, WB_R, WB_B, EXPO, GAIN,bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent, Raw, Eps, num ,leng,bunch, camera_id=0,  LIVE_PLOTS=True,GUI=True, max_time=None  ):
         self.NBINS = 16384  # ADC (14 bit)
         self.XBINS = 2822
         self.YBINS = 4144
@@ -72,8 +72,11 @@ class aotr2:
         self.make_rawSpectrum = False
         self.countsAll2dClu, self.xedges, self.yedges = np.histogram2d(self.x, self.x, bins=[self.xbins2d, self.ybins2d], range=[[0, self.XBINS], [0, self.YBINS]])
         self.countsAll2dRaw, self.xedgesRaw, self.yedgesRaw = np.histogram2d(self.x, self.x, bins=[self.xbins2d, self.ybins2d], range=[[0, self.XBINS], [0, self.YBINS]])
-
-
+        if max_time==None:
+            max_time=1e9
+        self.MAX_TIME=max_time
+        
+        
         if  self.LIVE_PLOTS==True:
             print("using TKAgg")
             from matplotlib import use as use_agg
@@ -132,7 +135,7 @@ class aotr2:
            
 
             if self.APPLY_CLUSTERING:
-                self.w_clusterAll, self.clu_coordsAll, clu_sizes, clu_baryCoords = clustering_cmos.clustering_v3(np.transpose(supp_coords), supp_weights, myeps=self.myeps, size_threshold=6, save_file=self.file_path+'/img_cluSize10_'+str(i)+'_'+str(time.clock_gettime_ns(1))[-4:-1])
+                self.w_clusterAll, self.clu_coordsAll, clu_sizes, clu_baryCoords = clustering_cmos.clustering_v3(np.transpose(supp_coords), supp_weights, myeps=self.myeps, size_threshold=15, save_file=self.file_path+'/img_cluSize10_'+str(i)+'_'+str(time.clock_gettime_ns(1))[-4:-1])
                 cluBary_trasposta = clu_baryCoords.transpose()
                 counts2dClu, _, _ = np.histogram2d(cluBary_trasposta[0], cluBary_trasposta[1],bins=[self.xbins2d, self.ybins2d],range=[[0, self.XBINS], [0, self.YBINS]])
                 countsClu_i, _ = np.histogram(self.w_clusterAll, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
@@ -210,6 +213,11 @@ class aotr2:
         import zwoasi as asi
         
         print("... starting Capture and Analize!!! ")
+
+
+        time0=datetime.utcnow().timestamp()
+        print("time0=",time0)
+        
        # camera = checkup()
         camera=self.initialize_camera()
         print("camera initialized")
@@ -304,7 +312,7 @@ class aotr2:
                         data = np.empty((2822, 4144), dtype=np.uint16)
                         data = camera.capture_video_frame()
                         timestamp= datetime.utcnow().timestamp()
-                        #print("timestamp=",timestamp)
+                        #print("timestamp-time0=",timestamp-time0)
                         #print("DEBUG=> captureAnalyze: data.shape=",data.shape)
                         data_expanded=[data,timestamp]
                         data_queue.put(data_expanded ) #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -322,6 +330,9 @@ class aotr2:
                 if self.GUI==True:        
                     progress_bar_capture.UpdateBar(i)
 
+                if timestamp-time0>self.MAX_TIME:
+                    print("tempo scaduto..")
+                    break
                 # ---------------------------------LIVE  PLOTS------------------------------------
                 if self.LIVE_PLOTS==True:
                     if i%20 == 0:

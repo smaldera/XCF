@@ -19,6 +19,7 @@ parser.add_argument('-s','--sample_size', type=int,  help='n. images', required=
 parser.add_argument('-b','--bkg_size', type=int,  help='n. images background', required=True)
 parser.add_argument('-exp','--exposure', type=int,  help='expusure time (us)', required=True)
 parser.add_argument('-id','--camera_id', type=int,  help='camera_id', required=True)
+parser.add_argument('-max_time','--max_time', type=int,  help='max_time', required=False)
 
 
 args = parser.parse_args()
@@ -35,12 +36,16 @@ WB_B=50
 EXPO=args.exposure
 GAIN=120
 CAMERA_ID=args.camera_id
+MAX_TIME=args.max_time
+
+
 
 print ("out path= ",base_path)
 print ("sample_size= ",sample_size)
 print ("bkg size= ",bkg_sample_size)
 print ("Exposure= ",EXPO)
 print ("camera_id= ",CAMERA_ID)
+print ("max_time= ",MAX_TIME)
 
 
 
@@ -81,7 +86,7 @@ try:
 
     
    print("inizialising acq loop:")
-   OBJ = aotr2(StoreDataIn, sample_size, WB_R, WB_B, EXPO, GAIN, bkg_folder_a, xyRebin, sigma, cluster, ApplyClustering, SaveEventList,raw, Eps,num_jobs ,leng,save_every,camera_id=CAMERA_ID, LIVE_PLOTS=False,GUI=False)
+   OBJ = aotr2(StoreDataIn, sample_size, WB_R, WB_B, EXPO, GAIN, bkg_folder_a, xyRebin, sigma, cluster, ApplyClustering, SaveEventList,raw, Eps,num_jobs ,leng,save_every,camera_id=CAMERA_ID, LIVE_PLOTS=False,GUI=False,max_time=MAX_TIME)
    print("starting acq loop:")  
    OBJ.CaptureAnalyze() #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

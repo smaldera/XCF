@@ -60,7 +60,7 @@ def clustering_v2(supp_coords,supp_weights):
 
 
 
-def clustering_v3(supp_coords,supp_weights,myeps=1, size_threshold=0, save_file='saved_clu'  ):
+def clustering_v3(supp_coords,supp_weights,myeps=1, size_threshold=10, save_file='saved_clu'  ):
    
    coordsAll=np.empty((0,0))
    cg_coords = np.empty((0,0))
