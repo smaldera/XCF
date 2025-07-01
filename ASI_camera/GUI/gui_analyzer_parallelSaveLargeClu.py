@@ -100,7 +100,7 @@ class aotr2:
         mySigmaMask = np.where((self.rms_ped > rms_pedCut))                              
 
         while True:
-           # print("analizza... i=",i)
+            #print("analizza... id=",id, " i=",i )
             data_expanded= data_queue.get() #!!!!!!!!!!!!!!!!!!!!!!
             if data_expanded is None:
                 progress_bar2.close()
@@ -111,7 +111,7 @@ class aotr2:
             data=data_expanded[0]
             timestamp=data_expanded[1]
            
-            #print("DEBUG=> analizza: data.shape=",data.shape)
+            #print("DEBUG=> analizza id=",id," =>  data.shape=",data.shape)
            
             image_data = data / 4.
             image_data = image_data - self.mean_ped
@@ -133,9 +133,13 @@ class aotr2:
 
             countsZeroSupp_i, _ = np.histogram(supp_weights, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
            
-
+            #print("DEBUG=> analizza id=",id," => going to apply clustering....  ")
+                        
             if self.APPLY_CLUSTERING:
-                self.w_clusterAll, self.clu_coordsAll, clu_sizes, clu_baryCoords = clustering_cmos.clustering_v3(np.transpose(supp_coords), supp_weights, myeps=self.myeps, size_threshold=15, save_file=self.file_path+'/img_cluSize10_'+str(i)+'_'+str(time.clock_gettime_ns(1))[-4:-1])
+                self.w_clusterAll, self.clu_coordsAll, clu_sizes, clu_baryCoords = clustering_cmos.clustering_v3(np.transpose(supp_coords), supp_weights, myeps=self.myeps, size_threshold=-100, save_file=self.file_path+'/img_cluSize10_'+str(i)+'_'+str(time.clock_gettime_ns(1))[-4:-1])
+
+                #print("DEBUG=> analizza id=",id," =>  dopo clustering....  ")
+                
                 cluBary_trasposta = clu_baryCoords.transpose()
                 counts2dClu, _, _ = np.histogram2d(cluBary_trasposta[0], cluBary_trasposta[1],bins=[self.xbins2d, self.ybins2d],range=[[0, self.XBINS], [0, self.YBINS]])
                 countsClu_i, _ = np.histogram(self.w_clusterAll, bins=2 * self.NBINS, range=(-self.NBINS, self.NBINS))
