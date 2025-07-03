@@ -1,4 +1,5 @@
 
+
 # aggiunger loop su diverse track size
 # aggiungere parametri fit
 
@@ -57,7 +58,7 @@ class track():
 
 
 ##############3
-def fit_landauHistohram(counts,binsE,xmin=-0.5,xmax=3.5):
+def fit_landauHistohram(counts,binsE,xmin=-0.5,xmax=2.5):
 
    max_val=max(counts)
    max_index=np.argmax(counts)
@@ -68,8 +69,8 @@ def fit_landauHistohram(counts,binsE,xmin=-0.5,xmax=3.5):
    
  
    initial_pars=[max_x,0.4,max_val]
-   lims_low=[max_x-0.2,0.2,max_val-20]
-   lims_up=[max_x+0.2,0.6,max_val+20]  
+   lims_low=[max_x-0.1,0.2,max_val-20]
+   lims_up=[max_x+0.1,0.6,max_val+20]  
    coeff,pcov= fh.fit_Landau_histogram(counts,binsE,xmin=xmin,xmax=xmax,  initial_pars= initial_pars, parsBoundsLow=lims_low, parsBoundsUp=lims_up  )
    print ("coeff=",coeff)
    print ("pcov=",pcov)
@@ -184,7 +185,7 @@ MPV=[]
 #apply Ecut and compute r_corr
 r_all ,totE, size_all  = cut_allTracks(tracks_list,Ecut=0.)
 
-SEL_SIZE=12
+SEL_SIZE=10
 
 # loop su n_pix (ie n-esima posizione lungo la traccia, una volta fissata la lunghezza)
 for n_pix in range(0,SEL_SIZE):
@@ -199,26 +200,10 @@ for n_pix in range(0,SEL_SIZE):
 
    coeff,pcov=  fit_landauHistohram(countsE_all,binsE)   
       
-   x=np.arange(-0.5,3.5,0.05)
+   x=np.arange(-0.5,2.5,0.05)
    #plt.plot(x, pylandau.langau(x, *coeff), "-")
    plt.plot(x, pylandau.landau(x, *coeff), "-")
 
-   """
-   #parameters p0=(Ag,Mug,Sg,mpv, sigma,  A)
-   initial_pars=[40,0.11,0.05,1,0.4,35]
-   lims_low=[10,0.109,0.049,0.35,0.39,8]
-   lims_up=[70,0.111,0.051,1.2,0.41,100]  
-   coeff,pcov= fh.fit_LandauGaussinPed_histogram(countsE_all,binsE,xmin=-1,xmax=3.5, initial_pars=initial_pars, parsBoundsLow=lims_low, parsBoundsUp=lims_up )
-   print("coeff_1st=",coeff)
-   print("Gauss A=",coeff[0])
-   print("Gauss mu=",coeff[1])
-   print("Gauss sigma=",coeff[2])
-   print("Lan MPV=",coeff[3])
-   print("Lan Sigma=",coeff[4])
-   print("Lan Ampl=",coeff[5])
-   x=np.arange(-1,3.5,0.005)
-   plt.plot(x, fh.landau_gausPedestal_model(x, *coeff), "-")
-   """
 
 
    #x=np.arange(-1,3.5,0.005)
@@ -267,7 +252,7 @@ plt.plot(x, pylandau.landau(x, *coeff), "-")
 
 
 mpv_track=coeff[0]
-mpv_90=0.8
+mpv_90=0.6
 alpha=np.arcsin(mpv_90/mpv_track)
 
 print("ALPHA=",alpha, " (",np.degrees(alpha),"deg)" )

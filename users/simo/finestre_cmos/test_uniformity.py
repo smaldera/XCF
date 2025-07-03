@@ -2,8 +2,6 @@ import numpy as np
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 
-import sys
-sys.path.insert(0, '/home/maldera/Desktop/eXTP/softwareXCF/XCF/libs/')
 import utils_v2 as al
 from read_sdd import  pharse_mca
 import fit_histogram as fitSimo

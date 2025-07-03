@@ -45,8 +45,8 @@ parser.add_argument('-yprojName','--yprojName',type=str ,  help="y-projection fi
 parser.add_argument('-suffix','--suffix',type=str ,  help="suffix in file names", required=False,default='')
 
 
-FIND_HOTPIXELS=True
-CUT_HOT_PIXELS=True
+FIND_HOTPIXELS=False
+CUT_HOT_PIXELS=False
 PLOT_MAP=True
 
 args = parser.parse_args()
@@ -121,10 +121,10 @@ fig2=plt.figure(figsize=(10,10))
 ax1=plt.subplot(221)
 
 #plot
-myCut=np.where( ((w_all)>50))
+#myCut=np.where( ((w_all)>50))
 #myCut=np.where( ((size_all)>1))
-
 #myCut=np.where( (w_all>40)&( (  ((x_all-1300)**2+(y_all-1750)**2)<900**2)  ))
+myCut=np.where( (w_all>40)&(x_all>1060)&(x_all<1980)&(y_all>1475)&(y_all<2660) )
 
 
 

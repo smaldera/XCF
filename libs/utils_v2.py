@@ -96,6 +96,15 @@ def save_histo(outHisto_name,countsAll,bins):
     np.savez(outHisto_name,counts=countsAll,bins=bins)
 
 
+def retrive_vectors3(nomefile):
+    data=np.load(nomefile)
+    w=data['w']
+    x_pix=data['x_pix']
+    y_pix=data['y_pix']
+    size=data['sizes']
+    times=data['timestamps']
+    return w,x_pix,y_pix,size,times
+
 
     
 def retrive_vectors2(nomefile):
