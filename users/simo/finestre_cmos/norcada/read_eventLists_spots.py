@@ -36,22 +36,25 @@ def fitta_allPeaks(counts, binsE,ax2,DIR,suffix):
 
        
      # fit Lalpha
-     min_x1=2.20
-     max_x1=2.28
+     #min_x1=2.20
+     #max_x1=2.28
+     min_x1=2.26
+     max_x1=2.34
+     
      #amplitude=100.          peak=2.29          sigma=0.5
-     par1, cov1, min_x1,max_x1, chi21 = fit_peak(hSpec,min_x1 ,max_x1,  1e5,   2.23,  0.1,n_sigma=0.7)
+     par1, cov1, min_x1,max_x1, chi21 = fit_peak(hSpec,min_x1 ,max_x1,  5e3,   2.30,  0.4,n_sigma=0.7)
      
      # fit LBeta
-     min_x2=2.32
-     max_x2=2.38
-     #amplitude=100.          peak=2.29          sigma=0.5
-     par2, cov2, min_x2,max_x2, chi22 = fit_peak(hSpec,min_x2 ,max_x2,  1e5,   2.35,  0.1,n_sigma=0.4)
+    # min_x2=2.32
+    # max_x2=2.38
+    # #amplitude=100.          peak=2.29          sigma=0.5
+    # par2, cov2, min_x2,max_x2, chi22 = fit_peak(hSpec,min_x2 ,max_x2,  1e5,   2.35,  0.1,n_sigma=0.4)
          
      # fit Si
-     min_x3=1.6
-     max_x3=1.78
+     #min_x3=1.6
+     #max_x3=1.78
      #amplitude=100.          peak=2.29          sigma=0.5
-     par3, cov3, min_x3,max_x3, chi23 = fit_peak(hSpec,min_x3 ,max_x3,  1e5,   1.65,  0.1,n_sigma=0.7)
+     #par3, cov3, min_x3,max_x3, chi23 = fit_peak(hSpec,min_x3 ,max_x3,  1e5,   1.65,  0.1,n_sigma=0.7)
          
      # fit escape La
     # min_x4=0.52
@@ -69,11 +72,11 @@ def fitta_allPeaks(counts, binsE,ax2,DIR,suffix):
      x=np.linspace(min_x1,max_x1,1000) 
      ax2.plot(x,fitSimo.gaussian_model(x,par1[0],par1[1],par1[2]),label='fit kalpha')
 
-     x2=np.linspace(min_x2,max_x2,1000) 
-     ax2.plot(x2,fitSimo.gaussian_model(x2,par2[0],par2[1],par2[2]),label='fit Kbeta')
+     #x2=np.linspace(min_x2,max_x2,1000) 
+     #ax2.plot(x2,fitSimo.gaussian_model(x2,par2[0],par2[1],par2[2]),label='fit Kbeta')
 
-     x3=np.linspace(min_x3,max_x3,1000) 
-     ax2.plot(x3,fitSimo.gaussian_model(x3,par3[0],par3[1],par3[2]),label='fit Si')
+     #x3=np.linspace(min_x3,max_x3,1000) 
+     #ax2.plot(x3,fitSimo.gaussian_model(x3,par3[0],par3[1],par3[2]),label='fit Si')
 
     # x4=np.linspace(min_x4,max_x4,1000) 
     # ax2.plot(x4,fitSimo.gaussian_model(x4,par4[0],par4[1],par4[2]),label='fit La escape')
@@ -82,7 +85,7 @@ def fitta_allPeaks(counts, binsE,ax2,DIR,suffix):
     # ax2.plot(x5,fitSimo.gaussian_model(x5,par5[0],par5[1],par5[2]),label='fit Lb escape')
                      
      meanLa=par1[1]
-     meanLb=par2[1]
+     #meanLb=par2[1]
      ELa=2.2932
      ELb=2.3948
      ESi=1.74
@@ -92,8 +95,8 @@ def fitta_allPeaks(counts, binsE,ax2,DIR,suffix):
      with open(DIR+'/corrCalib_'+suffix+'.txt', 'w') as f:
 
          f.write("normLa="+str(par1[0])+" normLaErr="+str(cov1[0][0]**0.5)+ " meanLa="+str(par1[1])+" sigmaLa="+ str(par1[2])+'\n')
-         f.write("normLb="+str(par2[0])+" normLbErr="+str(cov2[0][0]**0.5)+" meanLb="+str(par2[1])+" sigmaLb="+str(par2[2])+'\n' )
-         f.write("normSi="+str(par3[0])+" normSiErr="+str(cov3[0][0]**0.5)+" meanSi="+str(par3[1])+" sigmaSi="+str(par3[2])+'\n' )
+         #f.write("normLb="+str(par2[0])+" normLbErr="+str(cov2[0][0]**0.5)+" meanLb="+str(par2[1])+" sigmaLb="+str(par2[2])+'\n' )
+         #f.write("normSi="+str(par3[0])+" normSiErr="+str(cov3[0][0]**0.5)+" meanSi="+str(par3[1])+" sigmaSi="+str(par3[2])+'\n' )
         # f.write("normLa_esc="+str(par4[0])+" normLa_EscErr="+str(cov4[0][0]**0.5)+" meanLa_esc="+str(par4[1])+" sigmaLa_esc="+str(par4[2])+'\n' )
         # f.write("normLb_esc="+str(par5[0])+" normLb_escErr="+str(cov5[0][0]**0.5)+" meanLb_esc="+str(par5[1])+" sigmaLb_esc="+str(par5[2])+'\n')
                  
@@ -105,9 +108,10 @@ def draw_and_save( w_i,x_i, y_i,DIR,suffix):
 
         #aggiungere qua il fit....
 
-    
-         fig=plt.figure(figsize=(10,10))
-         ax1=plt.subplot(111)
+         fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(13,9))
+         fig.set_label(suffix)
+         #fig=plt.figure(figsize=(10,10))
+         #ax1=plt.subplot(111)
          NBINS=int(16384) 
          #plot 
          # mappa posizioni:
@@ -119,8 +123,10 @@ def draw_and_save( w_i,x_i, y_i,DIR,suffix):
          plt.colorbar(im,ax=ax1)
 
          #ax2=plt.subplot(312)
-         fig2=plt.figure(figsize=(10,10))
-         ax2=plt.subplot(111)
+         #fig2=plt.figure(figsize=(10,10))
+         
+
+         #ax2=plt.subplot(111)
          
          #calP1= 0.0032132721459619882
          #calP0=-0.003201340833319255
@@ -133,19 +139,20 @@ def draw_and_save( w_i,x_i, y_i,DIR,suffix):
          ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="energy w. clustering")
          ax2.legend()
          ax2.set_xlabel('E[keV]')
-         ax2.set_xlim([0,10])
+         ax2.set_xlim([2.15,2.40])
          ax2.set_yscale('log')
          
 
          #FITTA picchi
          fitta_allPeaks(countsClu, binsE,ax2,DIR,suffix)
 
-         
+         #plt.show()
          if SAVE_HISTOGRAMS==True:
              spectrum_file_name =DIR + '/spectrumPos_'+suffix+'.npz'
              np.savez(spectrum_file_name, counts = countsClu,  bins = binsE)
              fig.savefig(DIR+'/img_'+suffix+'.png')
-             
+             #fig2.savefig(DIR+'/spectrum_'+suffix+'.png')
+            
                          
 ########################################################################
 
@@ -417,8 +424,8 @@ draw_and_save( w_i,x_i, y_i,args.saveDir,'all')
 
 # save time:
 mintime= np.min(time_all)
-max_time=np.max(time_all)
-args.saveDir
+maxtime=np.max(time_all)
+DIR=args.saveDir
 with open(DIR+'/times.txt', 'w') as f:
       f.write(str(mintime)+" "+str(maxtime) )
 

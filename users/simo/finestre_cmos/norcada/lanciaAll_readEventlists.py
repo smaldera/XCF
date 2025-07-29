@@ -5,7 +5,8 @@ import os
 
 base_path='/home/maldera/Desktop/eXTP/data/test_finestre/Norcada/scan/'
 
-names=['win_','air_']
+#names=['win_','air_']
+names=['air_']
 
 for name in names:
 
@@ -19,5 +20,9 @@ for name in names:
         os.system(cmd)
 
         cmd= 'python read_eventLists_spots.py -in '+mydir+'file_list.txt -dir ' + mydir
-        print(cmd)
-        os.system(cmd)
+        print("CMD=",cmd)
+        try:
+            os.system(cmd)
+        except:
+            print("errr..")
+            break
