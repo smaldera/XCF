@@ -45,8 +45,8 @@ parser.add_argument('-yprojName','--yprojName',type=str ,  help="y-projection fi
 parser.add_argument('-suffix','--suffix',type=str ,  help="suffix in file names", required=False,default='')
 
 
-FIND_HOTPIXELS=False
-CUT_HOT_PIXELS=False
+FIND_HOTPIXELS=True
+CUT_HOT_PIXELS=True
 PLOT_MAP=True
 
 args = parser.parse_args()
@@ -103,8 +103,8 @@ print("len y_all ",len(y_all))
 
 
 if FIND_HOTPIXELS==True:
-    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=20)
-    hotPix.find_HotPixels(n_sigma=5,low_threshold=10, min_counts=10) # low_treshold in ADC, 
+    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=10)
+    hotPix.find_HotPixels(n_sigma=4,low_threshold=60, min_counts=10) # low_treshold in ADC, 
     hotPix.save_cuts(DIR+'/cuts.npz')
 if CUT_HOT_PIXELS==True:
     hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all)
@@ -121,10 +121,10 @@ fig2=plt.figure(figsize=(10,10))
 ax1=plt.subplot(221)
 
 #plot
-#myCut=np.where( ((w_all)>50))
+myCut=np.where( ((w_all)>60))
 #myCut=np.where( ((size_all)>1))
 #myCut=np.where( (w_all>40)&( (  ((x_all-1300)**2+(y_all-1750)**2)<900**2)  ))
-myCut=np.where( (w_all>40)&(x_all>1060)&(x_all<1980)&(y_all>1475)&(y_all<2660) )
+#myCut=np.where( (w_all>40)&(x_all>1060)&(x_all<1980)&(y_all>1475)&(y_all<2660) )
 
 
 
