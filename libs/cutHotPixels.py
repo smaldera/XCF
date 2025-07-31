@@ -5,12 +5,13 @@ import numpy as np
 
 class hotPixels():
 
-    def __init__(self,x_all=np.array([]),y_all=np.array([]),w_all=np.array([]),size_all=np.array([]),rebin=1):
+    def __init__(self,x_all=np.array([]),y_all=np.array([]),w_all=np.array([]),size_all=np.array([]),time_all=np.array([]),  rebin=1):
 
         self.x=x_all
         self.y=y_all
         self.w=w_all
         self.size=size_all
+        self.time=time_all
         self.XBINS=2822
         self.YBINS=4144
         self.i_cut=[]
@@ -80,12 +81,17 @@ class hotPixels():
         self.y=self.y[pixCut_all]
         if len(self.size!=0):
             self.size= self.size[pixCut_all]
+        if len(self.time!=0):
+            self.time= self.time[pixCut_all]
 
                 
 
     def get_cutVectors(self):         
-
-       return  self.w,  self.x, self.y,   self.size
+       if len(self.time!=0): 
+           return  self.w,  self.x, self.y,   self.size, self.time
+       else:
+           return  self.w,  self.x, self.y,   self.size
+   
 
     def save_cuts(self,filename):
        np.savez(filename, j_cut=self.j_cut, i_cut=self.i_cut, xedges= self.xedges, yedges=self.yedges )
