@@ -103,8 +103,8 @@ print("len y_all ",len(y_all))
 
 
 if FIND_HOTPIXELS==True:
-    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=10)
-    hotPix.find_HotPixels(n_sigma=4,low_threshold=60, min_counts=10) # low_treshold in ADC, 
+    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=20)
+    hotPix.find_HotPixels(n_sigma=3,low_threshold=50, min_counts=10) # low_treshold in ADC, 
     hotPix.save_cuts(DIR+'/cuts.npz')
 if CUT_HOT_PIXELS==True:
     hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all)
@@ -121,7 +121,7 @@ fig2=plt.figure(figsize=(10,10))
 ax1=plt.subplot(221)
 
 #plot
-myCut=np.where( ((w_all)>60))
+myCut=np.where( ((w_all)>50)&(x_all>5)&(x_all<2808))
 #myCut=np.where( ((size_all)>1))
 #myCut=np.where( (w_all>40)&( (  ((x_all-1300)**2+(y_all-1750)**2)<900**2)  ))
 #myCut=np.where( (w_all>40)&(x_all>1060)&(x_all<1980)&(y_all>1475)&(y_all<2660) )
@@ -137,7 +137,7 @@ ax1.legend()
 ax2=plt.subplot(222)
 
 # spettro energia
-countsClu, binsE = np.histogram( w_all[myCut]  , bins = int(2*NBINS/20.), range = (-NBINS,NBINS) )
+countsClu, binsE = np.histogram( w_all[myCut]  , bins = int(2*NBINS/2.), range = (-NBINS,NBINS) )
 binsE=binsE*calP1+calP0
 ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="energy w. clustering")
 ax2.set_xlabel('E[keV]')

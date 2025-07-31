@@ -50,11 +50,11 @@ PLOT_MAP=True
 
 args = parser.parse_args()
 #DIR = args.saveDir
-DIR='/home/maldera/Desktop/eXTP/data/testCMOS_coincidenze/25Jul25/'
+DIR='/home/maldera/Desktop/eXTP/data/testCMOS_coincidenze/29Jul25/'
 
 
-files_0='/home/maldera/Desktop/eXTP/data/testCMOS_coincidenze/25Jul25/camera0/file_list.txt'
-files_1='/home/maldera/Desktop/eXTP/data/testCMOS_coincidenze/25Jul25/camera1/file_list.txt'
+files_0='/home/maldera/Desktop/eXTP/data/testCMOS_coincidenze/29Jul25/camera0/file_list.txt'
+files_1='/home/maldera/Desktop/eXTP/data/testCMOS_coincidenze/29Jul25/camera1/file_list.txt'
 ff_0=open(files_0,'r')
 
 # retta calibrazione cmos
@@ -107,6 +107,14 @@ print("len x_all ",len(x_all))
 print("len y_all ",len(y_all))
 print("len time_all ",len(time_all))
 
+# applico hotPixelscut... 
+hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,time_all=time_all,rebin=10)
+hotPix.find_HotPixels(n_sigma=4,low_threshold=60, min_counts=10) # low_treshold in ADC, 
+hotPix.applyCuts()
+w_all,   x_all,  y_all, size_all,time_all=hotPix.get_cutVectors()
+
+print("len w_all  after hotpix cut:",len(w_all))
+
 
 w1_all=np.array([])
 x1_all=np.array([])
@@ -134,8 +142,20 @@ print("len x1_all ",len(x1_all))
 print("len y1_all ",len(y1_all))
 print("len time1_all ",len(time1_all))
 
-myCut=np.where( (w_all>100) )
-myCut1=np.where( (w1_all>100) )
+# applico hotPixelscut... 
+hotPix=hotPixels(x_all=x1_all,y_all=y1_all,w_all=w1_all,size_all=size1_all,time_all=time1_all,rebin=20)
+hotPix.find_HotPixels(n_sigma=3,low_threshold=60, min_counts=10) # low_treshold in ADC, 
+hotPix.applyCuts()
+w1_all,   x1_all,  y1_all, size1_all,time1_all=hotPix.get_cutVectors()
+
+print("len w1_all  after hotpix cut:",len(w1_all))
+
+
+myCut=np.where( (w_all>55)&(x_all>5)&(x_all<2808) )
+myCut1=np.where( (w1_all>55)&(x1_all>5)&(x1_all<2808) )
+
+
+
 
 # applico  cut sulle singole:
 w1_all=w1_all[myCut1]
@@ -149,6 +169,8 @@ x_all=x_all[myCut]
 y_all=y_all[myCut]
 size_all=size_all[myCut]
 time_all=time_all[myCut]
+print("len w1_all  after w1_all>80:",len(w1_all))
+print("len w_all  after w_all>80:",len(w_all))
 
 
 w1cc=[]
@@ -160,8 +182,10 @@ w0cc=[]
 ##### cerco coincidenze:
 
 for i in tqdm(range(0,len(w_all))):
-    cut_1=np.where( np.abs(time1_all-time_all[i])<0.07 )[0]
-    if len(cut_1)>0:
+    cut_1=np.where( np.abs(time1_all-time_all[i])<0.250 )[0]
+    #if len(cut_1)>0:
+    if len(cut_1)==1:
+      
        w1cc.append(w1_all[cut_1][0])
        w0cc.append(w_all[i])
       # print ("trovata coinc  len=",len(cut_1))
@@ -179,7 +203,7 @@ ax1=plt.subplot(221)
 
 
 # mappa posizioni:
-counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
+counts2dClu,  xedges, yedges= np.histogram2d(x_all,y_all,bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
 counts2dClu=   counts2dClu.T
 im=ax1.imshow(np.log10(counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
 
@@ -190,13 +214,11 @@ ax2=plt.subplot(222)
 #countsClu, binsE = np.histogram( w_all[myCut]  , bins = int(2*NBINS/2.), range = (-NBINS,NBINS) )
 #countsClu1, binsE = np.histogram( w1_all[myCut1]  , bins = int(2*NBINS/2.), range = (-NBINS,NBINS) )
 
-countsClu, binsE = np.histogram( np.array(w0cc)  , bins = int(2*NBINS/2.), range = (-NBINS,NBINS) )
-countsClu1, binsE = np.histogram( np.array(w1cc)  , bins = int(2*NBINS/2.), range = (-NBINS,NBINS) )
+countsClu, binsE = np.histogram( np.array(w0cc)  , bins = int(2*NBINS/5), range = (-NBINS,NBINS) )
+countsClu1, binsE = np.histogram( np.array(w1cc)  , bins = int(2*NBINS/5), range = (-NBINS,NBINS) )
 
 binsE=binsE*calP1+calP0
 ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="energy w. clustering cmos 0")
-ax2.hist(binsE[:-1], bins = binsE, weights = countsClu1, histtype = 'step',label="energy w. clustering cmos 1")
-
 ax2.set_xlabel('E[keV]')
 #ax2.set_xlim([0,12])
 ax2.set_yscale('log')
@@ -206,11 +228,18 @@ ax2.legend()
 
 #plt.figure(3)
 ax3=plt.subplot(223)
-counts2dClu1,  xedges, yedges= np.histogram2d(x1_all[myCut1],y1_all[myCut1],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
+counts2dClu1,  xedges, yedges= np.histogram2d(x1_all,y1_all,bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
 counts2dClu1=   counts2dClu1.T
 im=ax3.imshow(np.log10(counts2dClu1), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
 ax3.legend()
 
+
+ax4=plt.subplot(224)
+ax4.hist(binsE[:-1], bins = binsE, weights = countsClu1, histtype = 'step',label="energy w. clustering cmos 1")
+ax4.set_xlabel('E[keV]')
+#ax2.set_xlim([0,12])
+ax4.set_yscale('log')
+ax4.legend()
 
 #xprojection, bins_x = np.histogram( x_all[myCut]  , bins =xbins2d , range = (0,XBINS) )
 #ax3.hist(bins_x[:-1], bins = bins_x, weights = xprojection, histtype = 'step',label="x-projection")
@@ -226,14 +255,6 @@ ax3.legend()
 #ax4.set_yscale('log')
 
 
-
-
-if PLOT_MAP==True:
-    fig3=plt.figure(figsize=(10,10))
-    plt.imshow(np.log10(counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])  
-    #plt.legend()
-    plt.colorbar()
-    plt.title('log10(counts)')
 
 
 if SAVE_HISTOGRAMS==True:
