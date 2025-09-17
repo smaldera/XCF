@@ -10,23 +10,65 @@ from  histogramSimo import histogramSimo
 from cutHotPixels import hotPixels
 from tqdm import  tqdm
 
+import fit_histogram as fh
+#from landaupy import landau
 
 # small scripts to plot CMOS data from the event list whit cuts
 # draws: 2D map,  energy, x-y projections
 #
 
-# cut type:
-# cut='x' if cut on x axis
-# cut='y' if cut on y axis
-# cut='xy' if cut on both axis
-# cut=None does the normal w cut
 
-cut='None'
+##############3
+def fit_landauHistohram(counts,binsE,xmin=-0.5,xmax=2.5, sigma0=0.4):
 
-x_inf = 1260
-x_sup = 1700
-y_inf = 1100
-y_sup = 3175
+   mask=(binsE>xmin)&(binsE<xmax)
+   mask=mask[:-1] # i bin hanno un elemento in piu'!!!
+   max_val=max(counts*mask)
+   max_index=np.argmax(counts*mask)
+   max_x=binsE[ max_index]+(binsE[1]-binsE[0])/2.
+   
+   print( "max_val=", max_val)
+   print( "max_x=", max_x, " max_index =", max_index)
+   
+ 
+   initial_pars=[max_x,sigma0,max_val]
+   lims_low=[max_x-0.1,sigma0-0.38,max_val-20]
+   lims_up=[max_x+0.1,sigma0+0.2,max_val+20]  
+   coeff,pcov,chi2,chi2red= fh.fit_Landau_histogram2(counts,binsE,xmin=xmin,xmax=xmax,  initial_pars= initial_pars, parsBoundsLow=lims_low, parsBoundsUp=lims_up  )
+   print ("coeff=",coeff)
+   print ("pcov=",pcov)
+  
+   return  coeff,pcov,chi2,chi2red
+
+
+######3
+def fit_langaussHistohram(counts,binsE,xmin=-0.5,xmax=2.5, sigma0=0.4,gsigma0=0.4):
+
+   mask=(binsE>xmin)&(binsE<xmax)
+   mask=mask[:-1] # i bin hanno un elemento in piu'!!!
+   max_val=max(counts*mask)
+   max_index=np.argmax(counts*mask)
+   max_x=binsE[ max_index]+(binsE[1]-binsE[0])/2.
+   
+   print( "max_val=", max_val)
+   print( "max_x=", max_x, " max_index =", max_index)
+   
+ 
+   initial_pars=[max_x,sigma0,gsigma0,max_val]
+   lims_low=[max_x-0.1,sigma0-0.39,gsigma0-0.39,max_val-20]
+   lims_up=[max_x+0.1,sigma0+0.2,gsigma0+0.2,max_val+20]  
+   coeff,pcov,chi2,chi2red= fh.fit_Langauss_histogram2(counts,binsE,xmin=xmin,xmax=xmax,  initial_pars= initial_pars, parsBoundsLow=lims_low, parsBoundsUp=lims_up  )
+   print ("coeff=",coeff)
+   print ("pcov=",pcov)
+  
+   return  coeff,pcov,chi2,chi2red
+
+
+
+
+######
+
+
 
 
 import argparse
@@ -36,7 +78,7 @@ parser = argparse.ArgumentParser(formatter_class=formatter)
 parser.add_argument('-dir','--saveDir', type=str,  help='direxctory where npz files are saved', required=False)
 parser.add_argument('-calP0','--calP0', type=float,  help='0 cal parameter', required=False,default=-0.003201340833319255)
 parser.add_argument('-calP1','--calP1', type=float,  help='1 cal parameter', required=False,default=0.003213272145961988)
-parser.add_argument('-rebinxy','--rebinxy', type=int,  help='x-y rebin', required=False,default=20)
+parser.add_argument('-rebinxy','--rebinxy', type=int,  help='x-y rebin', required=False,default=80)
 parser.add_argument('-nosave','--nosaveHistos', action='store_false',  help="don't save histograms", required=False)
 parser.add_argument('-specName','--specName',type=str ,  help="spectrum file name", required=False,default='test_spectrum.npz')
 parser.add_argument('-xprojName','--xprojName',type=str ,  help="x-projection file name", required=False,default='test_xproj.npz')
@@ -49,7 +91,6 @@ CUT_HOT_PIXELS=True
 PLOT_MAP=True
 
 args = parser.parse_args()
-#DIR = args.saveDir
 DIR='/home/maldera/Desktop/eXTP/data/testCMOS_coincidenze/29Jul25/'
 
 
@@ -91,10 +132,10 @@ size_all=np.array([])
 time_all=np.array([])
 
 for f in ff_0:
-    print(f)
-    #w, x,y=al.retrive_vectors(f[:-1])
+    #print(f)
+    
     w, x,y,size, time=al.retrive_vectors3(f[:-1])
-    print("LENs w=",len(w)," x=",len(x)," time=",len(time))
+    #print("LENs w=",len(w)," x=",len(x)," time=",len(time))
     w_all=np.append(w_all,w)
     x_all=np.append(x_all,x)
     y_all=np.append(y_all,y)
@@ -127,14 +168,13 @@ time1_all=np.array([])
 ff_1=open(files_1,'r')
 
 for f in ff_1:
-    print(f)
-    #w, x,y=al.retrive_vectors(f[:-1])
-    w, x,y,size, time=al.retrive_vectors3(f[:-1])  
-    w1_all=np.append(w1_all,w)
-    x1_all=np.append(x1_all,x)
-    y1_all=np.append(y1_all,y)
-    size1_all=np.append(size1_all,size)
-    time1_all=np.append(time1_all,time)
+    #print(f)
+    w1, x1,y1,size1, time1=al.retrive_vectors3(f[:-1])  
+    w1_all=np.append(w1_all,w1)
+    x1_all=np.append(x1_all,x1)
+    y1_all=np.append(y1_all,y1)
+    size1_all=np.append(size1_all,size1)
+    time1_all=np.append(time1_all,time1)
  
     
 print("len w1_all ",len(w1_all))
@@ -151,9 +191,11 @@ w1_all,   x1_all,  y1_all, size1_all,time1_all=hotPix.get_cutVectors()
 print("len w1_all  after hotpix cut:",len(w1_all))
 
 
-myCut=np.where( (w_all>55)&(x_all>5)&(x_all<2808) )
-myCut1=np.where( (w1_all>55)&(x1_all>5)&(x1_all<2808) )
+#myCut=np.where( (w_all>55)&(x_all>5)&(x_all<2808) )
+#myCut1=np.where( (w1_all>55)&(x1_all>5)&(x1_all<2808) )
 
+myCut=np.where(w_all>50 )
+myCut1=np.where(w1_all>50)
 
 
 
@@ -169,91 +211,135 @@ x_all=x_all[myCut]
 y_all=y_all[myCut]
 size_all=size_all[myCut]
 time_all=time_all[myCut]
-print("len w1_all  after w1_all>80:",len(w1_all))
-print("len w_all  after w_all>80:",len(w_all))
+print("len w1_all  after w1_all>50:",len(w1_all))
+print("len w_all  after w_all>50:",len(w_all))
 
 
 w1cc=[]
 w0cc=[]
 
-
+minfit=0.2
+maxfit=2
 
 
 ##### cerco coincidenze:
 
 for i in tqdm(range(0,len(w_all))):
-    cut_1=np.where( np.abs(time1_all-time_all[i])<0.250 )[0]
-    #if len(cut_1)>0:
+    cut_1=np.where( np.abs(time1_all-time_all[i])<0.1 )[0]
+    #print("len selected=", len(cut_1) )
     if len(cut_1)==1:
       
        w1cc.append(w1_all[cut_1][0])
        w0cc.append(w_all[i])
       # print ("trovata coinc  len=",len(cut_1))
 
-    if len(w0cc)>500000:
-        print("break!!!!")
-        break
 
-    
+
+
+
+
+
+      
+# MAKE PLOT2
+      
 fig2=plt.figure(figsize=(10,10))
-#fig2=plt.figure()
+
+# mappa posizioni camera 0
 ax1=plt.subplot(221)
-
-#plot
-
-
-# mappa posizioni:
+ax1.set_title("CMOS 0")
 counts2dClu,  xedges, yedges= np.histogram2d(x_all,y_all,bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
 counts2dClu=   counts2dClu.T
 im=ax1.imshow(np.log10(counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+#im=ax1.imshow((counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
+fig2.colorbar(im,ax=ax1, orientation='vertical',label="log10(counts)")
 
-ax1.legend()
+# spettro energia cmos 0
 ax2=plt.subplot(222)
+ax2.set_title("energy spectrum CMOS 0")
+countsClu_all, binsE = np.histogram( w_all, bins = int(2*NBINS/4.), range = (-NBINS,NBINS) )
+countsClu1_all, binsE = np.histogram( w1_all, bins = int(2*NBINS/4.), range = (-NBINS,NBINS) )
 
-# spettro energia
-#countsClu, binsE = np.histogram( w_all[myCut]  , bins = int(2*NBINS/2.), range = (-NBINS,NBINS) )
-#countsClu1, binsE = np.histogram( w1_all[myCut1]  , bins = int(2*NBINS/2.), range = (-NBINS,NBINS) )
-
-countsClu, binsE = np.histogram( np.array(w0cc)  , bins = int(2*NBINS/5), range = (-NBINS,NBINS) )
-countsClu1, binsE = np.histogram( np.array(w1cc)  , bins = int(2*NBINS/5), range = (-NBINS,NBINS) )
-
+countsClu, binsE = np.histogram( np.array(w0cc)  , bins = int(2*NBINS/4.), range = (-NBINS,NBINS) )
+countsClu1, binsE = np.histogram( np.array(w1cc)  , bins = int(2*NBINS/4.), range = (-NBINS,NBINS) )
 binsE=binsE*calP1+calP0
-ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="energy w. clustering cmos 0")
+
+ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="cmos 0 - Coincidences")
+ax2.hist(binsE[:-1], bins = binsE, weights = countsClu_all, histtype = 'step',label="cmos 0 - ALL  ")
+
+
+coeff,pcov,chi2,chi2red=  fit_landauHistohram(countsClu,binsE,xmin=minfit,xmax=maxfit)   
+coeffLg,pcovLg,chi2Lg,chi2redLg=  fit_langaussHistohram(countsClu,binsE,xmin=minfit,xmax=maxfit)
+
+x=np.arange(minfit,maxfit,0.01)
+plt.plot(x, fh.myLandau(x, *coeff), "-r",label='landau')
+#plt.plot(x, fh.myLandauGauss(x, *coeffLg), "-r",label='lanGauss')
+
 ax2.set_xlabel('E[keV]')
-#ax2.set_xlim([0,12])
+ax2.set_xlim([-1,5])
 ax2.set_yscale('log')
 ax2.legend()
 
 
 
-#plt.figure(3)
+# mappa posizioni camera1
+
 ax3=plt.subplot(223)
+ax3.set_title("CMOS 1")
 counts2dClu1,  xedges, yedges= np.histogram2d(x1_all,y1_all,bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
 counts2dClu1=   counts2dClu1.T
 im=ax3.imshow(np.log10(counts2dClu1), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
-ax3.legend()
+fig2.colorbar(im,ax=ax3, orientation='vertical',label="log10(counts)")
+
 
 
 ax4=plt.subplot(224)
-ax4.hist(binsE[:-1], bins = binsE, weights = countsClu1, histtype = 'step',label="energy w. clustering cmos 1")
+ax4.set_title("energy spectrum CMOS 1")
+ax4.hist(binsE[:-1], bins = binsE, weights = countsClu1, histtype = 'step',label="cmos 1 - Coincidences ")
+ax4.hist(binsE[:-1], bins = binsE, weights = countsClu1_all, histtype = 'step',label="cmos 1 - ALL")
+
+coeff1,pcov1,chi2_1,chi2red_1=  fit_landauHistohram(countsClu1,binsE,xmin=minfit,xmax=maxfit)
+coeffLg1,pcovLg1,chi2Lg1,chi2redLg1=  fit_langaussHistohram(countsClu1,binsE,xmin=minfit,xmax=maxfit)
+plt.plot(x, fh.myLandau(x, *coeff1), "-r",label='landau')
+#plt.plot(x, fh.myLandauGauss(x, *coeffLg1), "-r",label='lanGauss')
+
+
+
 ax4.set_xlabel('E[keV]')
-#ax2.set_xlim([0,12])
+ax4.set_xlim([-1,6])
 ax4.set_yscale('log')
 ax4.legend()
 
-#xprojection, bins_x = np.histogram( x_all[myCut]  , bins =xbins2d , range = (0,XBINS) )
-#ax3.hist(bins_x[:-1], bins = bins_x, weights = xprojection, histtype = 'step',label="x-projection")
-#ax3.legend()
-#ax3.set_yscale('log')
 
-# proiezione y:
-#plt.figure(4)
-#ax4=plt.subplot(224)
-#yprojection, bins_y = np.histogram( y_all[myCut]  , bins =ybins2d , range = (0,YBINS) )
-#ax4.hist(bins_y[:-1], bins = bins_y, weights = yprojection, histtype = 'step',label="y-projection")
-#ax4.legend()
-#ax4.set_yscale('log')
+print("==================================")
+print("camera0,===>>>> Landau:MPV= ",coeff[0]," +- ",pcov[0][0]**0.5, "chi2 red=",chi2red)
+print("coeff=",coeff)
+print("cov=",pcov)
+print("camera0,=======>>> LanGauss: MPV= ",coeffLg[0]," +- ",pcovLg[0][0]**0.5, "chi2 red=",chi2redLg)
+print("coeffLg=",coeffLg)
+print("covLg=",pcovLg)
+print("\n")
+print("==================================")
+print("camera1, ======>>>> Landau: MPV= ",coeff1[0]," +- ",pcov1[0][0]**0.5, "chi2 red=",chi2red_1)
+print("coeff1=",coeff1)
+print("cov1=",pcov1)
+print("camera1, ====>>>> LanGauss: MPV= ",coeffLg1[0]," +- ",pcovLg1[0][0]**0.5, "chi2 red=",chi2redLg1)
+print("coeffLg1=",coeffLg1)
+print("covLg1=",pcovLg1)
 
+
+
+
+fig2=plt.figure(figsize=(10,10))
+plt.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="cmos 0 - Coincidences")
+plt.hist(binsE[:-1], bins = binsE, weights = countsClu_all, histtype = 'step',label="cmos 0 - ALL  ")
+x=np.arange(minfit,maxfit,0.01)
+plt.plot(x, fh.myLandau(x, *coeff), "-r",label='landau')
+
+
+plt.set_xlabel('E[keV]')
+plt.set_xlim([-1,5])
+plt.set_yscale('log')
+plt.legend()
 
 
 

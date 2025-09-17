@@ -2,9 +2,19 @@ import numpy as np
 from scipy.optimize import curve_fit
 from matplotlib import pyplot as plt
 
+from landaupy import landau
+from landaupy import langauss
+
 # TODO = trattare bin vuoti
 # errore poissoninano
 
+
+
+def chi2(y_data,y_fit,popt):
+    chisq = (  ((y_data - y_fit)**2)/y_fit).sum()
+    ndof= len(y_data) - len(popt)
+    redChi2=chisq/ndof
+    return chisq,redChi2
 
 def linear_model(x,p0,p1):
        y=p0+p1*x
@@ -124,6 +134,7 @@ def fit_Langau_histogram(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1
   yerr=np.sqrt(y_data)
   coeff, pcov = curve_fit(pylandau.langau, x_data, y_data,sigma=yerr,  absolute_sigma=True, p0=(mpv, eta, sigma, A), bounds=(0.01, 10000))
 
+  
 
   return coeff,pcov
 
@@ -144,8 +155,52 @@ def fit_Landau_histogram(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1
   yerr=np.sqrt(y_data)
   coeff, pcov = curve_fit(pylandau.landau, x_data, y_data,sigma=yerr,  absolute_sigma=True, p0=(mpv, sigma,  A), bounds=(0.01, 10000))
 
-
   return coeff,pcov
+
+
+def myLandau(x,mpv,w,A):
+    
+      return(A*landau.pdf(x,mpv,w) )
+
+def myLandauGauss(x,mpv,w,gsigma,A):
+    
+      return(A*langauss.pdf(x,mpv,w,gsigma) )
+
+def fit_Landau_histogram2(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1], parsBoundsLow=-np.inf, parsBoundsUp=np.inf ):
+
+  mpv=initial_pars[0]
+  sigma=initial_pars[1]
+  A=initial_pars[2]
+  bin_centers =get_centers(bins)          
+  _mask = (counts > 0)&(bin_centers>xmin)&(bin_centers<xmax)
+  y_data=counts[_mask]
+  x_data=bin_centers[_mask]
+  yerr=np.sqrt(y_data)
+  coeff, pcov = curve_fit(myLandau, x_data, y_data,sigma=yerr,  absolute_sigma=True, p0=(mpv, sigma,  A), bounds=(0.01, 10000))
+  
+  chisq,redChi2= chi2(y_data, myLandau(x_data,*coeff)  ,coeff)
+
+  return coeff,pcov,chisq,redChi2
+
+def fit_Langauss_histogram2(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1,1], parsBoundsLow=-np.inf, parsBoundsUp=np.inf ):
+
+  mpv=initial_pars[0]
+  sigma=initial_pars[1]
+  gsigma=initial_pars[2]
+  A=initial_pars[3]
+  bin_centers =get_centers(bins)          
+  _mask = (counts > 0)&(bin_centers>xmin)&(bin_centers<xmax)
+  y_data=counts[_mask]
+  x_data=bin_centers[_mask]
+  yerr=np.sqrt(y_data)
+  coeff, pcov = curve_fit(myLandauGauss, x_data, y_data,sigma=yerr,  absolute_sigma=True, p0=(mpv, sigma,gsigma,  A), bounds=( parsBoundsLow, parsBoundsUp))
+  chisq,redChi2= chi2(y_data, myLandauGauss(x_data,*coeff)  ,coeff)
+
+  return coeff,pcov, chisq,redChi2
+
+
+
+
 
 ### fit landau+gaussian pedestal:
 def fit_LandauGaussinPed_histogram(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1,1,1,1], parsBoundsLow=-np.inf, parsBoundsUp=np.inf ):
