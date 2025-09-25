@@ -122,7 +122,7 @@ class aotr2:
            
             supp_coords, supp_weights = al.select_pixels_RMS(image_data, self.rms_ped, self.CLU_CUT_SIGMA)
             if len(supp_weights)==0:
-                print ("empty event",i,"... skipping")
+                #print ("empty event",i,"... skipping")
                 continue
             
             zeroSupp_trasposta = supp_coords
@@ -146,17 +146,22 @@ class aotr2:
                 h_cluSizes_i, _ = np.histogram(clu_sizes, bins=100, range=(0, 100))                               
                 self.h_cluSizeAll = self.h_cluSizeAll + h_cluSizes_i
 
-                if (max(clu_sizes)>6) and  (n_images<1000) : 
-                     #salvo immagine
-                     n_images+=1 
-                     nomefile=self.file_path+'/img_cluSize10_'+str(n_images)+'.fits'
-                     header = fits.Header()
-                     header['DATE-OBS'] = time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime())
-                     #Saving Image.FITS
-                     # print("DEBUG11: before saving.. data.shape=",data.shape)
-                     hdu = fits.PrimaryHDU(data, header=header)
-                     hdulist = fits.HDUList([hdu])
-                     hdulist.writeto(nomefile, overwrite=True)
+                #aggiungo n timestamps tanti cluster trovati nell'immagine
+                times_clusters=[timestamp]*len(clu_sizes)
+                timestamps_all=np.array( times_clusters)
+                #print("AAAA len w_clusterAll=",len(self.w_clusterAll), "  len size=",len(clu_sizes),"len timesall=", len(timestamps_all))
+
+              #  if (max(clu_sizes)>6) and  (n_images<1000) : 
+              #       #salvo immagine
+              #       n_images+=1 
+              #       nomefile=self.file_path+'/img_cluSize10_'+str(n_images)+'.fits'
+              #       header = fits.Header()
+              #       header['DATE-OBS'] = time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime())
+              #       #Saving Image.FITS
+              #       # print("DEBUG11: before saving.. data.shape=",data.shape)
+              #       hdu = fits.PrimaryHDU(data, header=header)
+              #       hdulist = fits.HDUList([hdu])
+              #       hdulist.writeto(nomefile, overwrite=True)
 
                      
 
@@ -185,7 +190,7 @@ class aotr2:
                         data_buffer[7] = np.append(data_buffer[7] , cluBary_trasposta[0])
                         data_buffer[8] = np.append(data_buffer[8] , cluBary_trasposta[1])
                         data_buffer[9] = np.append(data_buffer[9] , clu_sizes)
-                        data_buffer[10] = np.append(data_buffer[10] , timestamp)
+                        data_buffer[10] = np.append(data_buffer[10] , timestamps_all)
 
 
     def initialize_camera(self):
@@ -531,7 +536,7 @@ class aotr2:
 
         print ('SAVE_EVENTLIST=',self.SAVE_EVENTLIST)
         if self.SAVE_EVENTLIST:
-            outfileVectors = self.file_path + 'events_list' + self.pixMask_suffix + self.cluCut_suffix + '_v2.npz'
+            outfileVectors = self.file_path + 'events_list' + self.pixMask_suffix + self.cluCut_suffix + '_v3.npz'
             np.savez(outfileVectors, w=self.w_all, x_pix=self.x_allClu, y_pix=self.y_allClu, sizes=self.clusizes_all,timestamps=self.timestamp  )
 
         if self.GUI==True:    

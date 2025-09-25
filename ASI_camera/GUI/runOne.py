@@ -51,8 +51,10 @@ print ("max_time= ",MAX_TIME)
 
 
 xyRebin=5
-sigma=10
-cluster=10
+#sigma=10
+#cluster=10
+sigma=7 
+cluster=20
 ApplyClustering=True
 SaveEventList=True
 raw=False
