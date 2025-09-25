@@ -6,14 +6,14 @@ import zwoasi as asi
 
 
 #base_path='/home/xcf/testCMOS_verticale/new7/'
-base_path='/data/testCMOS_coincidenze/camera1/'
+base_path='/data/testCMOS_coincidenze/29Jul25/camera1/'
 
 
-sample_size=10000
-bkg_sample_size=500
+sample_size=5000
+bkg_sample_size=100
 camera_id=1
 
-EXPO=300000 # us
+EXPO=250000 # us
 ### creare loop principale
 for i in range(0,500):
     print("iteration ",i)
