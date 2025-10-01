@@ -219,7 +219,7 @@ w1cc=[]
 w0cc=[]
 
 minfit=0.2
-maxfit=2
+maxfit=2.0
 
 
 ##### cerco coincidenze:
@@ -256,11 +256,11 @@ fig2.colorbar(im,ax=ax1, orientation='vertical',label="log10(counts)")
 # spettro energia cmos 0
 ax2=plt.subplot(222)
 ax2.set_title("energy spectrum CMOS 0")
-countsClu_all, binsE = np.histogram( w_all, bins = int(2*NBINS/4.), range = (-NBINS,NBINS) )
-countsClu1_all, binsE = np.histogram( w1_all, bins = int(2*NBINS/4.), range = (-NBINS,NBINS) )
+countsClu_all, binsE = np.histogram( w_all, bins = int(2*NBINS/8.), range = (-NBINS,NBINS) )
+countsClu1_all, binsE = np.histogram( w1_all, bins = int(2*NBINS/8.), range = (-NBINS,NBINS) )
 
-countsClu, binsE = np.histogram( np.array(w0cc)  , bins = int(2*NBINS/4.), range = (-NBINS,NBINS) )
-countsClu1, binsE = np.histogram( np.array(w1cc)  , bins = int(2*NBINS/4.), range = (-NBINS,NBINS) )
+countsClu, binsE = np.histogram( np.array(w0cc)  , bins = int(2*NBINS/8.), range = (-NBINS,NBINS) )
+countsClu1, binsE = np.histogram( np.array(w1cc)  , bins = int(2*NBINS/8.), range = (-NBINS,NBINS) )
 binsE=binsE*calP1+calP0
 
 ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="cmos 0 - Coincidences")
@@ -331,14 +331,14 @@ print("covLg1=",pcovLg1)
 
 fig2=plt.figure(figsize=(10,10))
 plt.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="cmos 0 - Coincidences")
-plt.hist(binsE[:-1], bins = binsE, weights = countsClu_all, histtype = 'step',label="cmos 0 - ALL  ")
+#plt.hist(binsE[:-1], bins = binsE, weights = countsClu_all, histtype = 'step',label="cmos 0 - ALL  ")
 x=np.arange(minfit,maxfit,0.01)
 plt.plot(x, fh.myLandau(x, *coeff), "-r",label='landau')
 
 
-plt.set_xlabel('E[keV]')
-plt.set_xlim([-1,5])
-plt.set_yscale('log')
+plt.xlabel('E[keV]')
+plt.xlim([-1,5])
+plt.yscale('log')
 plt.legend()
 
 
