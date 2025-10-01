@@ -13,14 +13,16 @@ from tqdm import tqdm
 from scipy.stats import pearsonr
 
 import fit_histogram as fh
-import pylandau
+#import pylandau
 
 calP0=-0.003201340833319255
 calP1=0.003213272145961988
 XBINS=2822
 YBINS=4144
 NBINS=16384  # n.canali ADC (2^14)
-   
+minfit=0.2
+maxfit=2.0
+
 class track():
    def __init__(self, x,y,w):
       self.x = x
@@ -122,10 +124,10 @@ def analyze_tracks(tracks_list,n_energyBins=1000, trackLen=7, min_corr=0.8, n_pi
    print("n_energyBins=",n_energyBins)
    x = []
    countsE_all, binsE = np.histogram(x, bins =n_energyBins, range = (0,100))
-   countsE, binsE = np.histogram(x, bins =n_energyBins, range = (0,100))
+   countsE, binsE = np.histogram(x, bins =n_energyBins, range = (0,100))   # istogramma per ogni pixel
 
    countsETrack_all, binsE = np.histogram(x, bins =n_energyBins, range = (0,100))
-   countsETrack, binsE = np.histogram(x, bins =n_energyBins, range = (0,100))
+   countsETrack, binsE = np.histogram(x, bins =n_energyBins, range = (0,100))   # istogramma E totale traccia (integrando i pixel)
 
    r_all=[]
    size_all=[]
@@ -144,11 +146,11 @@ def analyze_tracks(tracks_list,n_energyBins=1000, trackLen=7, min_corr=0.8, n_pi
       #print("mytrack.w=",mytrack.w[0])
       #print("mytrack.get=",mytrack.w[0])
       
-      if mytrack.getSize()==trackLen and abs(mytrack.corr)>min_corr:
+      if mytrack.getSize()==trackLen and abs(mytrack.corr)>min_corr:  # seleziono size e cut su correlezione
            countsETrack, binsE = np.histogram(mytrack.getTotE(), bins =n_energyBins, range = (0,100))
-           countsETrack_all=countsETrack_all+countsETrack
+           countsETrack_all=countsETrack_all+countsETrack                                            # istogramma E totale
         
-          
+          #aggiungo l'energia all'n-esimo pixel della traccia
            if np.sum(mytrack.w[0:2])/2.>np.sum(mytrack.w[-2:])/2. and mytrack.w[0]>0:
                countsE, binsE = np.histogram(mytrack.w[n_pix], bins =n_energyBins, range = (0,100))
                countsE_all=countsE_all+countsE
@@ -160,8 +162,9 @@ def analyze_tracks(tracks_list,n_energyBins=1000, trackLen=7, min_corr=0.8, n_pi
    return  countsE_all,  countsETrack_all, binsE   
 
 
-def analize_allPix(track_list,SEL_SIZE):
 
+def analize_allPix(track_list,SEL_SIZE):
+   
    xpix=[]
    MPV=[]
    countsETrack=None
@@ -172,15 +175,17 @@ def analize_allPix(track_list,SEL_SIZE):
       countsE_all,  countsETrack_all, binsE =  analyze_tracks(tracks_list, n_energyBins=600,  trackLen=SEL_SIZE, min_corr=0.85, n_pix=n_pix)
       print("nPix=",n_pix)
       #plot E histogram                                  
-      #plt.figure(n_pix)
-      #plt.hist(binsE[:-1], bins =binsE, weights =countsE_all  , histtype = 'step',label='Etracks_'+str(n_pix))
-      #plt.title('Epixel n.  '+str(n_pix))
-      coeff,pcov=  fit_landauHistohram(countsE_all,binsE)   
-      #x=np.arange(-0.5,2.5,0.05)
-      #plt.plot(x, pylandau.landau(x, *coeff), "-")
-
+      plt.figure(n_pix)
+      plt.hist(binsE[:-1], bins =binsE, weights =countsE_all  , histtype = 'step',label='Etracks_'+str(n_pix))
+      plt.title('Epixel n.  '+str(n_pix))
+      #coeff0,pcov0=  fit_landauHistohram(countsE_all,binsE)
+      coeff,pcov,chi2,chi2red=  fh.fit_landauHHisto_cmosMip(countsE_all,binsE,xmin=minfit,xmax=maxfit)
+     
+      x=np.arange(minfit,maxfit,0.05)
+      #plt.plot(x, pylandau.landau(x, *coeff0), "-b")
+      plt.plot(x, fh.myLandau(x, *coeff), "-r",label='landau')
       #plt.xlim(-1,5)
-   
+      plt.show()
       xpix.append(n_pix)
       MPV.append(coeff[0])
 
@@ -225,9 +230,9 @@ fig1, (ax1) = plt.subplots(1, figsize=(12,8))
 #ax1.ylabel("MPV")
 #ax1.xlabel("n pix")
 
-mpv_90=0.6
+mpv_90=0.351
 
-for SEL_SIZE in range(7,20):
+for SEL_SIZE in range(10,11):
    print("SEL_SIZE=",SEL_SIZE)
    xpix,MPV,mpv_track = analize_allPix(tracks_list,SEL_SIZE)
    alpha=np.arcsin(mpv_90/mpv_track)

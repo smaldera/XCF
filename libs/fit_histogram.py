@@ -199,6 +199,51 @@ def fit_Langauss_histogram2(counts,bins,xmin=-100000,xmax=100000, initial_pars=[
   return coeff,pcov, chisq,redChi2
 
 
+###########3
+def fit_landauHHisto_cmosMip(counts,binsE,xmin=-0.5,xmax=2.5, sigma0=0.4):
+
+   mask=(binsE>xmin)&(binsE<xmax)
+   mask=mask[:-1] # i bin hanno un elemento in piu'!!!
+   max_val=max(counts*mask)
+   max_index=np.argmax(counts*mask)
+   max_x=binsE[ max_index]+(binsE[1]-binsE[0])/2.
+   
+   print( "max_val=", max_val)
+   print( "max_x=", max_x, " max_index =", max_index)
+   
+ 
+   initial_pars=[max_x,sigma0,max_val]
+   lims_low=[max_x-0.1,sigma0-0.38,max_val-20]
+   lims_up=[max_x+0.1,sigma0+0.2,max_val+20]  
+   coeff,pcov,chi2,chi2red= fit_Landau_histogram2(counts,binsE,xmin=xmin,xmax=xmax,  initial_pars= initial_pars, parsBoundsLow=lims_low, parsBoundsUp=lims_up  )
+   print ("coeff=",coeff)
+   print ("pcov=",pcov)
+  
+   return  coeff,pcov,chi2,chi2red
+
+def fit_langaussHisto_cmosMip(counts,binsE,xmin=-0.5,xmax=2.5, sigma0=0.4,gsigma0=0.4):
+
+   mask=(binsE>xmin)&(binsE<xmax)
+   mask=mask[:-1] # i bin hanno un elemento in piu'!!!
+   max_val=max(counts*mask)
+   max_index=np.argmax(counts*mask)
+   max_x=binsE[ max_index]+(binsE[1]-binsE[0])/2.
+   
+   print( "max_val=", max_val)
+   print( "max_x=", max_x, " max_index =", max_index)
+   
+ 
+   initial_pars=[max_x,sigma0,gsigma0,max_val]
+   lims_low=[max_x-0.1,sigma0-0.39,gsigma0-0.39,max_val-20]
+   lims_up=[max_x+0.1,sigma0+0.2,gsigma0+0.2,max_val+20]  
+   coeff,pcov,chi2,chi2red= fit_Langauss_histogram2(counts,binsE,xmin=xmin,xmax=xmax,  initial_pars= initial_pars, parsBoundsLow=lims_low, parsBoundsUp=lims_up  )
+   print ("coeff=",coeff)
+   print ("pcov=",pcov)
+  
+   return  coeff,pcov,chi2,chi2red
+
+#############3
+
 
 
 

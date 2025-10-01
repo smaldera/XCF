@@ -18,58 +18,6 @@ import fit_histogram as fh
 #
 
 
-##############3
-def fit_landauHistohram(counts,binsE,xmin=-0.5,xmax=2.5, sigma0=0.4):
-
-   mask=(binsE>xmin)&(binsE<xmax)
-   mask=mask[:-1] # i bin hanno un elemento in piu'!!!
-   max_val=max(counts*mask)
-   max_index=np.argmax(counts*mask)
-   max_x=binsE[ max_index]+(binsE[1]-binsE[0])/2.
-   
-   print( "max_val=", max_val)
-   print( "max_x=", max_x, " max_index =", max_index)
-   
- 
-   initial_pars=[max_x,sigma0,max_val]
-   lims_low=[max_x-0.1,sigma0-0.38,max_val-20]
-   lims_up=[max_x+0.1,sigma0+0.2,max_val+20]  
-   coeff,pcov,chi2,chi2red= fh.fit_Landau_histogram2(counts,binsE,xmin=xmin,xmax=xmax,  initial_pars= initial_pars, parsBoundsLow=lims_low, parsBoundsUp=lims_up  )
-   print ("coeff=",coeff)
-   print ("pcov=",pcov)
-  
-   return  coeff,pcov,chi2,chi2red
-
-
-######3
-def fit_langaussHistohram(counts,binsE,xmin=-0.5,xmax=2.5, sigma0=0.4,gsigma0=0.4):
-
-   mask=(binsE>xmin)&(binsE<xmax)
-   mask=mask[:-1] # i bin hanno un elemento in piu'!!!
-   max_val=max(counts*mask)
-   max_index=np.argmax(counts*mask)
-   max_x=binsE[ max_index]+(binsE[1]-binsE[0])/2.
-   
-   print( "max_val=", max_val)
-   print( "max_x=", max_x, " max_index =", max_index)
-   
- 
-   initial_pars=[max_x,sigma0,gsigma0,max_val]
-   lims_low=[max_x-0.1,sigma0-0.39,gsigma0-0.39,max_val-20]
-   lims_up=[max_x+0.1,sigma0+0.2,gsigma0+0.2,max_val+20]  
-   coeff,pcov,chi2,chi2red= fh.fit_Langauss_histogram2(counts,binsE,xmin=xmin,xmax=xmax,  initial_pars= initial_pars, parsBoundsLow=lims_low, parsBoundsUp=lims_up  )
-   print ("coeff=",coeff)
-   print ("pcov=",pcov)
-  
-   return  coeff,pcov,chi2,chi2red
-
-
-
-
-######
-
-
-
 
 import argparse
 formatter = argparse.ArgumentDefaultsHelpFormatter
@@ -267,8 +215,11 @@ ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label=
 ax2.hist(binsE[:-1], bins = binsE, weights = countsClu_all, histtype = 'step',label="cmos 0 - ALL  ")
 
 
-coeff,pcov,chi2,chi2red=  fit_landauHistohram(countsClu,binsE,xmin=minfit,xmax=maxfit)   
-coeffLg,pcovLg,chi2Lg,chi2redLg=  fit_langaussHistohram(countsClu,binsE,xmin=minfit,xmax=maxfit)
+#coeff,pcov,chi2,chi2red=  fit_landauHistohram(countsClu,binsE,xmin=minfit,xmax=maxfit)   
+coeff,pcov,chi2,chi2red=  fh.fit_landauHHisto_cmosMip(countsClu,binsE,xmin=minfit,xmax=maxfit)   
+
+#coeffLg,pcovLg,chi2Lg,chi2redLg=  fit_langaussHistohram(countsClu,binsE,xmin=minfit,xmax=maxfit)
+coeffLg,pcovLg,chi2Lg,chi2redLg=  fh.fit_langaussHisto_cmosMip(countsClu,binsE,xmin=minfit,xmax=maxfit)
 
 x=np.arange(minfit,maxfit,0.01)
 plt.plot(x, fh.myLandau(x, *coeff), "-r",label='landau')
@@ -297,8 +248,8 @@ ax4.set_title("energy spectrum CMOS 1")
 ax4.hist(binsE[:-1], bins = binsE, weights = countsClu1, histtype = 'step',label="cmos 1 - Coincidences ")
 ax4.hist(binsE[:-1], bins = binsE, weights = countsClu1_all, histtype = 'step',label="cmos 1 - ALL")
 
-coeff1,pcov1,chi2_1,chi2red_1=  fit_landauHistohram(countsClu1,binsE,xmin=minfit,xmax=maxfit)
-coeffLg1,pcovLg1,chi2Lg1,chi2redLg1=  fit_langaussHistohram(countsClu1,binsE,xmin=minfit,xmax=maxfit)
+coeff1,pcov1,chi2_1,chi2red_1=  fh.fit_landauHHisto_cmosMip(countsClu1,binsE,xmin=minfit,xmax=maxfit)
+coeffLg1,pcovLg1,chi2Lg1,chi2redLg1=  fh.fit_langaussHisto_cmosMip(countsClu1,binsE,xmin=minfit,xmax=maxfit)
 plt.plot(x, fh.myLandau(x, *coeff1), "-r",label='landau')
 #plt.plot(x, fh.myLandauGauss(x, *coeffLg1), "-r",label='lanGauss')
 
