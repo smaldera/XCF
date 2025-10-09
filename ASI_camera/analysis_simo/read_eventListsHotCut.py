@@ -45,8 +45,8 @@ parser.add_argument('-yprojName','--yprojName',type=str ,  help="y-projection fi
 parser.add_argument('-suffix','--suffix',type=str ,  help="suffix in file names", required=False,default='')
 
 
-FIND_HOTPIXELS=True
-CUT_HOT_PIXELS=True
+FIND_HOTPIXELS=False
+CUT_HOT_PIXELS=False
 PLOT_MAP=True
 
 args = parser.parse_args()
@@ -121,7 +121,8 @@ fig2=plt.figure(figsize=(10,10))
 ax1=plt.subplot(221)
 
 #plot
-myCut=np.where( ((w_all)>50)&(x_all>5)&(x_all<2808))
+myCut=np.where(w_all>100)
+#myCut=np.where( ((w_all)>50)&(x_all>5)&(x_all<2808))
 #myCut=np.where( ((size_all)>1))
 #myCut=np.where( (w_all>40)&( (  ((x_all-1300)**2+(y_all-1750)**2)<900**2)  ))
 #myCut=np.where( (w_all>40)&(x_all>1060)&(x_all<1980)&(y_all>1475)&(y_all<2660) )
@@ -170,6 +171,8 @@ print("w_all[myCut].size()=",w_all.size )
 if PLOT_MAP==True:
     fig3=plt.figure(figsize=(10,10))
     plt.imshow(np.log10(counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])  
+    #plt.imshow((counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])  
+
     #plt.legend()
     plt.colorbar()
     plt.title('log10(counts)')
