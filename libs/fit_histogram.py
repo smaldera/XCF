@@ -176,7 +176,7 @@ def fit_Landau_histogram2(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,
   y_data=counts[_mask]
   x_data=bin_centers[_mask]
   yerr=np.sqrt(y_data)
-  coeff, pcov = curve_fit(myLandau, x_data, y_data,sigma=yerr,  absolute_sigma=True, p0=(mpv, sigma,  A), bounds=(0.01, 10000))
+  coeff, pcov = curve_fit(myLandau, x_data, y_data,sigma=yerr,  absolute_sigma=True, p0=(mpv, sigma,  A),  bounds=(parsBoundsLow, parsBoundsUp ))
   
   chisq,redChi2= chi2(y_data, myLandau(x_data,*coeff)  ,coeff)
 
@@ -211,10 +211,22 @@ def fit_landauHHisto_cmosMip(counts,binsE,xmin=-0.5,xmax=2.5, sigma0=0.4):
    print( "max_val=", max_val)
    print( "max_x=", max_x, " max_index =", max_index)
    
- 
+  
+   
    initial_pars=[max_x,sigma0,max_val]
    lims_low=[max_x-0.1,sigma0-0.38,max_val-20]
-   lims_up=[max_x+0.1,sigma0+0.2,max_val+20]  
+   lims_up=[max_x+0.1,sigma0+0.2,max_val+20]
+
+   if  lims_low[0] <0.4:
+        lims_low[0]=0.4
+   if    initial_pars[0]<0.4:
+        initial_pars[0]=0.4
+
+   print(" lims_low= ",lims_low)
+   print(" initial par= ", initial_pars)
+   print(" lims_up= ",lims_up)
+
+   
    coeff,pcov,chi2,chi2red= fit_Landau_histogram2(counts,binsE,xmin=xmin,xmax=xmax,  initial_pars= initial_pars, parsBoundsLow=lims_low, parsBoundsUp=lims_up  )
    print ("coeff=",coeff)
    print ("pcov=",pcov)
