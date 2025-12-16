@@ -13,7 +13,7 @@ import fit_histogram as fitSimo
 from  histogramSimo import histogramSimo
 import matplotlib as mpl
 
-mpl.rcParams['font.size']=15  #!!!!!!!!!!!!!!!!!!!!!!!!!!
+mpl.rcParams['font.size']=18  #!!!!!!!!!!!!!!!!!!!!!!!!!!
 
    
 
@@ -40,7 +40,7 @@ def plot_all(base_path,input_files,legend,norm_limits,x_lines,labels,labels_scal
                 hor_al='left'
                 print("LEFT!")
             plt.vlines(x=x_lines[i][j]/1000., ymin=0.001,ymax=labels_scale[i][j]*3,color='lightgray', linestyle='--')
-            ax.text(x_lines[i][j]/1000.,labels_scale[i][j]*4 ,labels[i][j], horizontalalignment=hor_al, verticalalignment='center', size=10, color='gray')
+            ax.text(x_lines[i][j]/1000.,labels_scale[i][j]*4 ,labels[i][j], horizontalalignment=hor_al, verticalalignment='center', size=15, color='gray')
         
         
         
@@ -66,7 +66,7 @@ if __name__ == "__main__":
     norm_limtis=[[6250,6425],[7350,7525],[2550, 2675],[4400, 4550],[2780,2880]]
     x_lines=[[6332,1740],[7443,9886,10982],[2631,2631*3,2631*4],[4450,4450*2],[2835,2835*3,2835*4]]
     labels=[["Si400\nn=1",r'Si K$\alpha$'],['Ge442\nn=1',r'Ge K$\alpha$',r'Ge K$\beta$'],['Ge111\nn=1','Ge111\nn=3','Ge111\nn=4'],['Si200\nn=1','Si200\nn=2'],['Si111\nn=1 ','Si111\nn=3','Si111\nn=4']]
-    labels_scale=[[1,0.4],[1,0.4,0.4],[1.1,1.1,1.1],[1,1],[0.9,0.9,0.9]]
+    labels_scale=[[1,0.4],[1,0.4,0.4],[1.2,1.2,1.2],[1,1],[0.8,0.8,0.8]]
    
     plot_all(BASE_PATH,input_files,legend,norm_limtis,x_lines,labels,labels_scale)
     

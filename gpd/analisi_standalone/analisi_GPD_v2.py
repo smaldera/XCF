@@ -141,7 +141,7 @@ plt.legend()
 """
 print("fit modulation...")
 
-histo_phi_data, histo_phi_bins, phase, phase_err, mu, mu_err, ax_mod = modulation(phi=phi2,bins=bins_modulation,fit=True, title_label='modulation', color='blue')
+histo_phi_data, histo_phi_bins, phase, phase_err, mu, mu_err, ax_mod = modulation(phi=phi1,bins=bins_modulation,fit=True, title_label='modulation', color='blue')
 
 ###############################################################################################################################
 """
@@ -166,7 +166,7 @@ ax2.set_ylabel('counts')
 plt.grid()
 
 
-mu_stokes, pred_phi, err_mu = get_modulation_factor_stokes(np.array(phi2))
+mu_stokes, pred_phi, err_mu = get_modulation_factor_stokes(np.array(phi1))
 
 print('====================================================================================')
 print('mu from fit = ', float("%.2f" % mu), ' +- ', float("%.2f" % mu_err))

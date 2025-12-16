@@ -206,8 +206,9 @@ class GPD_analysis(ixpeDqmTask):
         if kwargs.get('output_folder')!=None:
             plt.savefig(kwargs.get('output_folder')+'dist_ratioLW.png')
         mom_ratio_cut = '%s > %.4f' % (expr, min_mom_ratio)
-        cut_final=cut_logical_and(cut2,mom_ratio_cut)
-
+        #cut_final=cut_logical_and(cut2,mom_ratio_cut)
+        cut_final=cut2
+        
         print ("\ncut_final = ",cut_final,'\n')
        
         x = self.run_list.values('TRK_BARX', cut_final)

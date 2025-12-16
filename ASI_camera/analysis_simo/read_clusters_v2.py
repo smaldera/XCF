@@ -20,8 +20,8 @@ calP1=0.003213272145961988
 XBINS=2822
 YBINS=4144
 NBINS=16384  # n.canali ADC (2^14)
-minfit=0.2
-maxfit=2.0
+minfit=0.3
+maxfit=2
 
 class track():
    def __init__(self, x,y,w):
@@ -72,6 +72,11 @@ def fit_landauHistohram(counts,binsE,xmin=-0.5,xmax=2.5):
  
    initial_pars=[max_x,0.4,max_val]
    lims_low=[max_x-0.1,0.2,max_val-20]
+   if max_x-0.1<0.45:
+      lims_low[0]=0.45
+   if initial_pars[0]<0.45:
+       initial_pars[0]=0.45
+      
    lims_up=[max_x+0.1,0.6,max_val+20]  
    coeff,pcov= fh.fit_Landau_histogram(counts,binsE,xmin=xmin,xmax=xmax,  initial_pars= initial_pars, parsBoundsLow=lims_low, parsBoundsUp=lims_up  )
    print ("coeff=",coeff)
@@ -126,8 +131,8 @@ def analyze_tracks(tracks_list,n_energyBins=1000, trackLen=7, min_corr=0.8, n_pi
    countsE_all, binsE = np.histogram(x, bins =n_energyBins, range = (0,100))
    countsE, binsE = np.histogram(x, bins =n_energyBins, range = (0,100))   # istogramma per ogni pixel
 
-   countsETrack_all, binsE = np.histogram(x, bins =n_energyBins, range = (0,100))
-   countsETrack, binsE = np.histogram(x, bins =n_energyBins, range = (0,100))   # istogramma E totale traccia (integrando i pixel)
+   countsETrack_all, binsEtrack = np.histogram(x, bins =100, range = (0,100))
+   countsETrack, binsEtrack= np.histogram(x, bins =100, range = (0,100))   # istogramma E totale traccia (integrando i pixel)
 
    r_all=[]
    size_all=[]
@@ -147,7 +152,7 @@ def analyze_tracks(tracks_list,n_energyBins=1000, trackLen=7, min_corr=0.8, n_pi
       #print("mytrack.get=",mytrack.w[0])
       
       if mytrack.getSize()==trackLen and abs(mytrack.corr)>min_corr:  # seleziono size e cut su correlezione
-           countsETrack, binsE = np.histogram(mytrack.getTotE(), bins =n_energyBins, range = (0,100))
+           countsETrack, binsEtrack = np.histogram(mytrack.getTotE(), bins =100, range = (0,100))
            countsETrack_all=countsETrack_all+countsETrack                                            # istogramma E totale
         
           #aggiungo l'energia all'n-esimo pixel della traccia
@@ -159,49 +164,69 @@ def analyze_tracks(tracks_list,n_energyBins=1000, trackLen=7, min_corr=0.8, n_pi
                countsE, binsE = np.histogram(mytrack.w[-(n_pix+1)], bins =n_energyBins, range = (0,100))                 
                countsE_all=countsE_all+countsE
 
-   return  countsE_all,  countsETrack_all, binsE   
+   return  countsE_all,  countsETrack_all, binsE, binsEtrack   
 
 
 
-def analize_allPix(track_list,SEL_SIZE):
+def analize_allPix(track_list,SEL_SIZE,MIN_CORR=0.85):
    
    xpix=[]
    MPV=[]
+   MPVerr=[]
    countsETrack=None
    binsE=None
    # loop su n_pix (ie n-esima posizione lungo la traccia, una volta fissata la lunghezza)
    for n_pix in range(0,SEL_SIZE):
    
-      countsE_all,  countsETrack_all, binsE =  analyze_tracks(tracks_list, n_energyBins=600,  trackLen=SEL_SIZE, min_corr=0.85, n_pix=n_pix)
+      countsE_all,  countsETrack_all, binsE, binsEtrack=  analyze_tracks(tracks_list, n_energyBins=2400,  trackLen=SEL_SIZE, min_corr=MIN_CORR, n_pix=n_pix)
       print("nPix=",n_pix)
-      #plot E histogram                                  
-      plt.figure(n_pix)
-      plt.hist(binsE[:-1], bins =binsE, weights =countsE_all  , histtype = 'step',label='Etracks_'+str(n_pix))
-      plt.title('Epixel n.  '+str(n_pix))
+      
       #coeff0,pcov0=  fit_landauHistohram(countsE_all,binsE)
       coeff,pcov,chi2,chi2red=  fh.fit_landauHHisto_cmosMip(countsE_all,binsE,xmin=minfit,xmax=maxfit)
-     
+
+      #plot E histogram                                  
+      plt.figure(n_pix,(13,10))
+      figPixels, (axPix) = plt.subplots(1, figsize=(12,8))
+      axPix.hist(binsE[:-1], bins =binsE, weights =countsE_all  , histtype = 'step',label='Etracks_'+str(n_pix))
+      axPix.set_title('Epixel n.  '+str(n_pix))
       x=np.arange(minfit,maxfit,0.05)
-      #plt.plot(x, pylandau.landau(x, *coeff0), "-b")
-      plt.plot(x, fh.myLandau(x, *coeff), "-r",label='landau')
-      #plt.xlim(-1,5)
-      plt.show()
-      xpix.append(n_pix)
+      axPix.plot(x, fh.myLandau(x, *coeff), "-r",label='landau')
+      axPix.set_xlim(-0.2,2)
+      #plt.show()
+      xpix.append(n_pix+1)
       MPV.append(coeff[0])
+      MPVerr.append(pcov[0][0]**0.5)
 
    #end loop pixels
    # plot tot track energy
-   #plt.figure(60)
-   #plt.title('track totalE')
-   #plt.ylabel("abs(cluster lienar correlation coef.)")
-   #plt.hist(binsE[:-1], bins =binsE, weights=countsETrack_all, histtype = 'step')
-   # fit total energy
-   coeff,pcov=  fit_landauHistohram(countsETrack_all,binsE,xmin=1,xmax=20)    
+   print("!!!!!!!!!! FIT total track Energy =====================  ")
+   figEtrack, (axEt) = plt.subplots(1, figsize=(12,8))
+   axEt.set_title('track totalE+ SIZE='+str(SEL_SIZE))
+   axEt.set_xlabel("track total E [keV]")
+   axEt.hist(binsEtrack[:-1], bins =binsEtrack, weights=countsETrack_all, histtype = 'step')
+
+  
+
+   initial_pars=[ 9,    1.8,  600]
+   lims_low=[5,1,500]
+   lims_up=[15,4,1000]
+  
+   
+   coeff,pcov,chi2,chi2red= fh.fit_Landau_histogram2(countsETrack_all,binsEtrack,xmin=1,xmax=20,  initial_pars= initial_pars, parsBoundsLow=lims_low, parsBoundsUp=lims_up  )
+
+   
+   print("binE=",binsEtrack)
+   print("counts=",countsETrack_all)
+   al.save_histo('trackE', countsETrack_all,binsEtrack)
    x=np.arange(1,20,0.05)
-   #plt.plot(x, pylandau.landau(x, *coeff), "-")  
+   axEt.plot(x, fh.myLandau(x, coeff[0],coeff[1],coeff[2]))
+
+   
    mpv_track=coeff[0] 
 
-   return xpix,MPV, mpv_track
+   
+   
+   return xpix,MPV,MPVerr, mpv_track
    
 
 
@@ -225,22 +250,24 @@ size_all=0
 #apply Ecut and compute r_corr
 r_all ,totE, size_all  = cut_allTracks(tracks_list,Ecut=0.)
 
-fig1, (ax1) = plt.subplots(1, figsize=(12,8))
+fig1, (axFinal) = plt.subplots(1, figsize=(12,8))
 
 #ax1.ylabel("MPV")
 #ax1.xlabel("n pix")
 
 mpv_90=0.351
+MIN_CORR=0.5
 
-for SEL_SIZE in range(10,11):
+for SEL_SIZE in [10]:
    print("SEL_SIZE=",SEL_SIZE)
-   xpix,MPV,mpv_track = analize_allPix(tracks_list,SEL_SIZE)
+   xpix,MPV,MPVerr,mpv_track = analize_allPix(tracks_list,SEL_SIZE, MIN_CORR=MIN_CORR)
    alpha=np.arcsin(mpv_90/mpv_track)
    print("ALPHA=",alpha, " (",np.degrees(alpha),"deg)" )
    depth=np.array(xpix)*4.6*np.tan(alpha)
-   ax1.plot(depth,MPV,'o',label="size="+str(SEL_SIZE))
 
-plt.legend()
+   axFinal.errorbar(depth,MPV,yerr=MPVerr,fmt='o',label="size="+str(SEL_SIZE))
+
+axFinal.legend()
 
 
    
@@ -265,30 +292,7 @@ plt.plot(totE,r_all,"p", alpha=0.5)
 plt.xlabel("cluster E [keV]")
 plt.ylabel("abs(cluster lienar correlation coef.)")
 
-# plot tot track energy
-#plt.figure(60)
-#plt.title('track totalE')
-#plt.ylabel("abs(cluster lienar correlation coef.)")
-#plt.hist(binsE[:-1], bins =binsE, weights=countsETrack_all, histtype = 'step')
-# fit total energy
-#coeff,pcov=  fit_landauHistohram(countsETrack_all,binsE,xmin=1,xmax=20)    
-#x=np.arange(1,20,0.05)
-#plt.plot(x, pylandau.landau(x, *coeff), "-")
 
-
-#pv_track=coeff[0]
-#pv_90=0.6
-#alpha=np.arcsin(mpv_90/mpv_track)
-#print("ALPHA=",alpha, " (",np.degrees(alpha),"deg)" )
-
-# plot MPV vs n_pix
-#plt.figure(70)
-#plt.ylabel("MPV")
-#plt.xlabel("n pix")
-#depth=np.array(xpix)*4.6*np.tan(alpha)
-#plt.plot(depth,MPV,'ro')
-#plt.legend()
-#plt.title('track totalE')
 
 
 
