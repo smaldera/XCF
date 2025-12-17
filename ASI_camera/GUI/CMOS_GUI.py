@@ -11,7 +11,8 @@ from cmos_pedestal import capture
 from utils_v2 import read_image
 from utils_v2 import plot_image
 from utils_v2 import isto_all
-from gui_analyzer_parallel import aotr2
+#from gui_analyzer_parallel import aotr2
+from gui_analyzer_parallelSaveLargeClu import aotr2
 import multiprocessing
 import glob
 
@@ -105,12 +106,12 @@ def CaptureAndAnalyze2(path, sample_size, WB_R, WB_B, EXPO, GAIN, bkg_folder_a, 
         print('Make event list in CaptureAndAnalyze2=',NoEvent)
         OBJ = aotr2(path, sample_size, WB_R, WB_B, EXPO, GAIN, bkg_folder_a, xyRebin, sigma, cluster, NoClustering, NoEvent,
                    Raw, Eps,num ,leng,bunch)
-        try:
-            OBJ.CaptureAnalyze() #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            sg.popup("Analysis has been completed and files are now stored in: " + path)
-        except Exception as e:
-            sg.popup(f"Error in CaptureAndAnalyze2: {e}")
-            print("\n There are troubles in CaptureAndAnalyze2: ", e)
+        # try:
+        OBJ.CaptureAnalyze() #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        sg.popup("Analysis has been completed and files are now stored in: " + path)
+        #except Exception as e:
+            #sg.popup(f"Error in CaptureAndAnalyze2: {e}")
+            #print("\n There are troubles in CaptureAndAnalyze2: ", e)
             
 def DataChunk(path, name, sample_size, WB_R, WB_B, EXPO, GAIN): #Tries to take a snap
     try:
