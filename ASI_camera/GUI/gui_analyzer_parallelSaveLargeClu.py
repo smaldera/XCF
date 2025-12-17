@@ -30,7 +30,7 @@ class aotr2:
         self.length = leng
         self.PIX_CUT_SIGMA = sigma
         self.CLU_CUT_SIGMA = cluster
-        self.REBINXY = xyRebin
+        self.REBINXY = int(xyRebin)
         self.APPLY_CLUSTERING = NoClustering
         self.SAVE_EVENTLIST = NoEvent
         self.myeps = Eps  # DBSCAN
@@ -456,7 +456,7 @@ class aotr2:
            
            ax3[0].cla()
            #im=ax3[0].imshow(np.log10(All2dRaw), interpolation='nearest', origin='lower', extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
-           im=ax3[0].imshow(All2dRaw, interpolation='nearest', origin='lower', extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
+           im=ax3[0].imshow(np.log10(All2dRaw), interpolation='nearest', origin='lower', extent=[self.xedges[0], self.xedges[-1], self.yedges[0], self.yedges[-1]])
            self.bins = np.linspace(-self.NBINS, self.NBINS, 2*self.NBINS+1)
            self.bins = calP0 + calP1 * self.bins
 

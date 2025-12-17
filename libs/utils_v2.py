@@ -17,8 +17,9 @@ def read_image(nomefile):
 
 
 def plot_image(image_data):
+    m = np.mean(image_data)
     plt.figure()
-    plt.imshow(image_data, cmap='plasma')
+    plt.imshow(image_data, cmap='plasma', vmin=0, vmax=5*m)
     plt.colorbar()
     plt.show()
 

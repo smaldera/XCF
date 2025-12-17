@@ -12,8 +12,10 @@ parser.add_argument('path', type=str,  help='data path')
 args = parser.parse_args()
 
 path=args.path
-filename='events_list_pixCut10sigma_CLUcut_10sigma_v2.npz'
+#filename='events_list_pixCut10sigma_CLUcut_10sigma_v2.npz'
 #filename='events_list_pixCut10.0sigma5_CLUcut_10.0sigma.npz'
+filename='events_list_pixCut10sigma_CLUcut_10sigma_v3.npz'
+
 cmd='ls  '+path+filename+'  > '+path+'/file_list.txt'
 
 

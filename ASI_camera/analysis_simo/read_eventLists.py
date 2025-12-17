@@ -51,7 +51,7 @@ NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
 YBINS=4144
 
-REBINXY=1.
+REBINXY=10.
 
 SAVE_HISTOGRAMS=True
 spectrum_file_name='test_spectrum.npz'
