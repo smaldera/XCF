@@ -5,7 +5,6 @@ from matplotlib import pyplot as plt
 #import sys
 import utils_v2 as al
 import clustering_cmos 
-#import zwoasi as asi
 from tqdm import  tqdm
 from astropy.io import fits
 import multiprocessing

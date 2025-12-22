@@ -85,15 +85,18 @@ w_all=np.array([])
 x_all=np.array([])
 y_all=np.array([])
 size_all=np.array([])
+timestamp_all=np.array([])
 
 for f in ff:
-    print(f)
+    print(f[:-1])
     #w, x,y=al.retrive_vectors(f[:-1])
-    w, x,y,size=al.retrive_vectors2(f[:-1])  
+    #w, x,y,size=al.retrive_vectors2(f[:-1])
+    w, x,y,size,timestamp=al.retrive_vectors3(f[:-1])
     w_all=np.append(w_all,w)
     x_all=np.append(x_all,x)
     y_all=np.append(y_all,y)
     size_all=np.append(size_all,size)
+    timestamp_all=np.append(timestamp_all,timestamp)
 
 print("len w_all ",len(w_all))
 print("len x_all ",len(x_all))
@@ -105,7 +108,7 @@ print("len y_all ",len(y_all))
 if FIND_HOTPIXELS==True:
 
     hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=5)
-    hotPix.find_HotPixels(n_sigma=3,low_threshold=10, min_counts=10) # low_treshold in ADC, 
+    hotPix.find_HotPixels(n_sigma=10,low_threshold=50, min_counts=40) # low_treshold in ADC, 
     hotPix.save_cuts(DIR+'/cuts.npz')
 if CUT_HOT_PIXELS==True:
     hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=REBINXY)
@@ -122,8 +125,10 @@ fig2=plt.figure(figsize=(10,10))
 ax1=plt.subplot(221)
 
 #plot
+energy_all=w_all*calP1+calP0
+myCut=np.where( (w_all>50))
+#myCut=np.where( (w_all>50)&(energy_all<2.4)&(energy_all>2.2))
 
-myCut=np.where(w_all>50)
 #myCut=np.where( ((w_all)>50)&(x_all>5)&(x_all<2808))
 #myCut=np.where( ((size_all)>1))
 #myCut=np.where( (w_all>40)&( (  ((x_all-1300)**2+(y_all-1750)**2)<900**2)  ))
