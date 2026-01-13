@@ -135,7 +135,7 @@ class aotr2:
             #print("DEBUG=> analizza id=",id," => going to apply clustering....  ")
                         
             if self.APPLY_CLUSTERING:
-                self.w_clusterAll, self.clu_coordsAll, clu_sizes, clu_baryCoords = clustering_cmos.clustering_v3(np.transpose(supp_coords), supp_weights, myeps=self.myeps, size_threshold=-100, save_file=self.file_path+'/img_cluSize10_'+str(i)+'_'+str(time.clock_gettime_ns(1))[-4:-1])
+                self.w_clusterAll, self.clu_coordsAll, clu_sizes, clu_baryCoords = clustering_cmos.clustering_v3(np.transpose(supp_coords), supp_weights, myeps=self.myeps, size_threshold=10, save_file=self.file_path+'/img_cluSize10_'+str(i)+'_'+str(time.clock_gettime_ns(1))[-4:-1])
 
                 #print("DEBUG=> analizza id=",id," =>  dopo clustering....  ")
                 

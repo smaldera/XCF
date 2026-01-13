@@ -12,6 +12,9 @@ from cmos_pedestal import bg_map_rt
 from gui_analyzer_parallelSaveLargeClu import aotr2
 
 
+## TODO : rendere configurabile la threshold del cluster per salvare la traccia
+
+
 formatter = argparse.ArgumentDefaultsHelpFormatter
 parser = argparse.ArgumentParser(formatter_class=formatter)
 parser.add_argument('-o','--out_path', type=str,  help='out path', required=True)
