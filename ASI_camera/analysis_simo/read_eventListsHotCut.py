@@ -22,12 +22,21 @@ from cutHotPixels import hotPixels
 # cut='xy' if cut on both axis
 # cut=None does the normal w cut
 
-cut='None'
 
-x_inf = 1260
-x_sup = 1700
-y_inf = 1100
-y_sup = 3175
+def str2bool(value):
+    if value.lower() in {'true', 't', 'yes', 'y', '1'}:
+        return True
+    elif value.lower() in {'false', 'f', 'no', 'n', '0'}:
+        return False
+    raise argparse.ArgumentTypeError(f"Invalid boolean: {value}")
+
+
+
+#cut='None'
+#x_inf = 1260
+#x_sup = 1700
+#y_inf = 1100
+#y_sup = 3175
 
 
 import argparse
@@ -43,16 +52,22 @@ parser.add_argument('-specName','--specName',type=str ,  help="spectrum file nam
 parser.add_argument('-xprojName','--xprojName',type=str ,  help="x-projection file name", required=False,default='test_xproj.npz')
 parser.add_argument('-yprojName','--yprojName',type=str ,  help="y-projection file name", required=False,default='test_yproj.npz')
 parser.add_argument('-suffix','--suffix',type=str ,  help="suffix in file names", required=False,default='')
+parser.add_argument('--hotPixelsCut',type=str2bool,  help="if true enable hot pixel cut", required=False,default=True)
 
 
-
+    
 FIND_HOTPIXELS=True
 CUT_HOT_PIXELS=True
 PLOT_MAP=True
 
 args = parser.parse_args()
+print("HOT PIX=",args.hotPixelsCut)
 DIR = args.saveDir
 ff=open(args.inFile,'r')
+
+if (args.hotPixelsCut==False):
+    FIND_HOTPIXELS=False
+    CUT_HOT_PIXELS=False
 
 # retta calibrazione cmos
 calP0=args.calP0
@@ -76,6 +91,7 @@ print("spectrum name=",spectrum_file_name)
 print("x projection name=",xproj_file_name)
 print("y projection name=",yproj_file_name)
 print("suffix=",suffix)
+print("Pixel Cut=",args.hotPixelsCut, "FIND_HOTPIXELS= ",FIND_HOTPIXELS," CUT_HOT_PIXELS=",CUT_HOT_PIXELS)
 
 
 xbins2d=int(XBINS/REBINXY)

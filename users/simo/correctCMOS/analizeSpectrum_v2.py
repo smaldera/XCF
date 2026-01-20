@@ -4,7 +4,6 @@ from matplotlib import pyplot as plt
 import scipy
 from scipy import interpolate
 import sys
-#sys.path.insert(0, '/home/maldera/Desktop/eXTP/softwareXCF/XCF/libs/')
 import utils_v2 as al
 from read_sdd import  pharse_mca
 import fit_histogram as fitSimo
@@ -55,7 +54,9 @@ def compute_HistRatios(p1,p2):
 def dynamic_constfactor(rebin):
 
     rb=[100,50,25,10,5,1]
-    cf=[0.01,0.0025,0.001,0.0002,0.00005,0.0000015]
+    #cf=[0.01,0.0025,0.001,0.0002,0.00005,0.0000015]
+    cf=[0.01,0.0025,0.001,0.0002,0.00005,0.000001]
+
     
     f=interpolate.interp1d(rb,cf, kind='cubic' )
     return (f(rebin))
@@ -125,7 +126,8 @@ def correct_spectrumLin(counts,binCenters):
 
 if __name__ == "__main__":
 
-    path='/home/maldera/IXPE/XCF/data/ASI_55Fe/FF/22April2024/data_3/test_spectrum.npz'
+   # path='/home/maldera/IXPE/XCF/data/ASI_55Fe/FF/22April2024/data_3/test_spectrum.npz'
+    path='/home/maldera/IXPE/XCF/data/MXR_24ott2025/test3/spectrum_all_eps1.5_pixCut10sigma_CLUcut_10sigma.npz'
     nRebin=1
     p=histogramSimo()
     p.read_from_file(path, 'npz' )
