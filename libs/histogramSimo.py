@@ -41,9 +41,9 @@ class histogramSimo():
 
             self.counts=self.counts/ka_h
             
-      def plot(self,ax,labelname):
+      def plot(self,ax,labelname):#,color='C0'):
 
-            histo=ax.hist(self.bins[:-1],bins=self.bins,weights=self.counts, histtype='step', label=labelname)
+            histo=ax.hist(self.bins[:-1],bins=self.bins,weights=self.counts, histtype='step', label=labelname)#, color=color)
 
 
 

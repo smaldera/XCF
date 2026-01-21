@@ -28,8 +28,8 @@ def  plotAllSpectra(InputFileName):
     show_legend=0
     #calP0=-0.0013498026638486778  #calP0Err= 3.3894706711692284e-05
     #calP1=0.0032116875215051385   #calP1Err= 3.284553141476064e-08
-    P0_ = 0
-    P1_ = 0
+    P0_ = None
+    P1_ = None
 
     compute_rate=0 
     time=1
@@ -37,7 +37,7 @@ def  plotAllSpectra(InputFileName):
     low=0.
     up=0.
 
-    fig=plt.figure(1, (10,10))
+    fig=plt.figure(1, (12,6)) #era 12,8
     ax = fig.subplots()
     for line in f:
 
@@ -72,15 +72,17 @@ def  plotAllSpectra(InputFileName):
               legend=splitted[1] 
               print ("legend=",legend)
               show_legend=1
+
         if splitted[0]=="P0":
             P0_=float(splitted[1])
+            # print(f'\n{splitted[1]}')
         if splitted[0]=="P1":
             P1_=float(splitted[1])
             #print('!!!!!!!!!!!',calP1)
 
                     
         if splitted[0]=="ACQ_TIME":
-            compute_time=1
+            compute_rate=1
             if fileFormat=='sdd':
                 time=p.sdd_liveTime
             else:    
@@ -111,12 +113,15 @@ def  plotAllSpectra(InputFileName):
                 calP0=-0.03544731540487446
                 calP1=0.0015013787118821926
             if fileFormat=='npz':
-                calP1=0.0032132721459619882
-                calP0=-0.003201340833319255
-            if P0_ != 0:
-                calP0 = P0_
-            if P1_ != 0:
-                calP1 = P1_
+                if P0_ is not None:
+                    calP0 = P0_
+                if P1_ is not None:
+                    calP1 = P1_
+                else:
+                    calP1=0.0032132721459619882
+                    calP0=-0.003201340833319255
+            
+            # print(f'\n\n!!!!!!!!!!!!!!!!!\n{calP0}, {calP1}\n{P0_}, {P1_}\n')
             p.bins=p.bins*calP1+calP0
 
             if compute_rate==1:
@@ -131,15 +136,20 @@ def  plotAllSpectra(InputFileName):
                  low=0.
                  up=0.
                  plt.ylabel('normalized rate')
+            #color = 'C5'
             if show_legend==1:
-                p.plot(ax,legend)
+                p.plot(ax,legend)#,color=color)
             else:
-                p.plot(ax,None)
-            plt.xlabel('energy [keV]')
+                p.plot(ax,None)#,color=color)
+            plt.xlabel('Energy [keV]')
             
-            plt.ylabel('events/s') # non so perche', ,ma nell'if non funziona!
+            #plt.ylabel('Events/s') # non so perche', ,ma nell'if non funziona!
+            plt.ylabel('Normalized rate')
+            plt.grid(True, which='both', alpha=0.5)
+            plt.yscale('log')
             
             plt.legend()
+            #plt.suptitle(legend, y=0.95, color=color)
 
 
         
@@ -154,10 +164,12 @@ def  plotAllSpectra(InputFileName):
             par, cov, chi2 = fitSimo.fit_Gaushistogram(p.counts, p.bins, xmin=min,xmax=max, initial_pars=[amplitude,peak,sigma], parsBoundsLow=-np.inf, parsBoundsUp=np.inf )
             x=np.linspace(par[1]-par[2],par[1]+par[2],1000)
             if show_legend==1:
-                label='peak = '+"%.3f"%par[1]+' keV'+'\n'+'sigma = '+"%.3f"%par[2]+' keV'
+                label='peak = '+"%.2f"%par[1]+' keV'+'\n'+'sigma = '+"%.2f"%par[2]+' keV'
+                #label='E = '+"%.2f"%par[1]+' keV'+'\n'+r'$\Delta$E/E = '+"%.2f"%(2.355*par[2]*100/par[1])+' keV'
             else:
                 label=None
             plt.plot(x,fitSimo.gaussian_model(x,par[0],par[1],par[2]),label=label)
+            #plt.axvline(x=par[1],linestyle='--',color='black')
             print(' ')
             print('FIT PARAMETERS')
             print('Gaussian norm = ', "%.5f"%par[0],' +- ',"%.5f"%np.sqrt(cov[0][0]),' keV')
@@ -171,7 +183,7 @@ def  plotAllSpectra(InputFileName):
             
             # plt.ylabel('events/s') # non so perche', ,ma nell'if non funziona!
 
-            plt.legend()
+            plt.legend()#.  !!!!!!!!!!1 LEGEND COMMENTED
 
             mask_poisson = np.where((p.bins>(par[1]-par[2])) & (p.bins<(par[1]+par[2])))[0]
 
@@ -254,6 +266,9 @@ if __name__ == "__main__":
     formatter = argparse.ArgumentDefaultsHelpFormatter
     parser = argparse.ArgumentParser( prog='calibrator.py',  formatter_class=formatter)
     parser.add_argument('infile', type=str, help='imput file')
+    parser.add_argument('--save', action='store_true', help='Do you want to save the figure?', default=False, required=False)
+    parser.add_argument('--MXR', action='store_true', help='Print lines labels on the figure if MXR tube pol and unpol?', default=False, required=False)
+    parser.add_argument('--path', type=str, help='path with name of the saved figure', default=None, required=False)
     args = parser.parse_args()
     print('input file=',args.infile)
     #check file exist:
@@ -262,9 +277,35 @@ if __name__ == "__main__":
         exit()
         
     plotAllSpectra(args.infile)
-   
 
-   
+    # plt.vlines(x=5.898,ymin=0,ymax=1,linestyle='--',linewidth=3,color='C1')
+    # plt.vlines(x=6.48,ymin=0,ymax=0.1,linestyle='--',linewidth=3,color='C2')
+    # plt.text(5.6,0.002,r'K$\alpha$',color='C1',fontsize=16)
+    # plt.text(6.2,0.0002,r'K$\beta$',color='C2',fontsize=16)
+    # plt.vlines(x=4.145,ymin=0,ymax=0.05,linestyle='--',linewidth=3,color='C1')
+    # #plt.vlines(x=4.74,ymin=0,ymax=0.01,linestyle='--',linewidth=3,color='C2')
+    # plt.text(3.8,0.002,r'K$\alpha$'+'\ne.p.',color='C1',fontsize=16)
+    # #plt.text(4.4,0.0002,r'K$\beta$'+'\ne.p.',color='C2',fontsize=16)
+    # plt.vlines(x=1.73,ymin=0,ymax=0.014,linestyle='--',linewidth=3,color='C3')
+    # plt.text(1.48,0.001,r'Si'+'\n'+r'K$\alpha$',color='C3',fontsize=16)
+    
+    
+    if args.MXR:
+        plt.text(1.2,0.9,r'Mo L$\alpha$',color='C0',fontsize=16)
+        plt.text(2.5,0.5,r'Mo L$\beta$',color='C0',fontsize=16)
+        plt.text(0.12,0.03,'Mo escape\npeak',color='C0',fontsize=16,rotation=45)
+
+        plt.text(3,0.0004,r'In L$\alpha$',color='C2',fontsize=16,rotation=60)
+        plt.text(3.45,0.0004,r'Sb L$\alpha$',color='C2',fontsize=16,rotation=60)
+        plt.text(3.8,0.0002,r'Sb L$\beta1$',color='C2',fontsize=16,rotation=60)
+
+        plt.text(4.5,0.0007,r'2xMo L$\alpha$',color='C1',fontsize=16,rotation=60)
+        plt.text(6.7,0.0007,r'3xMo L$\alpha$',color='C1',fontsize=16,rotation=60)
+        plt.text(9,0.00025,r'4xMo L$\alpha$',color='C1',fontsize=16,rotation=60)
+
+    if args.save:
+        plt.savefig(args.path,dpi=300)
+
     plt.show()
 
 
