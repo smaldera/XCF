@@ -44,7 +44,8 @@ def read_allSdd(common_path, mca_file):
     counts_all=0.
     livetime_all=0
     bins=0
-    
+    rates=[]
+    rates_err=[]
     for i in range (0,len(mca_file)):
 
        p=histogramSimo()
@@ -55,13 +56,23 @@ def read_allSdd(common_path, mca_file):
        
        # calibrazione energia
        p.bins=p.bins*calP1+calP0
+       binCenters=p.bins[0:-1]+(p.bins[1]-p.bins[0])/2.
+       print("len(binCenters)=",len(binCenters),' len(p.counts)=', len(p.counts))
+       mymask=np.where(binCenters>0.2)
 
+       print("somma totale=",np.sum(p.counts)," E>0.2=>",np.sum(p.counts[mymask]) )
+       rate=np.sum(p.counts[mymask])/p.sdd_liveTime
+       rate_err=(np.sum(p.counts[mymask])**0.5)/p.sdd_liveTime
+       print("CORRECTED rate=",rate," +- ",rate_err)
+       
+       
        
        mylabel=mca_file[i][0:-4]
        plt.hist(p.bins[:-1],bins=p.bins ,weights=p.counts/p.sdd_liveTime, histtype='step', label=mylabel)
        livetime.append(p.sdd_liveTime)
        counts.append(p.counts)
-    
+       rates.append(rate)
+       rates_err.append(rate_err)
        
        #sum livetimes nad counts:
        if i==0:
@@ -73,7 +84,7 @@ def read_allSdd(common_path, mca_file):
 
         
     #end loop
-    return bins,counts_all,livetime_all
+    return bins,counts_all,livetime_all,np.array(rates),np.array(rates_err)
 
 
 def read_allCMOS(common_path,cmos_eventsFiles,cmos_livetimes,  binsSdd,ax2):
@@ -102,6 +113,8 @@ def read_allCMOS(common_path,cmos_eventsFiles,cmos_livetimes,  binsSdd,ax2):
     times_all=np.array([])
     bins=0
     min_time=0
+    rates=[]
+    ratesErr=[]
     for i in range(0,len(  cmos_eventsFiles)):
 
         f=common_path+cmos_eventsFiles[i]
@@ -139,7 +152,8 @@ def read_allCMOS(common_path,cmos_eventsFiles,cmos_livetimes,  binsSdd,ax2):
         avarage_rate=len( energies[mask_pos])/livetime
         avarage_rateErr=(len( energies[mask_pos])**0.5)/livetime
         print("=========>>>>> avarage_rate=",avarage_rate," +-",avarage_rateErr)
-        
+        rates.append(avarage_rate)
+        ratesErr.append(avarage_rateErr)
         ax51.errorbar(np.mean(times[mask_pos])-min_time,avarage_rate,xerr=(max(times)-min(times))/2.,yerr= avarage_rateErr,fmt='ob')
         
         if i==0:
@@ -149,9 +163,9 @@ def read_allCMOS(common_path,cmos_eventsFiles,cmos_livetimes,  binsSdd,ax2):
         livetime_all+=livetime
     plt.title('cmos')
 
-    cmos_stability(times_all,ax51)
+   # cmos_stability(times_all,ax51)
 
-    return binsE,counts_all,livetime_all,times_all
+    return binsE,counts_all,livetime_all,times_all,np.array(rates),np.array( ratesErr)
 
 
 def cmos_stability(times_all,ax):
@@ -180,7 +194,7 @@ if __name__ == "__main__":
     mca_file=['misura_1_300s.mca',  'misura_2_600s.mca',  'misura_3_600s.mca']
 
     plt.figure(1)
-    binsSdd,counts_all,livetime_all=read_allSdd(common_path+'sdd/', mca_file)
+    binsSdd,counts_all,livetime_all,rates_sdd,rate_sddErr=read_allSdd(common_path+'sdd/', mca_file)
                
     #plot SDD
     plt.xlabel('keV')
@@ -200,21 +214,23 @@ if __name__ == "__main__":
     
     fig2=plt.figure(2)
     ax2 = fig2.subplots()
-    binsCmos,counts_allCmos,livetimeCmos,times_all= read_allCMOS(  common_path, cmos_eventsFiles,cmos_livetimes,binsSdd,ax2)
+    binsCmos,counts_allCmos,livetimeCmos,times_all,rates_cmos, rates_cmosErr = read_allCMOS(  common_path, cmos_eventsFiles,cmos_livetimes,binsSdd,ax2)
     ax2.hist(binsCmos[:-1],bins=binsCmos ,weights=counts_allCmos/livetimeCmos, histtype='step', label="spettro somma")
     ax2.legend()  
 
 
 
     #cmos stability
-    fig3=plt.figure(3)
-    ax3=fig3.subplots(1,1)
-    cmos_stability(times_all,ax3)
+    #fig3=plt.figure(3)
+    #ax3=fig3.subplots(1,1)
+    #cmos_stability(times_all,ax3)
 
 
-
+     
+    r, rErr=compute_Ratios(rates_cmos,rates_sdd,rates_cmosErr,rate_sddErr)
+    print("RATIOS=",r)
+    print("err=",rErr)
     
-    plt.legend()
     plt.show()
     exit()
 
