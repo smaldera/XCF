@@ -33,74 +33,86 @@ def compute_HistRatios(p1,p2):
 
     return x,y,yerr
 
-def read_allSdd(common_path, mca_file):
+def weighted_mean(xi, xi_err):
+
+       somma=(np.sum(xi/(xi_err**2)))/(np.sum(1./xi_err**2))
+       somma_err=(1./(np.sum(1./xi_err**2 )))**0.5
+
+       return somma, somma_err
+       
+
+
+def read_allSdd(common_path, mca_file,Ecut=0.2):
+    # legge files, plotta, restituosce istogremmi e somma (normalizzati per livetime) 
+       
     calP0=-0.03544731540487446
     calP1=0.0015013787118821926
 
     
-   
-    livetime=[]
-    counts=[]
     counts_all=0.
     livetime_all=0
-    bins=0
     rates=[]
     rates_err=[]
+
+    figSdd=plt.figure("SDD spectra")
+    axSdd=figSdd.subplots(1,1)
+
+    histo_list=[]
+    
     for i in range (0,len(mca_file)):
+   
 
        p=histogramSimo()
        filename=common_path+mca_file[i]            
        p.read_from_file(filename, 'sdd' )
-       print("livetime=",p.sdd_liveTime,"counts=", p.sdd_fastCounts, "RATE=",p.sdd_fastCounts/p.sdd_liveTime,' Hz' )
-       print("deadTime=",p.sdd_deadTime)
-       
        # calibrazione energia
        p.bins=p.bins*calP1+calP0
-       binCenters=p.bins[0:-1]+(p.bins[1]-p.bins[0])/2.
-       print("len(binCenters)=",len(binCenters),' len(p.counts)=', len(p.counts))
-       mymask=np.where(binCenters>0.2)
 
-       print("somma totale=",np.sum(p.counts)," E>0.2=>",np.sum(p.counts[mymask]) )
-       rate=np.sum(p.counts[mymask])/p.sdd_liveTime
-       rate_err=(np.sum(p.counts[mymask])**0.5)/p.sdd_liveTime
-       print("CORRECTED rate=",rate," +- ",rate_err)
+       histo_list.append(p)
+              
+       axSdd.hist(p.bins[:-1],bins=p.bins ,weights=p.counts/p.sdd_liveTime, histtype='step', label=mca_file[i][0:-4])
        
        
-       
-       mylabel=mca_file[i][0:-4]
-       plt.hist(p.bins[:-1],bins=p.bins ,weights=p.counts/p.sdd_liveTime, histtype='step', label=mylabel)
-       livetime.append(p.sdd_liveTime)
-       counts.append(p.counts)
-       rates.append(rate)
-       rates_err.append(rate_err)
-       
-       #sum livetimes nad counts:
+       livetime_all+=p.sdd_liveTime
        if i==0:
            counts_all=p.counts
        else:
-            counts_all+=p.counts
-       livetime_all+=p.sdd_liveTime
-       bins=p.bins
+           counts_all=p.counts+counts_all # OKKIO!!! se uso +=  fa casini nell'array p.counts originale!!
+               
+    #plot sum histo
 
-        
-    #end loop
-    return bins,counts_all,livetime_all,np.array(rates),np.array(rates_err)
+    pSum=histogramSimo( counts=counts_all, bins= histo_list[0].bins)
+    pSum.sdd_liveTime=livetime_all
+
+    axSdd.hist(p.bins[:-1],bins=p.bins ,weights=pSum.counts/pSum.sdd_liveTime, histtype='step', label="sum")
+    
+    axSdd.set_xlabel('keV')
+    axSdd.set_ylabel('counts/s [Hz]')
+    axSdd.set_yscale("log") 
+    axSdd.legend()        
+           
+    
+    return  histo_list, pSum
 
 
-def read_allCMOS(common_path,cmos_eventsFiles,cmos_livetimes,  binsSdd,ax2):
-   # ax2, to draw individual spectra
+def read_allCMOS(common_path,cmos_eventsFiles,cmos_livetimes,  binsSdd):
+    
 
     XBINS=2822
     YBINS=4144  
     REBINXY=2.
      
-    fig5=plt.figure(5)
-    ax=fig5.subplots(1,3)
+    figCMOS=plt.figure('cmos')
+    ax=figCMOS.subplots(1,3)
 
     
-    fig51=plt.figure(51)
-    ax51=fig51.subplots(1,1)
+    figCmosE=plt.figure('cmosEnergy')
+    axCmosE=figCmosE.subplots(1,1)
 
+    figCmosStability=plt.figure('CmosStability')
+    axCmosSt=figCmosStability.subplots(1,1)
+
+    
     xbins2d=int(XBINS/REBINXY)
     ybins2d=int(YBINS/REBINXY)
     # retta calibrazione cmos
@@ -115,57 +127,78 @@ def read_allCMOS(common_path,cmos_eventsFiles,cmos_livetimes,  binsSdd,ax2):
     min_time=0
     rates=[]
     ratesErr=[]
+
+
+    histo_list=[]
+    
     for i in range(0,len(  cmos_eventsFiles)):
 
         f=common_path+cmos_eventsFiles[i]
         print("reading: ",f)
         w, x,y,size,times=al.retrive_vectors3(f)
-        print("len w =",w)
+       
         energies=w*calP1+calP0
         #taglio spaziale!!!!
         livetime=cmos_livetimes[i]
-        mask_pos=np.where((x>1310)&(x<1670)&(y<2230)&(y>1870)&(energies>0.20) )
+        mask_pos=np.where((x>1310)&(x<1670)&(y<2230)&(y>1870)&(energies>0.1) )
 
         if(i==0):
                min_time=min(times[mask_pos])
         
         times_all=np.append(times_all,times[mask_pos])
-        print("TIMES_ALL:",times_all)
-        #times_all.append(times)
+       
+       
         
-        
-
-        #countsClu, binsE = np.histogram( energies[mask_pos]  , bins =len(binsSdd)-1, range = (binsSdd[0],binsSdd[-1]) )
         countsClu, binsE = np.histogram( energies[mask_pos], bins =len(binsSdd)-1, range = (binsSdd[0],binsSdd[-1]) )
-               
-        ax2.hist(binsE[:-1],bins=binsE ,weights=countsClu/livetime, histtype='step', label="cmos")
-        #plt.legend()
+        axCmosE.hist(binsE[:-1],bins=binsE ,weights=countsClu/livetime, histtype='step', label="cmos")
+       
 
+        #creo istogrammi... e appendo
+        pCmos=histogramSimo( counts=countsClu, bins= binsE)
+        pCmos.sdd_liveTime=livetime
+        histo_list.append(pCmos)
+        
         # plot xy:
-        #plt.figure(i+10)
+        
         counts2dClu,  xedges, yedges= np.histogram2d(x[mask_pos],y[mask_pos],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
         counts2dClu=   counts2dClu.T
-        #ax=fig5.subplots(2,2)
+        
         im=ax.flatten()[i].imshow(np.log10(counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])
 
 
         avarage_rate=len( energies[mask_pos])/livetime
         avarage_rateErr=(len( energies[mask_pos])**0.5)/livetime
-        print("=========>>>>> avarage_rate=",avarage_rate," +-",avarage_rateErr)
+        #print("=========>>>>> avarage_rate=",avarage_rate," +-",avarage_rateErr)
         rates.append(avarage_rate)
         ratesErr.append(avarage_rateErr)
-        ax51.errorbar(np.mean(times[mask_pos])-min_time,avarage_rate,xerr=(max(times)-min(times))/2.,yerr= avarage_rateErr,fmt='ob')
+        axCmosSt.errorbar(np.mean(times[mask_pos])-min_time,avarage_rate,xerr=(max(times)-min(times))/2.,yerr= avarage_rateErr,fmt='ob')
         
         if i==0:
-           counts_all=countsClu
+              counts_all= countsClu              
         else:
-            counts_all+=countsClu 
+            counts_all=counts_all+countsClu
+                                     
         livetime_all+=livetime
-    plt.title('cmos')
+   
 
-   # cmos_stability(times_all,ax51)
+        
+    #creo histo sum
+    pCmosSum=histogramSimo( counts=counts_all, bins= binsE)
+    pCmosSum.sdd_liveTime=livetime_all
+    axCmosE.hist(binsE[:-1],bins=binsE ,weights=counts_all/livetime_all, histtype='step', label="sum")
+    
+    # labels assi etc.
+    axCmosE.set_xlabel('energy [keV]')
+    axCmosE.set_ylabel('counts/s [Hz]')
+    axCmosE.set_yscale("log") 
+    axCmosE.legend()
 
-    return binsE,counts_all,livetime_all,times_all,np.array(rates),np.array( ratesErr)
+    axCmosSt.set_xlabel('elapsed time[s]')
+    axCmosSt.set_ylabel('rate CMOS')
+    axCmosSt.grid()
+   
+
+    return  histo_list,  pCmosSum
 
 
 def cmos_stability(times_all,ax):
@@ -184,8 +217,36 @@ def cmos_stability(times_all,ax):
     ax.hist(binsTime[:-1],bins=binsTime ,weights=countsTime/binw, histtype='step')
     ax.set_title('times cmos')
 
- 
-    
+
+
+def getRates_fromHistoSimo(p,Ecut=0.2):
+
+       binCenters=p.bins[0:-1]+(p.bins[1]-p.bins[0])/2.
+       mymask=np.where(binCenters>Ecut)
+       #print("somma totale=",np.sum(p.counts)," E>0.2=>",np.sum(p.counts[mymask])," livetime=",p.sdd_liveTime )
+       rate=np.sum(p.counts[mymask])/p.sdd_liveTime
+       rate_err=(np.sum(p.counts[mymask])**0.5)/p.sdd_liveTime
+
+       print("rate=",rate," err=",rate_err)
+       return rate, rate_err    
+
+def get_sddRates(histoSdd_list,pSum, Ecut=0.2):
+
+       rates=[]
+       rates_err=[]
+
+       
+       
+       for histo in histoSdd_list:
+           rate, rate_err= getRates_fromHistoSimo(histo,Ecut)
+           rates.append(rate)
+           rates_err.append(rate_err)
+
+          
+        
+       rateSum, rateSum_err= getRates_fromHistoSimo(pSum,Ecut)    
+
+       return  np.array(rates),np.array( rates_err),rateSum, rateSum_err
 
 if __name__ == "__main__":
 
@@ -193,17 +254,16 @@ if __name__ == "__main__":
     #dati sdd"
     mca_file=['misura_1_300s.mca',  'misura_2_600s.mca',  'misura_3_600s.mca']
 
-    plt.figure(1)
-    binsSdd,counts_all,livetime_all,rates_sdd,rate_sddErr=read_allSdd(common_path+'sdd/', mca_file)
-               
-    #plot SDD
-    plt.xlabel('keV')
-    plt.ylabel('counts/s [Hz]')
-    plt.title('SDD')
-    plt.hist(binsSdd[:-1],bins=binsSdd ,weights=counts_all/livetime_all, histtype='step', label="spettro somma")
-    plt.legend()  
-    plt.title('SDD')
+    histoSdd_list,hSum_sdd=read_allSdd(common_path+'sdd/', mca_file)
+    rates_sdd, rates_sddErr,rate_sddSum, rate_sddSumErr= get_sddRates(histoSdd_list,hSum_sdd)
 
+    for i in range(0,len(rates_sdd)):
+       print("---->>> rates SDD",  rates_sdd[i]," +-  ", rates_sddErr[i])  
+    print("===>>>> rates sdd SUM",  rate_sddSum," +-  ", rate_sddSumErr)  
+    
+        
+    print('\n ===================================================== \n')
+    
     ### read CMOS data:
     list_name='events_list_pixCut10sigma_CLUcut_10sigma_v3.npz'
     cmos_eventsFiles=['/spot1/'+list_name, '/spot2/'+list_name, 'spot3/'+list_name]
@@ -211,104 +271,37 @@ if __name__ == "__main__":
     cmos_livetimes=[1000*exposure,3000*exposure,3000*exposure]
 
     
-    
-    fig2=plt.figure(2)
-    ax2 = fig2.subplots()
-    binsCmos,counts_allCmos,livetimeCmos,times_all,rates_cmos, rates_cmosErr = read_allCMOS(  common_path, cmos_eventsFiles,cmos_livetimes,binsSdd,ax2)
-    ax2.hist(binsCmos[:-1],bins=binsCmos ,weights=counts_allCmos/livetimeCmos, histtype='step', label="spettro somma")
-    ax2.legend()  
+    binsSdd= histoSdd_list[0].bins
+    histoCmos_list, hSum_cmos = read_allCMOS(  common_path, cmos_eventsFiles,cmos_livetimes,binsSdd)
 
 
+    rates_cmos, rates_cmosErr,rate_cmosSum, rate_cmosSumErr= get_sddRates(histoCmos_list,hSum_cmos)
+    for i in range(0,len(rates_cmos)):
+       print("---->>> rates cmos",  rates_cmos[i]," +-  ", rates_cmosErr[i])  
+    print("===>>>> rates rates cmos SUM",  rate_cmosSum," +-  ", rate_cmosSumErr)  
 
-    #cmos stability
-    #fig3=plt.figure(3)
-    #ax3=fig3.subplots(1,1)
-    #cmos_stability(times_all,ax3)
-
-
+  
      
-    r, rErr=compute_Ratios(rates_cmos,rates_sdd,rates_cmosErr,rate_sddErr)
+    r, rErr=compute_Ratios(rates_cmos,rates_sdd,rates_cmosErr,rates_sddErr)
     print("RATIOS=",r)
-    print("err=",rErr)
+    print("err=",rErr)                        
+                             
+    somma, somma_err=weighted_mean(r, rErr)
+    print("EFF pesata=",somma," somma_err",somma_err)
+
+
     
+
+    #calcolare eff golbale
+    r_global,rErr_global=compute_Ratios(rate_cmosSum,rate_sddSum,rate_cmosSumErr,rate_sddSumErr)
+    
+    print("EFF globale=",r_global," +- "  , rErr_global)
+
+                             
     plt.show()
-    exit()
 
 
 
-
-    
-   # print("len(binsSdd=",len(binsSdd))
-   # print("LEN binsCmos=",len(binsCmos))
-  
-
-    #rebinno gli istogrammi
-    psdd=histogramSimo()
-    psdd.counts=counts_all
-    psdd.bins=binsSdd
-
-        
-    pcmos=histogramSimo()
-    pcmos.counts=counts_allCmos
-    pcmos.bins=binsCmos
-
-   
-    
-    #pcmos.rebin(100)
-    #psdd.rebin(100)
-    pippo=  pcmos.counts.copy() #!!!!!!
-    binCenters=pcmos.bins[0:-1]+(pcmos.bins[1]-pcmos.bins[0])/2.
-    corr_counts=correct_spectrumConst2(pippo,1) # nuovo rebin!!!!!! 
-    #corr_counts=pippo
-
-   # pcmos.rebin(100)
-   # psdd.rebin(100)
-    
-    
-    print("len dopoRebin (binsSdd=",len(psdd.bins))
-    print("LEN dopo rebin  binsCmos=",len(pcmos.bins))
-  
-    #corr_counts=correct_spectrumLin(pippo,binCenters)
-
-    
-    pcmosCorr=histogramSimo()
-    pcmosCorr.counts=corr_counts
-    pcmosCorr.bins=  pcmos.bins
-    
-    pcmos.rebin(1)
-    psdd.rebin(1)
-    pcmosCorr.rebin(1)
-
-    x,y,err= compute_HistRatios(pcmos,psdd)
-    xCorr,yCorr,errCorr= compute_HistRatios(pcmosCorr,psdd)
-   
-    plt.figure(4)
-
-    print("livetime sdd=",livetime_all)
-    print("livetime cmos=",livetimeCmos)
-   
-    
-    ratioLivetime=livetime_all/livetimeCmos
-    plt.errorbar(x,y*ratioLivetime,yerr=err*ratioLivetime,fmt='or')
-    plt.errorbar(xCorr,yCorr*ratioLivetime,yerr=errCorr*ratioLivetime,fmt='ob')
-    plt.xlim(1.8,7)
-    plt.ylim(0,1)
-    
-    plt.grid()
-    
-    fig=plt.figure(3)
-    ax = fig.subplots()
-    pcmos.counts=  pcmos.counts/livetimeCmos
-    pcmos.plot(ax,"cmos")
-
-    pcmosCorr.counts=  pcmosCorr.counts/livetimeCmos
-    pcmosCorr.plot(ax,"cmosCorrected")
-
-    
-    psdd.counts=  psdd.counts/livetime_all
-    psdd.plot(ax,"sdd")
-    plt.legend()
-    plt.show()
 
 
     
