@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib as mpl
 from matplotlib import pyplot as plt
+import pandas
+from scipy import interpolate
 
 #import sys
 #sys.path.insert(0, '../libs')
@@ -12,6 +14,15 @@ from  histogramSimo import histogramSimo
 
 
 mpl.rcParams["font.size"] = 15
+
+
+def sdd_eff(E):
+       
+       df = pandas.read_csv('sdd_eff.txt',skipinitialspace=True)
+       sorted_df=df.sort_values(by='energy',ascending=True)
+       f = interpolate.interp1d(sorted_df['energy'],sorted_df['eff'] , kind='cubic' )
+
+       return f(E)/100.
 
 
 
@@ -287,7 +298,7 @@ if __name__ == "__main__":
     print("err=",rErr)                        
                              
     somma, somma_err=weighted_mean(r, rErr)
-    print("EFF pesata=",somma," somma_err",somma_err)
+    print("EFF pesata=",somma," somma_err",somma_err) 
 
 
     
@@ -297,6 +308,7 @@ if __name__ == "__main__":
     
     print("EFF globale=",r_global," +- "  , rErr_global)
 
+    print("EFF globale CORRETTa=",r_global/sdd_eff(2.3)," +- "  , rErr_global/sdd_eff(2.3)  )     
                              
     plt.show()
 

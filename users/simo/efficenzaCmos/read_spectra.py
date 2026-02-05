@@ -300,8 +300,8 @@ if __name__ == "__main__":
     corr_counts=correct_spectrumConst2(pippo,1) # nuovo rebin!!!!!! 
     #corr_counts=pippo
 
-   # pcmos.rebin(100)
-   # psdd.rebin(100)
+    pcmos.rebin(100)
+    psdd.rebin(100)
     
     
     print("len dopoRebin (binsSdd=",len(psdd.bins))
@@ -310,16 +310,16 @@ if __name__ == "__main__":
     #corr_counts=correct_spectrumLin(pippo,binCenters)
 
     
-    pcmosCorr=histogramSimo()
-    pcmosCorr.counts=corr_counts
-    pcmosCorr.bins=  pcmos.bins
+    #pcmosCorr=histogramSimo()
+    #pcmosCorr.counts=corr_counts
+    #pcmosCorr.bins=  pcmos.bins
     
-    pcmos.rebin(1)
-    psdd.rebin(1)
-    pcmosCorr.rebin(1)
+    #pcmos.rebin(1)
+    #psdd.rebin(1)
+    #pcmosCorr.rebin(1)
 
     x,y,err= compute_HistRatios(pcmos,psdd)
-    xCorr,yCorr,errCorr= compute_HistRatios(pcmosCorr,psdd)
+    #xCorr,yCorr,errCorr= compute_HistRatios(pcmosCorr,psdd)
    
     plt.figure(4)
 
@@ -329,7 +329,7 @@ if __name__ == "__main__":
     
     ratioLivetime=livetime_all/livetimeCmos
     plt.errorbar(x,y*ratioLivetime,yerr=err*ratioLivetime,fmt='or')
-    plt.errorbar(xCorr,yCorr*ratioLivetime,yerr=errCorr*ratioLivetime,fmt='ob')
+    #plt.errorbar(xCorr,yCorr*ratioLivetime,yerr=errCorr*ratioLivetime,fmt='ob')
     plt.xlim(1.8,7)
     plt.ylim(0,1)
     
@@ -340,8 +340,8 @@ if __name__ == "__main__":
     pcmos.counts=  pcmos.counts/livetimeCmos
     pcmos.plot(ax,"cmos")
 
-    pcmosCorr.counts=  pcmosCorr.counts/livetimeCmos
-    pcmosCorr.plot(ax,"cmosCorrected")
+    #pcmosCorr.counts=  pcmosCorr.counts/livetimeCmos
+    #pcmosCorr.plot(ax,"cmosCorrected")
 
     
     psdd.counts=  psdd.counts/livetime_all
