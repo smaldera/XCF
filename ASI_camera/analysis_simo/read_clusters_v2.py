@@ -236,7 +236,7 @@ def analize_allPix(track_list,SEL_SIZE,MIN_CORR=0.85):
 ###########################################
 
 
-files_list=glob.glob('/home/maldera/Desktop/eXTP/data/CMOS_verticale/clusters/tracks*/*img*.npz')
+files_list=glob.glob('/home/maldera/IXPE/XCF/data/CMOS_verticale/clusters/tracks*/img_*.npz')
 tracks_list=read_allClusters(files_list)
 
 
@@ -256,9 +256,9 @@ fig1, (axFinal) = plt.subplots(1, figsize=(12,8))
 #ax1.xlabel("n pix")
 
 mpv_90=0.351
-MIN_CORR=0.5
+MIN_CORR=0.85
 
-for SEL_SIZE in [10]:
+for SEL_SIZE in [11]:
    print("SEL_SIZE=",SEL_SIZE)
    xpix,MPV,MPVerr,mpv_track = analize_allPix(tracks_list,SEL_SIZE, MIN_CORR=MIN_CORR)
    alpha=np.arcsin(mpv_90/mpv_track)
