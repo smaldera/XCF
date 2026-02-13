@@ -236,10 +236,19 @@ def analize_allPix(track_list,SEL_SIZE,MIN_CORR=0.85):
 ###########################################
 
 
-files_list=glob.glob('/home/maldera/IXPE/XCF/data/CMOS_verticale/clusters/tracks*/img_*.npz')
+#files_list=glob.glob('/home/maldera/IXPE/XCF/data/CMOS_verticale/clusters/tracks*/img_*.npz')
+files_list=glob.glob('/home/maldera/IXPE/XCF/data/cmos_temp/3/img_*.npz')
+
 tracks_list=read_allClusters(files_list)
 
 
+for t in tracks_list:
+   t.plot()
+
+plt.show()   
+
+
+exit()
 countsE_all=0
 countsETrack_all=0
 binsE=0
@@ -257,6 +266,8 @@ fig1, (axFinal) = plt.subplots(1, figsize=(12,8))
 
 mpv_90=0.351
 MIN_CORR=0.85
+
+
 
 for SEL_SIZE in [11]:
    print("SEL_SIZE=",SEL_SIZE)

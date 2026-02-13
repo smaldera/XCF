@@ -11,7 +11,7 @@ from read_sdd import  pharse_mca
 import fit_histogram as fitSimo
 from  histogramSimo import histogramSimo
 
-
+#plt.rcParams["text.usetex"] = True
 
 def fit_histo(p,low,up, plot=1):
 
@@ -19,7 +19,7 @@ def fit_histo(p,low,up, plot=1):
     mean0=low+(up-low)/2.
     counts=p.counts
     bins=p.bins     
-    popt,  pcov, xmin,xmax, redChi2= fitSimo.fit_Gaushistogram_iterative(counts,bins,xmin=low,xmax=up, initial_pars=[k0,mean0,10], nSigma=1.1 )
+    popt,  pcov, xmin,xmax, redChi2= fitSimo.fit_Gaushistogram_iterative(counts,bins,xmin=low,xmax=up, initial_pars=[k0,mean0,10], nSigma=1.2 )
     mean=popt[1]
     meanErr=pcov[1][1]**0.5
     sigma=popt[2]
@@ -170,11 +170,15 @@ if __name__ == "__main__":
 
     
     plt.figure(10)
-    plt.errorbar(true,100.*fitted_sigma/fitted_mean ,yerr=100.*fitted_sigmaErr/fitted_mean, fmt='ro') 
+    plt.errorbar(true,100.*fitted_sigma/fitted_mean ,yerr=100.*fitted_sigmaErr/fitted_mean, fmt='ro',label='IMX294') 
     x=np.linspace(0,10,1000)
     y= 100.*(0.1*3.6/(1000.*x))**.5
-    plt.plot(x,y,'-')
-
+    plt.plot(x,y,label='Si Fano limit')
+    plt.xlabel('E [keV]')
+    plt.ylabel(r'$\sigma$E/E [%]')
+    plt.grid()
+    plt.legend()
+    
     plt.show()
 
 
