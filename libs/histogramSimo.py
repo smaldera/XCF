@@ -43,6 +43,12 @@ class histogramSimo():
             print("Ka max=",ka_h) 
 
             self.counts=self.counts/ka_h
+
+      def max_in_spectrum(self, minX,maxX):      
+            bin_centers=fitSimo.get_centers(self.bins)
+            mask=np.where((bin_centers>minX)&(bin_centers<maxX))
+            c2=self.counts[mask]            
+            return np.max(c2)
             
       def plot(self,ax,labelname):
 

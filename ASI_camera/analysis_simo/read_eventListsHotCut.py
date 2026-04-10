@@ -53,9 +53,10 @@ parser.add_argument('-xprojName','--xprojName',type=str ,  help="x-projection fi
 parser.add_argument('-yprojName','--yprojName',type=str ,  help="y-projection file name", required=False,default='test_yproj.npz')
 parser.add_argument('-suffix','--suffix',type=str ,  help="suffix in file names", required=False,default='')
 parser.add_argument('--hotPixelsCut',type=str2bool,  help="if true enable hot pixel cut", required=False,default=True)
-
-
-    
+parser.add_argument('--cutfile',type=str,  help=".txt file with the x_min x_max y_min y_max for the xy cut", required=False, default=None)
+parser.add_argument('--cutarray',type=str,  help=".array (it is a string string !) with the x_min x_max y_min y_max for the xy cut", required=False, default=None)
+parser.add_argument('--plotcutfile',type=str,  help=".txt file with the x_min x_max y_min y_max for the xy cut", required=False, default=None)
+ 
 FIND_HOTPIXELS=True
 CUT_HOT_PIXELS=True
 PLOT_MAP=True
@@ -65,6 +66,12 @@ print("HOT PIX=",args.hotPixelsCut)
 DIR = args.saveDir
 ff=open(args.inFile,'r')
 
+import ast
+if args.cutarray is not None:
+    cut_array = ast.literal_eval(args.cutarray)
+else:
+    cut_array = None
+
 if (args.hotPixelsCut==False):
     FIND_HOTPIXELS=False
     CUT_HOT_PIXELS=False
@@ -72,6 +79,8 @@ if (args.hotPixelsCut==False):
 # retta calibrazione cmos
 calP0=args.calP0
 calP1=args.calP1
+calP0_err = 2.8e-5
+calP1_err = 2.8e-8
 
 NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
@@ -142,7 +151,26 @@ ax1=plt.subplot(221)
 
 #plot
 energy_all=w_all*calP1+calP0
-myCut=np.where( (w_all>50))
+
+## SPATIAL CUT IF cutfile.txt
+if args.cutfile is not None:
+    with open(f"{args.cutfile}", "r") as f:
+        riga = f.readline().strip()
+    x_min, x_max, y_min, y_max = riga.split()
+    myCut=np.where( (w_all>40)&(x_all>np.double(x_min))&(x_all<np.double(x_max))&(y_all>np.double(y_min))&(y_all<np.double(y_max)) )
+else:
+    myCut=np.where( (w_all>50))
+
+## SPATIAL CUT IF cutarray
+if args.cutarray is not None:
+    x_min = cut_array[0]
+    x_max = cut_array[1]
+    y_min = cut_array[2]
+    y_max = cut_array[3]
+    myCut=np.where( (w_all>40)&(x_all>np.double(x_min))&(x_all<np.double(x_max))&(y_all>np.double(y_min))&(y_all<np.double(y_max)) )
+else:
+    myCut=np.where( (w_all>50))
+
 #myCut=np.where( (w_all>50)&(energy_all<2.4)&(energy_all>2.2))
 
 #myCut=np.where( ((w_all)>50)&(x_all>5)&(x_all<2808))
@@ -158,8 +186,8 @@ ax1.legend()
 ax2=plt.subplot(222)
 
 # spettro energia
-countsClu, binsE = np.histogram( w_all[myCut]  , bins = int(2*NBINS/2.), range = (-NBINS,NBINS) )
-binsE=binsE*calP1+calP0
+countsClu, binsADC = np.histogram( w_all[myCut]  , bins = int(2*NBINS/2.), range = (-NBINS,NBINS) )
+binsE=binsADC*calP1+calP0
 ax2.hist(binsE[:-1], bins = binsE, weights = countsClu, histtype = 'step',label="energy w. clustering")
 ax2.set_xlabel('E[keV]')
 #ax2.set_xlim([0,12])
@@ -192,7 +220,21 @@ if PLOT_MAP==True:
     fig3=plt.figure(figsize=(10,10))
     plt.imshow(np.log10(counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])  
     #plt.imshow((counts2dClu), interpolation='nearest', origin='lower',  extent=[xedges[0], xedges[-1], yedges[0], yedges[-1]])  
+    if args.plotcutfile is not None:
+        with open(args.plotcutfile, "r") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue  # salta righe vuote o commenti
 
+                x_min, x_max, y_min, y_max = map(float, line.split())
+                plt.plot([x_min, x_min], [y_min, y_max], 'k--')
+                plt.plot([x_max, x_max], [y_min, y_max], 'k--')
+                plt.plot([x_min, x_max], [y_min, y_min], 'k--')
+                plt.plot([x_min, x_max], [y_max, y_max], 'k--')
+
+        
+        
     #plt.legend()
     plt.colorbar()
     plt.title('log10(counts)')
@@ -202,6 +244,7 @@ if SAVE_HISTOGRAMS==True:
   
     print('... saving energy spectrun  in:', spectrum_file_name  )
     np.savez(DIR +suffix+ spectrum_file_name, counts = countsClu,  bins = binsE)
+    np.savez(DIR +suffix+ 'ADC_' + spectrum_file_name, counts = countsClu,  bins = binsADC)
     np.savez(DIR +suffix+ xproj_file_name, counts = xprojection,  bins = bins_x)
     np.savez(DIR +suffix+ yproj_file_name, counts = yprojection,  bins = bins_y)
     fig2.savefig(DIR+suffix+'plots.png')

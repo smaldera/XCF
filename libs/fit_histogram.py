@@ -58,10 +58,10 @@ def fit_Gaushistogram(counts,bins,xmin=-100000,xmax=100000, initial_pars=[1,1,1]
     x_data=bin_centers[_mask]
     sigma=np.sqrt(y_data)
 
-    print("y_data=",y_data)
-    print("len(y_data)=",len(y_data))
+    #print("y_data=",y_data)
+    #print("len(y_data)=",len(y_data))
     
-    print("Bounds=",(parsBoundsLow, parsBoundsUp ))
+    #print("Bounds=",(parsBoundsLow, parsBoundsUp ))
     
     popt, pcov = curve_fit(gaussian_model, x_data, y_data,p0=initial_pars,absolute_sigma=True, sigma=sigma, bounds=(parsBoundsLow, parsBoundsUp ), maxfev=5000)
 

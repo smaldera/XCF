@@ -16,11 +16,26 @@ import matplotlib as mpl
 mpl.rcParams['font.size']=15  #!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 counts_array, dead_array, start_array, livetime_array, norm_array, peak_array, sigma_array = [], [], [], [], [], [], []
+peak_en_arr, sigma_en_arr = [], []
+peak_en_err_arr, sigma_en_err_arr = [], []
+names_arr = []
+
+def EtoADC(E,P0,P1):
+    return (E-P0)/P1
+
+def ADCtoE(adc,P0,P1):
+    return adc*P1+P0
+
+def ADCtoE_err(adc,P0,P1,adc_err,P0_err,P1_err):
+    sigma_ = P1**2*adc_err**2+adc**2*P1_err**2+P0_err**2
+    return np.sqrt(sigma_)
+
 
 def  plotAllSpectra(InputFileName):
 
     f=open(InputFileName)
     p=histogramSimo()
+    p_adc=histogramSimo()
     n_spectra=0
     base_path=''
     legend=''
@@ -66,6 +81,7 @@ def  plotAllSpectra(InputFileName):
             n_spectra+=1
             
             p.read_from_file(filename, fileFormat )
+            p_adc.read_from_file(filename, fileFormat )
 
         if   splitted[0]=='LEGEND':   
               legend=splitted[1] 
@@ -113,13 +129,18 @@ def  plotAllSpectra(InputFileName):
             if fileFormat=='sdd' or  fileFormat=='sddnpz':
                 calP0=-0.03544731540487446
                 calP1=0.0015013787118821926
+                calP0_err = 0.0004
+                calP1_err = 9.6e-8
             if fileFormat=='npz':
                 calP1=0.0032132721459619882
                 calP0=-0.003201340833319255
+                calP0_err = 2.8e-5
+                calP1_err = 2.8e-8
             if P0_ != None:
                 calP0 = P0_
             if P1_ != None:
                 calP1 = P1_
+            
             print("calP1=",calP1,"  calP0=",calP0)    
             p.bins=p.bins*calP1+calP0
             plt.ylabel('counts')
@@ -127,16 +148,22 @@ def  plotAllSpectra(InputFileName):
             if compute_rate==1:
                  print("compute rate time=",time)
                  p.counts=p.counts/time
+                 p_adc.counts=p_adc.counts/time
                  compute_rate=0
                  time=1
                  plt.ylabel('counts/s')
             if normalize==1:
                  print("NORMALIZZO!!!!!")
                  p.normalize(low,up)
+                 low_adc = EtoADC(low,calP0,calP1)
+                 up_adc = EtoADC(up,calP0,calP1)
+                 Max = p_adc.max_in_spectrum(low_adc,up_adc)
+                #  p_adc.normalize(low_adc,up_adc)
                  normalize=0
                  low=0.
                  up=0.
                  plt.ylabel('normalized rate')
+                 #p_adc.plot(ax,None)
             if show_legend==1:
                 p.plot(ax,legend)
             else:
@@ -154,23 +181,56 @@ def  plotAllSpectra(InputFileName):
         if splitted[0]=="FIT":    
             fit_parameter=splitted[1].split(' ')
             
-            min_x = float(fit_parameter[0])
-            max_x = float(fit_parameter[1])
+            min_x = EtoADC(float(fit_parameter[0]),calP0,calP1)
+            max_x = EtoADC(float(fit_parameter[1]),calP0,calP1)
             amplitude = float(fit_parameter[2])
-            peak = float(fit_parameter[3])
-            sigma = float(fit_parameter[4])
-            par, cov, chi2 = fitSimo.fit_Gaushistogram(p.counts, p.bins, xmin=min_x,xmax=max_x, initial_pars=[amplitude,peak,sigma], parsBoundsLow=-np.inf, parsBoundsUp=np.inf )
+            peak = EtoADC(float(fit_parameter[3]),calP0,calP1)
+            sigma = EtoADC(float(fit_parameter[4]),calP0,calP1)
+            mask_adc_fit = np.where((p_adc.bins >= min_x) & (p_adc.bins <= max_x))[0]
+            entries_in_fit_range = len(p_adc.counts[mask_adc_fit])
+            par, cov, chi2 = fitSimo.fit_Gaushistogram(p_adc.counts, p_adc.bins, xmin=min_x,xmax=max_x, initial_pars=[amplitude,peak,sigma], parsBoundsLow=-np.inf, parsBoundsUp=np.inf )
             x=np.linspace(min_x,max_x,1000)
+            peak_En = ADCtoE(par[1],calP0,calP1)
+            peak_En_p1sigma = ADCtoE(par[1]+par[2],calP0,calP1)
+            peak_En_m1sigma = ADCtoE(par[1]-par[2],calP0,calP1)
+            sigma_En = (peak_En_p1sigma-peak_En_m1sigma)/2 #ADCtoE(par[2],calP0,calP1)
+            peak_err_En = ADCtoE(np.sqrt(cov[1][1]),calP0,calP1)
+            sigma_err_En = ADCtoE(np.sqrt(cov[2][2]),calP0,calP1)
+            peak_err_tot_En = ADCtoE_err(par[1],calP0,calP1,np.sqrt(cov[1][1]),calP0_err,calP1_err)
+            sigma_err_tot_En = ADCtoE_err(par[2],calP0,calP1,np.sqrt(cov[2][2]),calP0_err,calP1_err)
+            # breakpoint()
+            CMOS_res = True
+            if CMOS_res:
+                def resolution(peaks,sigma,peaks_err,sigma_err):
+                    FWHM = 2.355*sigma
+                    FWHM_err = 2.355*sigma_err
+                    res = FWHM/peaks
+                    res_err = np.sqrt((FWHM_err / peaks)**2 + (res * peaks_err / peaks)**2)
+                    return res, res_err
+
+                res, res_err = resolution(peak_En,sigma_En,peak_err_En,sigma_err_En)
+                res_adc, res_adc_err = resolution(par[1],par[2],np.sqrt(cov[1][1]),np.sqrt(cov[2][2]))
             if show_legend==1:
-                label='peak = '+"%.3f"%par[1]+' keV'+'\n'+'sigma = '+"%.3f"%par[2]+' keV'
+                if not CMOS_res:
+                    label=f'E = {np.round(peak_En,4)}'+r'$\pm$' + f'{np.round(peak_err_tot_En,4)} keV'+'\n'+r'$\sigma$'+f' = ({np.round(sigma_En*100,3)}'+r'$\pm$' + f'{np.round(sigma_err_tot_En*100,3)})'+r'$\times10^{-2}$ keV'
+                else:
+                    label=f'E = {np.round(peak_En,4)}'+r'$\pm$' + f'{np.round(peak_err_tot_En,4)} keV'+'\n'+r'$\sigma$'+f' = ({np.round(sigma_En*100,3)}'+r'$\pm$' + f'{np.round(sigma_err_tot_En*100,3)})'+r'$\times10^{-2}$ keV'+'\n'+r'$\Delta E/E$ ='+ f'{np.round(res*100.,1)}'+r'$\pm$' + f'{np.round(res_err*100.,1)} %'
             else:
                 label=None
-            ax.plot(x,fitSimo.gaussian_model(x,par[0],par[1],par[2]),label=label)
+            xx = np.linspace(peak_En-sigma_En,peak_En+sigma_En,1000)
+            ax.plot(xx,fitSimo.gaussian_model(xx,par[0]/np.max(p_adc.counts),peak_En,sigma_En),label=label)
+            # xx_ = np.linspace(par[1]-3*par[2],par[1]+3*par[2],1000)
+            # ax.plot(xx_,fitSimo.gaussian_model(xx_,par[0],par[1],par[2]),label=label)
             print(' ')
             print('FIT PARAMETERS')
-            print('Gaussian norm = ', "%.5f"%par[0],' +- ',"%.5f"%np.sqrt(cov[0][0]),' keV')
-            print('Gaussian peak = ', "%.5f"%par[1],' +- ',"%.5f"%np.sqrt(cov[1][1]),' keV')
-            print('Gaussian sigma = ', "%.5f"%par[2],' +- ',"%.5f"%np.sqrt(cov[2][2]),' keV')
+            print('Gaussian norm = ', "%.5f"%par[0],' +- ',"%.5f"%np.sqrt(cov[0][0]))
+            print('Gaussian peak ADC = ', "%.5f"%par[1],' +- ',"%.5f"%np.sqrt(cov[1][1]))
+            print('Gaussian peak = ', "%.5f"%peak_En,' +- ',"%.5f"%peak_err_En,' err tot =',"%.5f"%peak_err_tot_En,' keV')
+            print('Gaussian sigma ADC = ', "%.5f"%par[2],' +- ',"%.5f"%np.sqrt(cov[2][2]))
+            print('Gaussian sigma = ', "%.5f"%sigma_En,' +- ',"%.5f"%sigma_err_En,' err tot =',"%.5f"%sigma_err_tot_En,' keV')
+            if CMOS_res:
+                print(f'res = {np.round(res*100.,2)} +- {np.round(res_err*100.,2)} %')
+                print(f'ADC res = {np.round(res_adc*100.,2)} +- {np.round(res_adc_err*100.,2)} %')
             print(' ')
             print('         ####################################################################################')
             print('         ####################################################################################')
@@ -180,6 +240,12 @@ def  plotAllSpectra(InputFileName):
             # plt.ylabel('events/s') # non so perche', ,ma nell'if non funziona!
 
             plt.legend()
+
+            peak_en_arr.append(peak_En)
+            peak_en_err_arr.append(peak_err_tot_En)
+            sigma_en_arr.append(sigma_En)
+            sigma_en_err_arr.append(sigma_err_tot_En)
+            names_arr.append(legend)
 
             counts_array.append(p.sdd_fastCounts)
             dead_array.append(p.sdd_deadTime)
@@ -256,8 +322,10 @@ if __name__ == "__main__":
     formatter = argparse.ArgumentDefaultsHelpFormatter
     parser = argparse.ArgumentParser( prog='calibrator.py',  formatter_class=formatter)
     parser.add_argument('infile', type=str, help='imput file')
+    parser.add_argument('--outpath', type=str, help='output path directory where to save .npy arrays containing the fit results',required=False,default=None)
     args = parser.parse_args()
     print('input file=',args.infile)
+    out_path = args.outpath
     #check file exist:
     if not (ospath.exists(args.infile)):
         print ("file not found:",args.infile)
@@ -265,7 +333,12 @@ if __name__ == "__main__":
         
     plotAllSpectra(args.infile)
    
-
+    if out_path is not None:
+        np.save(out_path+'peak_en.npy',peak_en_arr)
+        np.save(out_path+'peak_en_err.npy',peak_en_err_arr)
+        np.save(out_path+'sigma_en.npy',sigma_en_arr)
+        np.save(out_path+'sigma_en_err.npy',sigma_en_err_arr)
+        np.save(out_path+'names.npy',names_arr)
    
     plt.show()
 

@@ -103,7 +103,11 @@ def retrive_vectors3(nomefile):
     x_pix=data['x_pix']
     y_pix=data['y_pix']
     size=data['sizes']
-    times=data['timestamps']
+    try:
+        times = data['timestamps']
+    except KeyError:
+        times = None
+    #times=data['timestamps']
     return w,x_pix,y_pix,size,times
 
 
