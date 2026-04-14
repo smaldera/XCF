@@ -1,0 +1,87 @@
+import numpy as np
+from matplotlib import pyplot as plt
+
+
+
+gpd35=[]
+# e, mu_st, must err, rot, data
+gpd35.append([2.3, 22.8, 0.21, 20240229 ])  # rot 0
+gpd35.append([2.3, 22.72, 0.22, 20240229 ]) # rot 90
+
+gpd35.append([2.3, 21.9, 0.36, 20240401 ]) # rot 90 InSb
+gpd35.append([4.445, 42.31, 0.88, 20240423 ]) # rot 90 S200
+gpd35.append([2.82, 28.61, 0.75 , 20240430 ]) # rot 90 Si111
+
+gpd35.append([6.220  ,55.49,  0.85 , 20240502 ]) # rot 90 Si111
+
+gpd35.append([7.43  , 58.97, 1.17 , 20240502 ]) # rot 90 Si111
+gpd35.append([2.615, 27.37,  0.46 , 20240506 ]) # rot 90 Ge111
+
+gpd35.append([2.775,  27.62, 0.23,  20251022]) # Si111 Oct2025
+gpd35.append([2.775*3, 62.97,1.61,  20251022]) # Si111 Oct2025  n=3
+
+gpd35.append([2.3,19.94,0.3,20260310]) #  InSb, rot 90 w. dithering, 10 Mar 2026
+
+
+gpd30=[]
+gpd30.append([2.3,17.99, 0.24, 20240229])
+
+gpd30.append([2.775,29.81,  0.24, 20251022 ])
+gpd30.append([2.775*3,  67.45,1.66, 20251022 ]) # s111 n=3
+
+
+
+gpd37=[]
+gpd37.append([2.3,17.07, 0.21, 20240304])
+gpd37.append([2.775,28.87,  0.22 ,20251022 ])  #S111 oct25
+
+gpd37.append([2.775*3, 61.34, 3.5 ,20251022 ])  #S111 oct25 n=3
+
+gpd37.append([2.3,20.61,0.6,20260313 ] )   #InSb, rot 90 w. dithering, 13 Mar 2026
+
+
+
+gpd38=[]
+gpd38.append([2.3, 19.25, 0.21, 20240304])
+gpd38.append([2.775,  28.02,  0.25  ,20251022 ]) #S111 oct25 
+gpd38.append([2.775*3,  60.75, 1.56   ,20251022 ]) #S111 oct25 n=3
+gpd38.append([2.3,    18.43,  0.28  , 20251027])
+gpd38.append([2.3*2,  45.37 ,  1.33   , 20251027])
+
+
+
+             
+gpd35=np.array(gpd35).T
+gpd30=np.array(gpd30).T
+gpd38=np.array(gpd38).T
+gpd37=np.array(gpd37).T
+
+print(gpd35)
+
+
+plt.errorbar(gpd35[0],gpd35[1],yerr=gpd35[2],fmt='or',label='gpd35')
+plt.errorbar(gpd30[0],gpd30[1],yerr=gpd30[2],fmt='ob',label='gpd30')
+plt.errorbar(gpd37[0],gpd37[1],yerr=gpd37[2],fmt='og',label='gpd37')
+plt.errorbar(gpd38[0],gpd38[1],yerr=gpd38[2],fmt='ok',label='gpd38')
+plt.legend()
+plt.grid()
+
+plt.figure(2)
+Ecut=np.where(gpd35[0]==2.3)
+plt.errorbar(gpd35[3][Ecut],gpd35[1][Ecut],yerr=gpd35[2][Ecut],fmt='or',label='gpd35')
+
+Ecut=np.where(gpd37[0]==2.3)
+plt.errorbar(gpd37[3][Ecut],gpd37[1][Ecut],yerr=gpd37[2][Ecut],fmt='og',label='gpd37')
+
+Ecut=np.where(gpd38[0]==2.3)
+plt.errorbar(gpd38[3][Ecut],gpd38[1][Ecut],yerr=gpd38[2][Ecut],fmt='ok',label='gpd38')
+
+plt.show()
+
+
+
+# simulazioi cambiantpo P e t
+### E=2.3 p=625 T=24  =  21.4  +-  0.33
+### E=2.3 p=625 T=2o  =  20.56  +-  0.39
+### E=2.3 p=615 T=24  =  20.94  +-  0.48
+ ### E=2.3 p=615 T=26.5    21.3  +-  0.38
