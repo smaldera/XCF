@@ -10,8 +10,10 @@ import numpy as np
 from astropy.io import ascii
 from astropy.table import Table
 from matplotlib import colors
-from scipy import asarray as ar
-from scipy import exp, stats
+from numpy import asarray as ar
+#from scipy import asarray as ar
+from numpy import exp
+from scipy import  stats
 from scipy.optimize import curve_fit
 from scipy.optimize import Bounds
 from GPD_functions import spectrum, get_modulation_factor_stokes, \
@@ -126,6 +128,8 @@ time=time[energy_cut]
 num_clu=num_clu[energy_cut]
 livetime=livetime[energy_cut]
 
+print('Number of events after sigma cut = ',len(pha))
+
 # plot surviving events
 plt.hist(pha,histo_bins,facecolor=(1,0,0,0.1),edgecolor=(1,0,0,0.1),histtype='step',label='selected events', fill=True)
 plt.legend()
@@ -170,7 +174,7 @@ mu_stokes, pred_phi, err_mu = get_modulation_factor_stokes(np.array(phi1))
 
 print('====================================================================================')
 print('mu from fit = ', float("%.2f" % mu), ' +- ', float("%.2f" % mu_err))
-print('phi from fit = ', phase)
+print('phi from fit = ', phase, ' +- ', float("%.2f" % phase_err))
 print('====================================================================================')
 print('mu from stokes = ', float("%.2f" % (mu_stokes*100.)), ' +- ', float("%.2f" % (err_mu*100.)))
 print('phi from stokes = ', pred_phi)

@@ -11,8 +11,9 @@ import numpy as np
 from astropy.io import ascii
 from astropy.table import Table
 from matplotlib import colors
-from scipy import asarray as ar
-from scipy import exp, stats
+from numpy import asarray as ar
+from numpy import exp
+from scipy import  stats
 from scipy.optimize import curve_fit
 from scipy.optimize import Bounds
 from matplotlib.figure import Figure
