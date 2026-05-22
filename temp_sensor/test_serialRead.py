@@ -11,7 +11,7 @@ Hsum=0.
 n_sum=0.
 
 #outFileName='test_sensorData.txt'
-outFileName='/home/xcf/XCF/temp_data/temp_sensorData.txt'
+outFileNameTest='test.txt'
 
 
 while 1:
@@ -23,8 +23,9 @@ while 1:
     val2Splitted=val2.split()
     if val2Splitted[0]=="Found":
         print("sensor found  ... OK")
-   
-    
+
+    print("!!!!!")    
+    print("val2=",val2)
     timeStamp=time.time()
 
     if firstData==0:
@@ -44,7 +45,7 @@ while 1:
            
            print("===>>>>> Tmedia=",Tsum/n_sum, " Hmedia=",Hsum/n_sum)
            mystring=str(timeStamp)+'  '+str(Tsum/n_sum)+'   '+str(Hsum/n_sum)+'\n'
-           with open(outFileName,'a+') as f:
+           with open(outFileNameTest,'a+') as f:
                f.write(mystring)
            Tsum=0.
            Hsum=0.

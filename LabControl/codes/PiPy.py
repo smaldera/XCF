@@ -19,6 +19,7 @@ def Close(device):
     device.CloseConnection()
     return 0
 
+print(pipython.__file__)
 master, yUp, xUp = Connect()
 yUp.MOV(1,20)
 Close(yUp)

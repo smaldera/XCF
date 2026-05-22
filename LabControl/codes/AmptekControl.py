@@ -15,6 +15,9 @@ class SDD(object):
         self.CalP0 = -0.03544731
         self.CalP1 = 0.0015013787
 
+    def Chn2keV(self, chn):
+        return chn*self.CalP1 + self.CalP0
+
     def PingPong(self):
         P = self.itSelf.Ping()
         print(f'Ping: {P}')
@@ -45,7 +48,7 @@ class SDD(object):
     def Acquire(self, livetime=10):
         self.itSelf.ClearSpectrum()
         self.itSelf.SetPresetAccumulationTime(livetime)
-        print(f'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA: {livetime}')
+        print(f'Check livetime: {livetime}')
         self.itSelf.Enable()
         start = self.GetTime()
         print("Acquisition started")

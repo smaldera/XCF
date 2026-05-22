@@ -123,8 +123,8 @@ print("len y_all ",len(y_all))
 
 if FIND_HOTPIXELS==True:
 
-    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=5)
-    hotPix.find_HotPixels(n_sigma=10,low_threshold=50, min_counts=40) # low_treshold in ADC, 
+    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=20)
+    hotPix.find_HotPixels(n_sigma=20,low_threshold=30, min_counts=50) # low_treshold in ADC, 
     hotPix.save_cuts(DIR+'/cuts.npz')
 if CUT_HOT_PIXELS==True:
     hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=REBINXY)
@@ -133,6 +133,11 @@ if CUT_HOT_PIXELS==True:
     w_all,   x_all,  y_all, size_all=hotPix.get_cutVectors()
                     
 
+mask2=np.where(  ~((x_all==1732)&(y_all==4143))  )
+x_all= x_all[mask2]
+y_all= y_all[mask2] 
+w_all= w_all[mask2]
+size_all=size_all[mask2]
 print("len w_all dopo cut ",len(w_all))
 #===============
 
