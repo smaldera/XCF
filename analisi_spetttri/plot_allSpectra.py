@@ -16,6 +16,7 @@ import matplotlib as mpl
 mpl.rcParams['font.size']=15  #!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 counts_array, dead_array, start_array, livetime_array, norm_array, peak_array, sigma_array = [], [], [], [], [], [], []
+poisson_array = []
 
 def  plotAllSpectra(InputFileName):
 
@@ -181,6 +182,11 @@ def  plotAllSpectra(InputFileName):
 
             plt.legend()
 
+            mask_poisson = np.where((p.bins>(par[1]-par[2])) & (p.bins<(par[1]+par[2])))[0]
+
+            counts_poisson = p.counts[mask_poisson]
+            poisson_error = np.sqrt(counts_poisson)/sum(counts_poisson)
+            poisson_array.append(poisson_error*100)
             counts_array.append(p.sdd_fastCounts)
             dead_array.append(p.sdd_deadTime)
             start_array.append(p.sdd_start)
@@ -228,6 +234,7 @@ def  plotAllSpectra(InputFileName):
             plt.subplots_adjust(wspace=0.01,hspace=0.2,top=0.975,bottom=0.25)
             ax3.legend()
 
+            print('poisson',poisson_array)
             
 
 
