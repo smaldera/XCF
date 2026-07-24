@@ -283,3 +283,13 @@ def fit_LandauGaussinPed_histogram(counts,bins,xmin=-100000,xmax=100000, initial
 
   return coeff,pcov
 
+
+#import matplotlib.patches as mpl_patches
+from matplotlib.offsetbox import AnchoredText
+def plot_stats(ax,labelname, histo, loc=2 ):
+            
+             mystring="Histogram_"+ labelname+": \n mean= "+str(round(histo.mean,3))+"\n RMS="+str(round(histo.RMS,3))+'\n'
+
+             anchored = AnchoredText(mystring, loc=loc, pad=0.5, borderpad=0.5)
+             anchored.patch.set(facecolor='wheat', alpha=0.8, edgecolor='black')
+             ax.add_artist(anchored)

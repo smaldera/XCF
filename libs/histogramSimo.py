@@ -25,6 +25,11 @@ class histogramSimo():
              self.sdd_fastCounts=None
              self.sdd_start=None
 
+             #self.mean=None
+             #self.RMS=None
+             self.entries=None
+             
+
      # def get_from_file(self,filename):
      #       data=np.load(filename)
      #       counts=data['counts']
@@ -32,6 +37,8 @@ class histogramSimo():
      #       self.counts=counts
      #       self.bins=bins
 
+      
+     
       def normalize(self, minX,maxX):      
             bin_centers=fitSimo.get_centers(self.bins)
             print("minx=",minX," max =",maxX)
@@ -48,7 +55,8 @@ class histogramSimo():
 
             histo=ax.hist(self.bins[:-1],bins=self.bins,weights=self.counts, histtype='step', label=labelname)
 
-
+     
+            
 
       def read_from_file(self, filename, fileFormat ):
 
@@ -92,8 +100,13 @@ class histogramSimo():
                  self.sdd_liveTime=livetime
                  self.sdd_deadTime=deadTime
                  self.sdd_fastCounts=fast_counts
-                 self.sdd_start=start  
-                 
+                 self.sdd_start=start
+
+           
+           
+            self.entries=np.sum(self.counts)
+                        
+                  
       def rebin(self,n):
           
          rebinned_counts=[]
@@ -124,7 +137,13 @@ class histogramSimo():
          self.bins=np.array(rebinned_bins)
          
 
-                           
+      def getMeanRms(self):
+             bin_centers=fitSimo.get_centers(self.bins)    
+             mean = np.average(bin_centers, weights=self.counts)
+             weighted_var_sample = np.average((bin_centers - mean) ** 2, weights=self.counts) * self.entries / (self.entries - 1)
+             RMS=np.sqrt(weighted_var_sample)
+             return mean,RMS
+            
       def save_npz(self,filename):
                np.savez(filename, counts = self.counts,  bins = self.nins)
                

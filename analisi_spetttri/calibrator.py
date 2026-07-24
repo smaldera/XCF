@@ -152,22 +152,35 @@ if __name__ == "__main__":
 
     calP0=-p0/p1
     calP1=1./p1
-    calP1Err=((1./p1)**2)*p1Err
+    #calP1Err=((1./p1)**2)*p1Err
+    calP1Err=p1Err/(p1**2)
+    
     calP0Err=( ((1./p1)*p0Err)**2+  (p1Err*p0/(p1**2))**2  )**0.5
-    
+    calP0Err_cov=( ((1./p1)*p0Err)**2+  (p1Err*p0/(p1**2))**2 -2*p0p1Cov*p0/(p1**3)  )**0.5
+    calP0P1cov=(-p0*p1Err**2)/(p1**4)+p0p1Cov/(p1**3)
     
 
 
-    print("CAL P0=",calP0," calP0Err=",calP0Err,"  calP1= ",calP1, "  calP1Err=",calP1Err)
+    #print("CAL P0=",calP0," calP0Err=",calP0Err,"  calP1= ",calP1, "  calP1Err=",calP1Err)
+    print("CAL P0=",calP0," calP0Err=",calP0Err," calP0Err_cov=",calP0Err_cov,"  calP1= ",calP1, "  calP1Err=",calP1Err," Cov(calP1,calP0)=",calP0P1cov)
+
+
     plt.figure(n_files+2)
-    plt.errorbar(fitted_mean,true ,xerr=fitted_meanErr, fmt='ro')
-    x=np.linspace(min(fitted_mean)-2000 ,max(fitted_mean)+2000,1000)
+    #plt.errorbar(fitted_mean,true ,xerr=fitted_meanErr, fmt='ro')
+    x=np.linspace(min(fitted_mean)-2000 ,max(fitted_mean)+2000,10000)
     y= fitSimo.linear_model(x,calP0,calP1)
     y_err=y+3*((x*calP1Err)**2+calP0Err**2)**0.5
+    y_errOKCov=((calP1Err*x)**2+calP0Err**2+2*x*calP0P1cov)**0.5
+    y_errOK=((calP1Err*x)**2+calP0Err**2)**0.5
+   
+    
+    #plt.plot(x,y,'b-')
+  #  plt.plot(x,y,'k-')
+    plt.errorbar(x,y,yerr=y_errOK,fmt='kp',alpha=1)
+    plt.errorbar(x,y,yerr=y_errOKCov,fmt='gp',alpha=1)
+   
     plt.plot(x,y,'b-')
-    plt.plot(x,y_err,'k-')
-     
-
+    plt.errorbar(fitted_mean,true ,xerr=fitted_meanErr, fmt='ro')
     
     plt.figure(10)
     plt.errorbar(true,100.*fitted_sigma/fitted_mean ,yerr=100.*fitted_sigmaErr/fitted_mean, fmt='ro',label='IMX294') 

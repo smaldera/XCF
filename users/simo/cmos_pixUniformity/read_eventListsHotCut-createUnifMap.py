@@ -75,7 +75,8 @@ calP1=args.calP1
 
 NBINS=16384  # n.canali ADC (2^14)
 XBINS=2822
-YBINS=4144
+#YBINS=4144
+YBINS=3000
 
 REBINXY=args.rebinxy
 SAVE_HISTOGRAMS=args.nosaveHistos
@@ -95,7 +96,7 @@ print("Pixel Cut=",args.hotPixelsCut, "FIND_HOTPIXELS= ",FIND_HOTPIXELS," CUT_HO
 
 
 xbins2d=int(XBINS/REBINXY)
-ybins2d=int(YBINS/REBINXY)
+ybins2d=int((YBINS)/REBINXY)
 
 w_all=np.array([])
 x_all=np.array([])
@@ -108,13 +109,13 @@ for f in ff:
     #w, x,y=al.retrive_vectors(f[:-1])
     #w, x,y,size=al.retrive_vectors2(f[:-1])
     #w, x,y,size,timestamp=al.retrive_vectors3(f[:-1])
-    #w, x,y,size=al.retrive_vectors2(f[:-1])
-    w, x,y=al.retrive_vectors(f[:-1])
+    w, x,y,size=al.retrive_vectors2(f[:-1])
+    #w, x,y=al.retrive_vectors(f[:-1])
    
     w_all=np.append(w_all,w)
     x_all=np.append(x_all,x)
     y_all=np.append(y_all,y)
-  #  size_all=np.append(size_all,size)
+    size_all=np.append(size_all,size)
     #timestamp_all=np.append(timestamp_all,timestamp)
 
 print("len w_all ",len(w_all))
@@ -126,8 +127,8 @@ print("len y_all ",len(y_all))
 
 if FIND_HOTPIXELS==True:
 
-    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=5)
-    hotPix.find_HotPixels(n_sigma=10,low_threshold=50, min_counts=40) # low_treshold in ADC, 
+    hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=20)
+    hotPix.find_HotPixels(n_sigma=20,low_threshold=30, min_counts=50) # low_treshold in ADC, 
     hotPix.save_cuts(DIR+'/cuts.npz')
 if CUT_HOT_PIXELS==True:
     hotPix=hotPixels(x_all=x_all,y_all=y_all,w_all=w_all,size_all=size_all,rebin=REBINXY)
@@ -136,6 +137,12 @@ if CUT_HOT_PIXELS==True:
     w_all,   x_all,  y_all, size_all=hotPix.get_cutVectors()
                     
 
+mask2=np.where(  ~((x_all==1732)&(y_all==4143))  )
+x_all= x_all[mask2]
+y_all= y_all[mask2] 
+w_all= w_all[mask2]
+size_all=size_all[mask2]
+    
 print("len w_all dopo cut ",len(w_all))
 #===============
 
@@ -145,8 +152,8 @@ ax1=plt.subplot(221)
 
 #plot
 energy_all=w_all*calP1+calP0
-myCut=np.where( (w_all>50))
-#myCut=np.where( (w_all>50)&(energy_all<6.05)&(energy_all>5.7))
+#myCut=np.where( (w_all>50))
+myCut=np.where( (w_all>50)&(energy_all<2.36)&(energy_all>2.2)&(y_all<3000))
 #myCut=np.where( (w_all>50)&(x_all==1000)&(y_all==1000))
 
 
@@ -156,10 +163,19 @@ myCut=np.where( (w_all>50))
 #myCut=np.where( (w_all>50)&(x_all>999)&(x_all<1001)&(y_all>999)&(y_all<1001) )
 
 # mappa posizioni:
-counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
-counts2dCluW,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],weights=energy_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[0,YBINS]])
+counts2dClu,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[500,YBINS]])
+counts2dCluW,  xedges, yedges= np.histogram2d(x_all[myCut],y_all[myCut],weights=energy_all[myCut],bins=[xbins2d, ybins2d ],range=[[0,XBINS],[500,YBINS]])
 
+#maskZeros=np.where(counts2dClu!=0)[0]
+#print("counts2dClu[maskZeros]=",counts2dClu[maskZeros])
+
+counts2dClu=counts2dClu+1
 counts2dCluAVE=counts2dCluW/counts2dClu
+
+#SelectZeros=np.where(counts2dClu==0)[0]
+#print("selectZeros mask=",SelectZeros)
+#counts2dCluAVE[SelectZeros]=1
+
 
 meanE=np.mean(counts2dCluAVE)
 counts2dCluAVE=counts2dCluAVE/meanE
@@ -178,9 +194,9 @@ ax11=plt.subplot(222)
 
 
 
-print("w_all[mycut]=", w_all[myCut])
-print("x_all[mycut]=", x_all[myCut])
-print("y_all[mycut]=", y_all[myCut])
+#print("w_all[mycut]=", w_all[myCut])
+#print("x_all[mycut]=", x_all[myCut])
+#print("y_all[mycut]=", y_all[myCut])
 
 
 ax2=plt.subplot(222)
