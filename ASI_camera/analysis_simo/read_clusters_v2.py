@@ -236,8 +236,8 @@ def analize_allPix(track_list,SEL_SIZE,MIN_CORR=0.85):
 ###########################################
 
 
-#files_list=glob.glob('/home/maldera/IXPE/XCF/data/CMOS_verticale/clusters/tracks*/img_*.npz')
-files_list=glob.glob('/home/maldera/IXPE/XCF/data/cmos_temp/3/img_*.npz')
+files_list=glob.glob('/home/maldera/IXPE/XCF/data/CMOS_verticale/clusters/tracks*/img_*.npz')
+#files_list=glob.glob('/home/maldera/IXPE/XCF/data/cmos_temp/3/img_*.npz')
 
 tracks_list=read_allClusters(files_list)
 

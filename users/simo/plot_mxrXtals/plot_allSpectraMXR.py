@@ -67,7 +67,7 @@ if __name__ == "__main__":
     legend=['Si400','Ge422','Ge111','Si220','Si111']
     norm_limtis=[[6250,6425],[7350,7525],[2550, 2675],[4400, 4550],[2780,2880]]
     x_lines=[[6332,1740],[7443,9886,10982],[2631,2631*3,2631*4],[4450,4450*2],[2835,2835*3,2835*4]]
-    labels=[["Si400\nn=1",r'Si K$\alpha$'],['Ge442\nn=1',r'Ge K$\alpha$',r'Ge K$\beta$'],['Ge111\nn=1','Ge111\nn=3','Ge111\nn=4'],['Si200\nn=1','Si200\nn=2'],['Si111\nn=1 ','Si111\nn=3','Si111\nn=4']]
+    labels=[["Si400\nn=1",r'Si K$\alpha$'],['Ge442\nn=1',r'Ge K$\alpha$',r'Ge K$\beta$'],['Ge111\nn=1','Ge111\nn=3','Ge111\nn=4'],['Si220\nn=1','Si220\nn=2'],['Si111\nn=1 ','Si111\nn=3','Si111\nn=4']]
     labels_scale=[[1,0.4],[1,0.4,0.4],[1.4,1.4,1.4],[1.4,1.4],[0.7,0.7,0.7]]
    
     plot_all(BASE_PATH,input_files,legend,norm_limtis,x_lines,labels,labels_scale)
