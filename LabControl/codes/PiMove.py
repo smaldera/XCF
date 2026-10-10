@@ -1,3 +1,4 @@
+from astropy import units as u
 from pipython import GCSDevice, pitools
 import numpy as np
 from tqdm import tqdm
@@ -7,13 +8,15 @@ import time
 """Note that all tracks generators have games names"""
 
 class PiMikro:
-    def __init__(self, comport=4, baudrate=115200, seed=None):
+    def __init__(self, comport=4, baudrate=115200, seed=None, secondDevSerial='0122008821', secondDevName='E-872'):
         self.comport = comport
         self.baudrate = baudrate
         self.GPDl = 15 #GPD frame length [mm]
         self.upRange = 25 #[mm]
         self.xOrigin = 0 #[mm]
         self.yOrigin = 0 #[mm]
+        self.positiveAngleStep = 10000/0.404
+        self.negativeAngleStep = 10000/0.436
         self.hCrystal = GCSDevice()
         self.hCrystal.OpenRS232DaisyChain(comport=self.comport, baudrate=self.baudrate)
         daisychainid = self.hCrystal.dcid
@@ -28,6 +31,11 @@ class PiMikro:
         self.yLow.ConnectDaisyChainDevice(14, daisychainid)
         self.piAngle = GCSDevice()
         self.piAngle.ConnectDaisyChainDevice(15, daisychainid)
+        self.secondCtrl = GCSDevice(secondDevName) if secondDevName else GCSDevice()
+        self.secondCtrl.ConnectUSB(serialnum=secondDevSerial)
+        print('Second controller connection status: SUCCESS')
+        self.thetaAxis = 1 #N-470.21V
+        self.phiAxis = 2 #N-470.21VY
         self.seed = 0
         if seed is None:
             self.seed = int(time.time())
@@ -37,6 +45,23 @@ class PiMikro:
             np.random.seed(seed)
         print('Connection status: SUCCESS')
         print(f'Random seed set to: {self.seed}')
+
+    def Angle2Step(self, initial_angle, target_angle):
+        delta_angle = (target_angle - initial_angle).to_value(u.deg)
+        if delta_angle < 0:
+            step = int(round(abs(delta_angle) * self.positiveAngleStep))
+        else:
+            step = -int(round(abs(delta_angle) * self.negativeAngleStep))
+        print(f'    Number of steps = {step}')
+        return step
+
+    def Step2Angle(self, step):
+        if step < 0:
+            delta_angle = abs(step) / self.negativeAngleStep
+        else:
+            delta_angle = -abs(step) / self.positiveAngleStep
+        print(f'    Delta Angle = {delta_angle}')
+        return delta_angle
 
     def Cobra(self, velocity=1, step = 0.5, amplitude=7, Pa=900, Px=107, Py=127, Nstep=None, verbose=False):
         """This fuction emulates dithering movements"""
@@ -83,7 +108,7 @@ class PiMikro:
         self.xOrigin = x0 #[mm]
         self.yOrigin = y0 #[mm]
         return 1
-    
+
     def LowReach(self, Target, verbose=False):
         """Given a point it moves to it using Low axes"""
         if verbose:
@@ -148,6 +173,16 @@ class PiMikro:
             self.piAngle.VEL(1, velocity)
             self.piAngle.MOV(1,pos)
             pitools.waitontarget(self.piAngle, axes=1)
+        return 1
+
+    def MoveTheta(self, steps):
+        print(f"Moving Theta by {steps} steps")
+        self.secondCtrl.OSM(self.thetaAxis, steps)
+        return 1
+
+    def MovePhi(self, steps):
+        print(f"Moving Phi by {steps} steps")
+        self.secondCtrl.OSM(self.phiAxis, steps)
         return 1
 
     def MoveTheSnake(self, nLoops, snake, velocity): #It doesn't work like that: you need to read an array of points

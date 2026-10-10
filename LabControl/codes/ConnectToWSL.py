@@ -2,12 +2,12 @@ import subprocess
 import glob
 from datetime import datetime as dt
 
-def callps1(path='./', livetime='10', name=''):
+def callps1(path='./', livetime='15', name='', function = ''):
     powerShellPath = r'C:\WINDOWS\system32\WindowsPowerShell\v1.0\powershell.exe'
     powerShellCmd = './script.ps1'
     print('Ready')
     #call script with argument '/mnt/c/Users/aaa/'
-    p = subprocess.Popen([powerShellPath, '-ExecutionPolicy', 'Unrestricted', powerShellCmd, path, livetime, name]
+    p = subprocess.Popen([powerShellPath, '-ExecutionPolicy', 'Unrestricted', powerShellCmd, path, livetime, name, function]
                          , stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = p.communicate()
     return 1
