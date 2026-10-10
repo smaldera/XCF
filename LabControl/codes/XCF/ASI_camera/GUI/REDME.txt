@@ -1,0 +1,9 @@
+Per far partire la gui oltre alle varie dipendenze è necessario dichiarare queste variabili di ambiente, su linux sul mio pc del pregiurassico ha funzionato con il comando export come segue
+
+
+
+Export PYTHONUNBUFFERED=1 
+Export ZWO_ASI_LIB=/path/to/library/libASICamera2.so.1.32
+
+
+Le librerie sono scaricabili dal sito di ZWO
