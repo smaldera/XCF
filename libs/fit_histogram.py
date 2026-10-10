@@ -2,8 +2,8 @@ import numpy as np
 from scipy.optimize import curve_fit
 from matplotlib import pyplot as plt
 
-from landaupy import landau
-from landaupy import langauss
+#from landaupy import landau
+#from landaupy import langauss
 
 # TODO = trattare bin vuoti
 # errore poissoninano

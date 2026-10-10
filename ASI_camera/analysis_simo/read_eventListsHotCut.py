@@ -56,8 +56,8 @@ parser.add_argument('--hotPixelsCut',type=str2bool,  help="if true enable hot pi
 
 
     
-FIND_HOTPIXELS=True
-CUT_HOT_PIXELS=True
+FIND_HOTPIXELS=False
+CUT_HOT_PIXELS=False
 PLOT_MAP=True
 
 args = parser.parse_args()

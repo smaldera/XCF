@@ -343,7 +343,8 @@ class aotr2:
                     break
                 # ---------------------------------LIVE  PLOTS------------------------------------
                 if self.LIVE_PLOTS==True:
-                    if i%20 == 0:
+                    if i%20 == 0: #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                        
                         self.recover_data(data_buffer)
                         self.livePlots(ax3,fig3,cax)
 

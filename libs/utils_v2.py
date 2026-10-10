@@ -98,7 +98,7 @@ def save_histo(outHisto_name,countsAll,bins):
 
 
 def retrive_vectors3(nomefile):
-    data=np.load(nomefile)
+    data=np.load(nomefile,allow_pickle=True) 
     w=data['w']
     x_pix=data['x_pix']
     y_pix=data['y_pix']
