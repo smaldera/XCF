@@ -51,7 +51,7 @@ YBINS=4144
 
 class readEventList:
     
-    def __init__(self, fileList,calP0=-0.003201340833319255, calP1=0.003213272145961988, hotCut=False, path='.',suffix='' ):
+    def __init__(self, fileList,calP0=-0.003201340833319255, calP1=0.003213272145961988, hotCut=False, outpath='.',suffix='',rebin=20 ):
     
 
         self.FIND_HOTPIXELS=True
@@ -68,13 +68,13 @@ class readEventList:
         self.calP1=calP1
 
 
-        self.REBINXY=20
+        self.REBINXY=rebin
         self.SAVE_HISTOGRAMS=True
         self.spectrum_file_name='test_spectrum.npz' 
         self.xproj_file_name= 'test_xproj.npz'
         self.yproj_file_name='test_yproj.npz'
         self.suffix=suffix
-        self.path=path
+        self.path=outpath
         self.hotCut=hotCut
 
         print("calP0=",calP0,"  calP1=",calP1)
@@ -140,9 +140,12 @@ class readEventList:
         
         #myCut=np.where( ((w_all)>50)&(x_all>5)&(x_all<2808))
         #myCut=np.where( ((size_all)>1))
-        r=((17/3.1415)**0.5)/4.6e-3
-        mask2=np.where( (self.w_all>0)&( (  ((self.x_all-1460)**2+(self.y_all-2000)**2)< r**2 )  ))
-        #myCut=np.where( (w_all>40)&(x_all>1060)&(x_all<1980)&(y_all>1475)&(y_all<2660) )
+
+        #r=((17/3.1415)**0.5)/4.6e-3
+        #mask2=np.where( (self.w_all>0)&( (  ((self.x_all-1460)**2+(self.y_all-2000)**2)< r**2 )  ))
+
+
+        mask2=np.where( self.w_all>40)
         
 
         self.x_all= self.x_all[mask2]
@@ -259,6 +262,7 @@ class readEventList:
            ax4_2.hist(self.binsE[:-1], bins = self.binsE, weights = self.countsClu, histtype = 'step',label="energy w. clustering")
            ax4_2.set_xlabel('E[keV]') 
            ax4_2.set_yscale('log')
+           ax4_2.set_xlim([0,12])
 
            ax4_3=plt.subplot(223)
            ax4_3.hist(self.bins_x[:-1], bins = self.bins_x, weights = self.xprojection, histtype = 'step',label="x-projection")
